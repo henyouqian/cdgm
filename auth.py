@@ -54,17 +54,22 @@ class Login(tornado.web.RequestHandler):
             return
         
         #encrypt password
-        password = hashlib.sha1(password).digest()
+        password = hashlib.sha1(password).hexdigest()
 
-        #qurey redis
-        pw_redis = yield g.redis.hget("user_account", username)
+        #qurey db
+        rows = yield g.db.runQuery(
+            """SELECT id FROM developer_account 
+                    WHERE username=%s AND password=%s"""
+            ,(username, password)
+        )
+        if isinstance(rows, Exception):
+            logging.error(str(rows))
+            send_error(self, err_db)
+            return;
 
-        if not pw_redis:
-            send_error(self, err_not_exist)
-            return
-
-        #password match
-        if pw_redis != password:
+        try:
+            db_pw = rows[0][0]
+        except:
             send_error(self, err_not_match)
             return
 
