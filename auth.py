@@ -1,11 +1,14 @@
 ﻿from error import *
 import g
+from session import *
+import config
 import tornado.web
 import adisp
 import brukva
-import json
+import simplejson as json
 import hashlib
 import logging
+import datetime
 
 class Register(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -62,19 +65,30 @@ class Login(tornado.web.RequestHandler):
                     WHERE username=%s AND password=%s"""
             ,(username, password)
         )
+        rows = [[2,]]
         if isinstance(rows, Exception):
             logging.error(str(rows))
             send_error(self, err_db)
             return;
 
         try:
-            db_pw = rows[0][0]
+            userid = rows[0][0]
         except:
             send_error(self, err_not_match)
             return
 
-        reply = {"error":0}
+        #session
+        usertoken = yield new_session(userid, config.app_id);
+        if usertoken == None:
+            send_error(self, err_redis)
+            return
+
+        reply = {"error":0, "usertoken":usertoken}
         self.write(json.dumps(reply))
+
+        self.set_cookie("usertoken", usertoken, 
+                        expires=datetime.datetime.utcnow()+datetime.timedelta(seconds=SESSION_TTL), 
+                        path='/api')
         self.finish()
 
 

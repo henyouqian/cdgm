@@ -1,27 +1,42 @@
 ﻿import auth
 import g
 import config
+import test
+
 from tornado import web, httpserver, ioloop
 from tornado import options
 import brukva
 from adb import Database
 import logging
+import os
 
-if __name__ == "__main__":
+def main():
+    print "Server starting..."
+
+    # command line
+    options.define("port", default=8888, help="Port")
+    options.parse_command_line()
+    params = options.options
+
     # redis
-    c = brukva.Client(**config.redis)
-    c.connect()
-    g.redis = c.async
+    try:
+        c = brukva.Client(**config.redis)
+        c.connect()
+        g.redis = c.async
+    except:
+        print "redis connecting failed"
+        return
 
     # database
     g.db = Database(**config.db)
     
     # application
     application = web.Application(
-        auth.handlers,
+        auth.handlers
+        +test.handlers,
         debug = config.debug
     )
-    application.listen(config.server_port)
+    application.listen(params.port)
     if (config.debug):
         logging.getLogger().setLevel(logging.DEBUG)
         options.enable_pretty_logging()
@@ -35,3 +50,6 @@ if __name__ == "__main__":
     except:
         print "Server shutting down..."
         g.db.stop()
+
+if __name__ == "__main__":
+    main()
