@@ -27,13 +27,13 @@ class Register(tornado.web.RequestHandler):
 
         #insert to db
         rv = yield g.db.runOperation(
-            "INSERT INTO developer_account (username, password) VALUES(%s, %s)"
+            "INSERT INTO user_account (username, password) VALUES(%s, %s)"
             ,(username, password)
         )
 
         if isinstance(rv, Exception):
             logging.error(str(rv))
-            send_error(self, err_exist)
+            send_error(self, err_db)
             return;
 
         if rv == 0:
@@ -61,11 +61,10 @@ class Login(tornado.web.RequestHandler):
 
         #qurey db
         rows = yield g.db.runQuery(
-            """SELECT id FROM developer_account 
+            """SELECT id FROM user_account 
                     WHERE username=%s AND password=%s"""
             ,(username, password)
         )
-        rows = [[2,]]
         if isinstance(rows, Exception):
             logging.error(str(rows))
             send_error(self, err_db)

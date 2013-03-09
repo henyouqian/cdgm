@@ -42,6 +42,7 @@ def main():
         options.enable_pretty_logging()
         print "Server start in debug mode"
     else:
+        logging.disable(logging.WARNING)
         print "Server start"
 
     # server loop
