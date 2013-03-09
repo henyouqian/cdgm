@@ -33,7 +33,7 @@ class Register(tornado.web.RequestHandler):
 
         if isinstance(rv, Exception):
             logging.error(str(rv))
-            send_error(self, err_db)
+            send_error(self, err_exist)
             return;
 
         if rv == 0:
