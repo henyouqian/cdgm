@@ -1,7 +1,6 @@
 ﻿import auth
 import g
 import config
-import test
 
 from tornado import web, httpserver, ioloop
 from tornado import options
@@ -32,8 +31,7 @@ def main():
     
     # application
     application = web.Application(
-        auth.handlers
-        +test.handlers,
+        auth.handlers,
         debug = config.debug
     )
     application.listen(params.port)
