@@ -7,6 +7,7 @@ err_not_exist = "err_not_exist"
 err_not_match = "err_not_match"
 err_db = "err_db"
 err_redis = "err_redis"
+err_auth = "err_auth"
 
 def send_error(hdl, err):
     reply = {"error":err}

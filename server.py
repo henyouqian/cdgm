@@ -1,4 +1,5 @@
 ﻿import auth
+import player
 import g
 import config
 
@@ -27,11 +28,13 @@ def main():
         return
 
     # database
-    g.db = Database(**config.db)
+    g.authdb = Database(**config.auth_db)
+    g.whdb = Database(**config.wh_db)
     
     # application
     application = web.Application(
-        auth.handlers,
+        auth.handlers
+        +player.handlers,
         debug = config.debug
     )
     application.listen(params.port)
@@ -48,7 +51,8 @@ def main():
         ioloop.IOLoop.instance().start()
     except:
         print "Server shutting down..."
-        g.db.stop()
+        g.authdb.stop()
+        g.whdb.stop()
 
 if __name__ == "__main__":
     main()

@@ -103,10 +103,11 @@ class WorkerThread(Thread):
                 (func, callback) = queue.get(True, queue_timeout)
                 result = func(thread_state=thread_state)
                 if callback:
-                    self._pool._ioloop.add_callback(partial(callback, result))
+                    self._pool._ioloop.add_callback(partial(callback, (None, result)))
             except Empty:
                 pass
             except Exception as e:
-                self._pool._ioloop.add_callback(partial(callback, e))
+                if callback:
+                    self._pool._ioloop.add_callback(partial(callback, (e, None)))
         if self._per_thread_close_func:
             self._per_thread_close_func(thread_state)

@@ -26,18 +26,17 @@ class Register(tornado.web.RequestHandler):
         password = hashlib.sha1(password).hexdigest()
 
         #insert to db
-        rv = yield g.db.runOperation(
+        e, row_nums = yield g.authdb.runOperation(
             "INSERT INTO user_account (username, password) VALUES(%s, %s)"
             ,(username, password)
         )
 
-        if isinstance(rv, Exception):
-            logging.error(str(rv))
+        if e:
+            logging.error(e)
             send_error(self, err_exist)
             return;
 
-        if rv == 0:
-            logging.error(str(rv))
+        if row_nums != 1:
             send_error(self, err_db)
             return;
         
@@ -60,15 +59,15 @@ class Login(tornado.web.RequestHandler):
         password = hashlib.sha1(password).hexdigest()
 
         #qurey db
-        rows = yield g.db.runQuery(
+        e, rows = yield g.authdb.runQuery(
             """SELECT id FROM user_account 
                     WHERE username=%s AND password=%s"""
             ,(username, password)
         )
-        if isinstance(rows, Exception):
-            logging.error(str(rows))
+        if e:
+            logging.error(e)
             send_error(self, err_db)
-            return;
+            return
 
         try:
             userid = rows[0][0]
@@ -77,7 +76,7 @@ class Login(tornado.web.RequestHandler):
             return
 
         #session
-        usertoken = yield new_session(userid, config.app_id);
+        usertoken = yield new_session(userid, username, config.app_id);
         if usertoken == None:
             send_error(self, err_redis)
             return
@@ -87,11 +86,11 @@ class Login(tornado.web.RequestHandler):
 
         self.set_cookie("usertoken", usertoken, 
                         expires=datetime.datetime.utcnow()+datetime.timedelta(seconds=SESSION_TTL), 
-                        path='/api')
+                        path='/') #fixme expires and path
         self.finish()
 
 
 handlers = [
-    (r"/api/auth/register", Register),
-    (r"/api/auth/login", Login),
+    (r"/authapi/register", Register),
+    (r"/authapi/login", Login),
 ]

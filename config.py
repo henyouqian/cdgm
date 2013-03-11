@@ -18,10 +18,21 @@ redis = {
 #     "queue_timeout": 1,
 # }
 
-db = {
+auth_db = {
     "driver": "MySQLdb",
     "host": "localhost",
     "database": "account_db",
+    "user": "root",
+    "password": "Nmmgb808313",
+    "num_threads": 5,
+    "tx_connection_pool_size": 5,
+    "queue_timeout": 1,
+}
+
+wh_db = {
+    "driver": "MySQLdb",
+    "host": "localhost",
+    "database": "wh_db",
     "user": "root",
     "password": "Nmmgb808313",
     "num_threads": 5,

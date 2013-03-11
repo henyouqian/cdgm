@@ -156,11 +156,21 @@ class Database:
         """
         if not conn:
             conn = thread_state
+            should_commit = True
+        else:
+            should_commit = False
         cursor = conn.cursor()
-        cursor.execute(query, args)
-        rows = cursor.fetchall()
-        cursor.close()
-        return rows
+        try:
+            cursor.execute(query, args)
+        except:
+            raise
+        else:
+            rows = cursor.fetchall()
+            return rows
+        finally:
+            if should_commit:
+                conn.commit()
+            cursor.close()
 
     @async
     def runOperation(self, stmt, args=None, conn=None, callback=None):
