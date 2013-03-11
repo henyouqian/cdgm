@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # http://code.google.com/p/sequel-pro/
 #
-# Host: 192.168.0.109 (MySQL 5.5.29-0ubuntu0.12.04.2)
+# Host: 192.168.2.102 (MySQL 5.5.29-0ubuntu0.12.04.2)
 # Database: account_db
-# Generation Time: 2013-03-09 07:08:58 +0000
+# Generation Time: 2013-03-11 14:12:50 +0000
 # ************************************************************
 
 
@@ -39,7 +39,8 @@ LOCK TABLES `user_account` WRITE;
 
 INSERT INTO `user_account` (`id`, `username`, `password`)
 VALUES
-	(12,'aa','e0c9035898dd52fc65c41454cec9c4d2611bfb37');
+	(12,'aa','e0c9035898dd52fc65c41454cec9c4d2611bfb37'),
+	(21,'bb','9a900f538965a426994e1e90600920aff0b4e8d2');
 
 /*!40000 ALTER TABLE `user_account` ENABLE KEYS */;
 UNLOCK TABLES;
