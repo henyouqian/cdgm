@@ -22,10 +22,10 @@ class Getinfo(tornado.web.RequestHandler):
 
         # query user info
         e, rows = yield g.whdb.runQuery(
-            """ SELECT name, current_band_id, is_in_map, last_map_id, 
-                    ap, max_ap
-                    FROM user_info
-                    WHERE id=%s"""
+            """ SELECT name, currentBandId, isInMap, lastMapId, 
+                    ap, maxAp
+                    FROM playerInfos
+                    WHERE userId=%s"""
             ,(userid, )
         )
         if e:
@@ -37,9 +37,9 @@ class Getinfo(tornado.web.RequestHandler):
         if not rows:
             row = (userid, username, 0, 0, 0, INITIAL_AP, INITIAL_AP)
             e, row_nums = yield g.whdb.runOperation(
-                """ INSERT INTO user_info
-                        (id, name, current_band_id, is_in_map, last_map_id,
-                            ap, max_ap)
+                """ INSERT INTO playerInfos
+                        (userId, name, currentBandId, isInMap, lastMapId,
+                            ap, maxAp)
                         VALUES(%s, %s, %s, %s, %s, %s, %s)"""
                 ,row
             )
