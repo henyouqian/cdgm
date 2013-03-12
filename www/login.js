@@ -20,7 +20,7 @@ function login(){
 		alert("Form incomplete.")
 		return;
 	}
-	$.getJSON('/cdgmapi/auth/login', {username:username, password:password}, function(json){
+	$.getJSON('/authapi/login', {username:username, password:password}, function(json){
 		var err = json.error;
 		if (err==0){
 			window.location.href="main.html";

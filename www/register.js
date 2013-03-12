@@ -21,7 +21,7 @@ function register(){
 		alert("Password mismatch.");
 		return;
 	}
-	$.getJSON('/cdgmapi/auth/register', {username:username, password:password}, function(json){
+	$.getJSON('/authapi/register', {username:username, password:password}, function(json){
 		var err = json.error;
 		if (err==0){
 			window.location.href="login.html?username="+username;
