@@ -25,7 +25,7 @@ dir = os.getcwd()
 for a, b, c in os.walk(dir):
     if (a==dir):
         for file in c:
-            if file == 'json2csv.py':
+            if file == 'json2csv.py' or file == 'json2csv.bat':
                 continue
             with open(file) as f:
                 root = json.load(f, object_pairs_hook=OrderedDict)
