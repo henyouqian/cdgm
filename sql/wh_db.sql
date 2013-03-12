@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # http://code.google.com/p/sequel-pro/
 #
-# Host: 192.168.2.102 (MySQL 5.5.29-0ubuntu0.12.04.2)
+# Host: 192.168.0.109 (MySQL 5.5.29-0ubuntu0.12.04.2)
 # Database: wh_db
-# Generation Time: 2013-03-11 14:12:33 +0000
+# Generation Time: 2013-03-12 07:15:54 +0000
 # ************************************************************
 
 
@@ -51,38 +51,38 @@ CREATE TABLE `card_entity` (
 
 
 
-# Dump of table card_proto
+# Dump of table cards
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `card_proto`;
+DROP TABLE IF EXISTS `cards`;
 
-CREATE TABLE `card_proto` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(11) NOT NULL DEFAULT '',
-  `commet` int(11) DEFAULT NULL,
-  `rarity` int(11) DEFAULT NULL,
-  `card_type` int(11) DEFAULT NULL,
-  `battle_exp` int(11) DEFAULT NULL,
-  `price` int(11) DEFAULT NULL,
-  `has_boss_image` int(11) DEFAULT NULL,
-  `base_hp` int(11) DEFAULT NULL,
-  `base_atk` int(11) DEFAULT NULL,
-  `base_def` int(11) DEFAULT NULL,
-  `base_wis` int(11) DEFAULT NULL,
-  `base_agi` int(11) DEFAULT NULL,
-  `max_hp` int(11) DEFAULT NULL,
-  `max_atk` int(11) DEFAULT NULL,
-  `max_def` int(11) DEFAULT NULL,
-  `max_wis` int(11) DEFAULT NULL,
-  `max_agi` int(11) DEFAULT NULL,
-  `max_level` int(11) DEFAULT NULL,
-  `grow_type` int(11) DEFAULT NULL,
-  `skill_id1` int(11) DEFAULT NULL,
-  `skill_id2` int(11) DEFAULT NULL,
-  `evolution` int(11) DEFAULT NULL,
-  `max_evolution` int(11) DEFAULT NULL,
-  `can_trade` int(11) DEFAULT NULL,
-  `material_exp` int(11) DEFAULT NULL,
+CREATE TABLE `cards` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(40) NOT NULL DEFAULT '',
+  `comment` varchar(80) NOT NULL DEFAULT '',
+  `rarity` tinyint(4) unsigned NOT NULL,
+  `cardType` tinyint(3) unsigned NOT NULL,
+  `battleExp` smallint(5) unsigned NOT NULL,
+  `price` smallint(5) unsigned NOT NULL,
+  `hasBossImage` tinyint(1) unsigned NOT NULL,
+  `baseHp` smallint(5) unsigned NOT NULL,
+  `baseAtk` smallint(5) unsigned NOT NULL,
+  `baseDef` smallint(5) unsigned NOT NULL,
+  `baseWis` smallint(5) unsigned NOT NULL,
+  `baseAgi` smallint(5) unsigned NOT NULL,
+  `maxHp` smallint(5) unsigned NOT NULL,
+  `maxAtk` smallint(5) unsigned NOT NULL,
+  `maxDef` smallint(5) unsigned NOT NULL,
+  `maxWis` smallint(5) unsigned NOT NULL,
+  `maxAgi` smallint(5) unsigned NOT NULL,
+  `maxLevel` tinyint(3) unsigned NOT NULL,
+  `growthType` tinyint(3) unsigned NOT NULL,
+  `skillId1` tinyint(3) unsigned NOT NULL,
+  `skillId2` tinyint(3) unsigned NOT NULL,
+  `evolution` tinyint(3) unsigned NOT NULL,
+  `maxEvolution` tinyint(4) unsigned NOT NULL,
+  `canTrade` tinyint(1) unsigned NOT NULL,
+  `materialExp` smallint(5) unsigned NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
