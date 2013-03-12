@@ -35,7 +35,8 @@ def main():
     application = web.Application(
         auth.handlers
         +player.handlers,
-        debug = config.debug
+        debug = config.debug,
+        cookie_secret=config.cookie_secret
     )
     application.listen(params.port)
     if (config.debug):
