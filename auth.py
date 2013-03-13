@@ -97,14 +97,14 @@ class Login(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-    class Test1(tornado.web.RequestHandler):
+class Test1(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
         send_error(self, err_param)
         self.finish()
 
-    class Test2(tornado.web.RequestHandler):
+class Test2(tornado.web.RequestHandler):
     def get(self):
         send_error(self, err_param)
 
