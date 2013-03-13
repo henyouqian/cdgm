@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # http://code.google.com/p/sequel-pro/
 #
-# Host: 192.168.0.109 (MySQL 5.5.29-0ubuntu0.12.04.2)
+# Host: 127.0.0.1 (MySQL 5.5.29-0ubuntu0.12.04.2)
 # Database: wh_db
-# Generation Time: 2013-03-12 09:09:32 +0000
+# Generation Time: 2013-03-13 15:15:38 +0000
 # ************************************************************
 
 
@@ -100,33 +100,33 @@ VALUES
 UNLOCK TABLES;
 
 
-# Dump of table card_entity
+# Dump of table cardEntitys
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `card_entity`;
+DROP TABLE IF EXISTS `cardEntitys`;
 
-CREATE TABLE `card_entity` (
+CREATE TABLE `cardEntitys` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `proto_id` int(10) unsigned NOT NULL,
-  `owner_id` bigint(20) NOT NULL,
+  `cardId` int(10) unsigned NOT NULL,
+  `ownerId` int(20) NOT NULL,
   `level` smallint(5) unsigned NOT NULL,
   `exp` int(10) unsigned NOT NULL,
-  `skill_level` tinyint(3) unsigned NOT NULL,
-  `skill_exp` smallint(5) unsigned NOT NULL,
-  `hp` int(11) NOT NULL,
-  `atk` int(11) NOT NULL,
-  `def` int(11) NOT NULL,
-  `wis` int(11) NOT NULL,
-  `agi` int(11) NOT NULL,
-  `add_skill1` int(11) DEFAULT NULL,
-  `add_skill2` int(11) DEFAULT NULL,
-  `hp_add` int(11) DEFAULT NULL,
-  `atk_add` int(11) DEFAULT NULL,
-  `def_add` int(11) DEFAULT NULL,
-  `wis_add` int(11) DEFAULT NULL,
-  `agi_add` int(11) DEFAULT NULL,
+  `skillLevel` tinyint(3) unsigned NOT NULL,
+  `skillExp` smallint(5) unsigned NOT NULL,
+  `hp` smallint(5) unsigned NOT NULL,
+  `atk` smallint(5) unsigned NOT NULL,
+  `def` smallint(5) unsigned NOT NULL,
+  `wis` smallint(5) unsigned NOT NULL,
+  `agi` smallint(5) unsigned NOT NULL,
+  `addSkill1` tinyint(3) unsigned DEFAULT NULL,
+  `addSkill2` tinyint(3) unsigned DEFAULT NULL,
+  `hpAdd` smallint(5) unsigned DEFAULT NULL,
+  `atkAdd` smallint(5) unsigned DEFAULT NULL,
+  `defAdd` smallint(5) unsigned DEFAULT NULL,
+  `wisAdd` smallint(5) unsigned DEFAULT NULL,
+  `agiAdd` smallint(5) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `owner_id` (`owner_id`)
+  KEY `owner_id` (`ownerId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -4926,30 +4926,46 @@ VALUES
 UNLOCK TABLES;
 
 
-# Dump of table players
+# Dump of table playerCards
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `players`;
+DROP TABLE IF EXISTS `playerCards`;
 
-CREATE TABLE `players` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+CREATE TABLE `playerCards` (
+  `cardEntityId` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ownerId` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`cardEntityId`),
+  KEY `ownerId` (`ownerId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table playerInfos
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `playerInfos`;
+
+CREATE TABLE `playerInfos` (
+  `userId` int(10) unsigned NOT NULL,
   `name` varchar(40) CHARACTER SET utf8 NOT NULL DEFAULT '',
-  `current_band_id` tinyint(3) unsigned NOT NULL,
-  `is_in_map` tinyint(1) NOT NULL,
-  `last_map_id` smallint(5) unsigned NOT NULL,
+  `currentBandId` tinyint(3) unsigned NOT NULL,
+  `isInMap` tinyint(1) NOT NULL,
+  `lastMapId` smallint(5) unsigned NOT NULL,
   `ap` smallint(5) unsigned NOT NULL,
-  `max_ap` smallint(5) unsigned NOT NULL,
-  PRIMARY KEY (`id`)
+  `maxAp` smallint(5) unsigned NOT NULL,
+  `silverCoin` int(11) DEFAULT NULL,
+  `bronzeCoin` int(11) DEFAULT NULL,
+  PRIMARY KEY (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-LOCK TABLES `players` WRITE;
-/*!40000 ALTER TABLE `players` DISABLE KEYS */;
+LOCK TABLES `playerInfos` WRITE;
+/*!40000 ALTER TABLE `playerInfos` DISABLE KEYS */;
 
-INSERT INTO `players` (`id`, `name`, `current_band_id`, `is_in_map`, `last_map_id`, `ap`, `max_ap`)
+INSERT INTO `playerInfos` (`userId`, `name`, `currentBandId`, `isInMap`, `lastMapId`, `ap`, `maxAp`, `silverCoin`, `bronzeCoin`)
 VALUES
-	(12,'aa',0,0,0,30,30);
+	(22,'cc',0,0,0,30,30,2,5);
 
-/*!40000 ALTER TABLE `players` ENABLE KEYS */;
+/*!40000 ALTER TABLE `playerInfos` ENABLE KEYS */;
 UNLOCK TABLES;
 
 
