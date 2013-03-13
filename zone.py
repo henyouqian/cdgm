@@ -1,13 +1,13 @@
 ﻿from error import *
-import g
 from session import *
+import g
 import tornado.web
 import adisp
 import brukva
 import simplejson as json
 import logging
 
-class Addcard(tornado.web.RequestHandler):
+class Get(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -25,5 +25,5 @@ class Addcard(tornado.web.RequestHandler):
 
 
 handlers = [
-    (r"/whapi/cheat/addcard", Addcard),
+    (r"/whapi/zone/get", Get),
 ]

@@ -7,9 +7,10 @@ function getPlayerInfo(){
 		var err = json.error;
 		if (err == 0){
 			$("#info").text(JSON.stringify(json));
+			window.localStorage.playerInfo = JSON.stringify(json)
 			if (json.isInMap)
 				$("#adv").text("resume");
-			
+
 		}else{
 			if (err == "err_not_exist") {
 				window.location.href="create_player.html";
