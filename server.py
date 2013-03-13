@@ -10,6 +10,11 @@ from adb import Database
 import logging
 import os
 
+handlers = auth.handlers + player.handlers
+if config.debug:
+    import cheat
+    handlers = handlers + cheat.handlers
+
 def main():
     print "Server starting..."
 
@@ -33,8 +38,7 @@ def main():
     
     # application
     application = web.Application(
-        auth.handlers
-        +player.handlers,
+        handlers,
         debug = config.debug,
         cookie_secret=config.cookie_secret
     )
