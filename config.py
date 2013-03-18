@@ -8,7 +8,7 @@ redis = {
     "port": 6379,
 }
 
-# db = {
+# auth_db = {
 #     "driver": "psycopg2",
 #     "host": "localhost",
 #     "database": "account_db",
@@ -25,8 +25,8 @@ auth_db = {
     "database": "account_db",
     "user": "root",
     "password": "Nmmgb808313",
-    "num_threads": 5,
-    "tx_connection_pool_size": 5,
+    "num_threads": 3,
+    "tx_connection_pool_size": 2,
     "queue_timeout": 1,
 }
 
@@ -36,7 +36,7 @@ wh_db = {
     "database": "wh_db",
     "user": "root",
     "password": "Nmmgb808313",
-    "num_threads": 5,
-    "tx_connection_pool_size": 5,
+    "num_threads": 3,
+    "tx_connection_pool_size": 2,
     "queue_timeout": 1,
 }

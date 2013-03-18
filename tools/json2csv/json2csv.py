@@ -21,20 +21,21 @@ def parse(key, value):
         for k, v in value.iteritems():
             parse(k, v)
 
-try:
-    os.mkdir('output')
-except:
-    pass
-dir = os.getcwd()
-for a, b, c in os.walk(dir):
-    if (a==dir):
-        for file in c:
-            if file == 'json2csv.py' or file == 'json2csv.bat':
-                continue
-            with open(file) as f:
-                try:
-                    root = json.load(f, object_pairs_hook=OrderedDict)
-                    for k, v in root.iteritems():
-                        parse(k, v)
-                except:
-                    pass
+if __name__ == "__main__":
+    try:
+        os.mkdir('output')
+    except:
+        pass
+    dir = os.getcwd()
+    for a, b, c in os.walk(dir):
+        if (a==dir):
+            for file in c:
+                if file == 'json2csv.py' or file == 'json2csv.bat':
+                    continue
+                with open(file) as f:
+                    try:
+                        root = json.load(f, object_pairs_hook=OrderedDict)
+                        for k, v in root.iteritems():
+                            parse(k, v)
+                    except:
+                        pass

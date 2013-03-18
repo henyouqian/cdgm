@@ -9,6 +9,7 @@ import brukva
 from adb import Database
 import logging
 import os
+import random
 
 handlers = auth.handlers + player.handlers
 if config.debug:
@@ -17,6 +18,7 @@ if config.debug:
 
 def main():
     print "Server starting..."
+    random.seed()
 
     # command line
     options.define("port", default=8888, help="Port")
