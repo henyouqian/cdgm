@@ -30,6 +30,17 @@ auth_db = {
     "queue_timeout": 1,
 }
 
+# auth_db = {
+#     "driver": "MySQLdb",
+#     "host": "henyouqian.mysql.rds.aliyuncs.com",
+#     "database": "account_db",
+#     "user": "liwei",
+#     "password": "nmmgb808313",
+#     "num_threads": 20,
+#     "tx_connection_pool_size": 15,
+#     "queue_timeout": 1,
+# }
+
 wh_db = {
     "driver": "MySQLdb",
     "host": "localhost",

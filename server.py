@@ -1,5 +1,6 @@
 ﻿import auth
 import player
+import zone
 import g
 import config
 
@@ -11,7 +12,7 @@ import logging
 import os
 import random
 
-handlers = auth.handlers + player.handlers
+handlers = auth.handlers + player.handlers + zone.handlers
 if config.debug:
     import cheat
     handlers = handlers + cheat.handlers
