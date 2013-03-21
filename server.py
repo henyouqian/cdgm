@@ -3,6 +3,7 @@ import player
 import zone
 import g
 import config
+import threading
 
 from tornado import web, httpserver, ioloop
 from tornado import options
@@ -11,6 +12,25 @@ from adb import Database
 import logging
 import os
 import random
+
+class KeepRedisAliveTread(threading.Thread):
+    """Thread class with a stop() method. The thread itself has to check
+    regularly for the stopped() condition."""
+
+    def __init__(self):
+        super(KeepRedisAliveTread, self).__init__()
+        self._stop = threading.Event()
+
+    def stop(self):
+        self._stop.set()
+
+    def run(self):
+        while True:
+            g.redis.exists("a")
+            self._stop.wait(30)
+            if self._stop.is_set():
+                break
+
 
 handlers = auth.handlers + player.handlers + zone.handlers
 if config.debug:
@@ -54,6 +74,10 @@ def main():
         logging.disable(logging.WARNING)
         print "Server running"
 
+    # keep redis alive thread
+    thr = KeepRedisAliveTread()
+    thr.start()
+
     # server loop
     try:
         ioloop.IOLoop.instance().start()
@@ -63,6 +87,7 @@ def main():
         print e
     finally:
         print "Server shutting down..."
+        thr.stop();
         g.authdb.stop()
         g.whdb.stop()
 

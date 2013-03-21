@@ -187,7 +187,7 @@ def genPlacements(zoneid):
     return out
 
 # =============================================
-class Get(tornado.web.RequestHandler):
+class Create(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -206,9 +206,12 @@ class Get(tornado.web.RequestHandler):
                 return;
 
             # gen
-            out = genPlacements(zongid)
-            js = json.dumps(out)
-            self.write(js)
+            try:
+                out = genPlacements(zongid)
+                js = json.dumps(out)
+                self.write(js)
+            except:
+                send_error(self, err_not_exist)
 
             # redis store
             key = str(session["userid"])+"/zonecache"
@@ -221,6 +224,41 @@ class Get(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
+
+class Get(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+
+            # param
+            try:
+                zongid = self.get_argument("zoneid")
+            except:
+                send_error(self, err_param)
+                return;
+
+            # redis get
+            key = str(session["userid"])+"/zonecache"
+            rv = yield g.redis.hgetall(key)
+            if not rv:
+                send_error(self, err_redis)
+                return;
+            else:
+                js = json.dumps(rv)
+                self.write(js)
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
 
 
 class Redis(tornado.web.RequestHandler):
@@ -249,6 +287,7 @@ class Redis(tornado.web.RequestHandler):
             self.finish()
 
 handlers = [
+    (r"/whapi/zone/create", Create),
     (r"/whapi/zone/get", Get),
     (r"/whapi/redis", Redis),
 ]
