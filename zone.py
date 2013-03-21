@@ -14,30 +14,34 @@ BLANK_ALL = 4       # tile index in tiled(the editor), gen item or monster
 BLANK_ITEM = 5      # tile index which generate item only
 BLANK_MON = 6       # tile index which generate monster only
 
-class MapTbl(object):
-    def __init__(self):
+class CsvTbl(object):
+    def __init__(self, csvpath, keycol):
         self.header = {}
         self.body = {}
-        csvpath = "data/map/map.csv"
         with open(csvpath, 'rb') as csvfile:
             spamreader = csv.reader(csvfile)
             firstrow = True;
+            keycolidx = None
             for row in spamreader:
                 if firstrow:
                     firstrow = False
                     i = 0
                     for colname in row:
-                        if i != 0:
-                            self.header[colname] = i - 1
-                        i = i + 1
+                        if colname == keycol:
+                            keycolidx = i
+                        self.header[colname] = i
+                        i += 1
+                    if keycolidx == None:
+                        raise ValueError("key column not found:" + keycol)
                 else:
-                    self.body[row[0]] = row[1:]
+                    self.body[row[keycolidx]] = row
 
-    def getZone(self, zoneid):
-        return self.body[zoneid]
+    def getRow(self, key):
+        return self.body[key]
 
-    def getValue(self, zone, colname):
-        return zone[self.header[colname]]
+    def getValue(self, row, colname):
+        return row[self.header[colname]]
+
 
 class PlacementTbl(object):
     def __init__(self):
@@ -80,6 +84,31 @@ class PlacementTbl(object):
     def getZoneData(self, zoneid):
         return self.placements[zoneid]["placements"]
 
+class MonGrpTbl(object):
+    def __init__(self):
+        self.header = {}
+        self.body = {}
+        csvpath = "data/monster.csv"
+        with open(csvpath, 'rb') as csvfile:
+            spamreader = csv.reader(csvfile)
+            firstrow = True;
+            for row in spamreader:
+                if firstrow:
+                    firstrow = False
+                    i = 0
+                    row = row[1:]
+                    for colname in row:
+                        self.header[colname] = i
+                        i += 1
+                else:
+                    self.body[row[0]] = row[1:]
+
+    def getRow(self, key):
+        return self.body[key]
+
+    def getValue(self, row, colname):
+        return row[self.header[colname]]
+
 
 class WeightedRandom(object):
     def __init__(self, *weights):
@@ -102,10 +131,10 @@ class WeightedRandom(object):
 def genPlacements(zoneid):
     out = {}
     plcs = plc_tbl.getZoneData(zoneid)
-    zone = map_tbl.getZone(zoneid)
-    itemrate = float(map_tbl.getValue(zone, "item%"))
-    monsterrate = float(map_tbl.getValue(zone, "monster%"))
-    eventrate = float(map_tbl.getValue(zone, "event%"))
+    maprow = map_tbl.getRow(zoneid)
+    itemrate = float(map_tbl.getValue(maprow, "item%"))
+    monsterrate = float(map_tbl.getValue(maprow, "monster%"))
+    eventrate = float(map_tbl.getValue(maprow, "event%"))
 
     nonerate = 1.0 - itemrate - monsterrate - eventrate
     if nonerate < 0:
@@ -115,11 +144,11 @@ def genPlacements(zoneid):
     rand1item = WeightedRandom(nonerate, itemrate + monsterrate, 0, eventrate)
     rand1mon = WeightedRandom(nonerate, 0, itemrate + monsterrate, eventrate)
 
-    woodrate = float(map_tbl.getValue(zone, "wood%"))
-    treasurerate = float(map_tbl.getValue(zone, "treasure%"))
-    chestrate = float(map_tbl.getValue(zone, "chest%"))
-    littlegoldrate = float(map_tbl.getValue(zone, "littlegold%"))
-    biggoldrate = float(map_tbl.getValue(zone, "biggold%"))
+    woodrate = float(map_tbl.getValue(maprow, "wood%"))
+    treasurerate = float(map_tbl.getValue(maprow, "treasure%"))
+    chestrate = float(map_tbl.getValue(maprow, "chest%"))
+    littlegoldrate = float(map_tbl.getValue(maprow, "littlegold%"))
+    biggoldrate = float(map_tbl.getValue(maprow, "biggold%"))
     nonerate = 1.0 - woodrate - treasurerate - chestrate - littlegoldrate - biggoldrate
     if nonerate < -0.0001:
         raise ValueError("sum of percent greater than 1: nonerate = %s" % nonerate);
@@ -128,8 +157,8 @@ def genPlacements(zoneid):
 
     mongrpids = []
     for i in xrange(1, 11):
-        monid = int(map_tbl.getValue(zone, "monster%dID" % i))
-        if monid:
+        monid = map_tbl.getValue(maprow, "monster%dID" % i)
+        if monid != "0":
             mongrpids.append(monid)
         else:
             break
@@ -149,9 +178,11 @@ def genPlacements(zoneid):
                     out[k] = itemtype
             elif r == 2:    # monster
                 grpid = choice(mongrpids)
-                out[k] = grpid+10000
+                row = mongrp_tbl.getRow(grpid)
+                img = mongrp_tbl.getValue(row, "image")
+                out[k] = -int(img)
             elif r == 3:    # event
-                out[k] = -2
+                out[k] = 10000
 
     return out
 
@@ -167,29 +198,64 @@ class Get(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
 
-            #param
+            # param
             try:
                 zongid = self.get_argument("zoneid")
             except:
                 send_error(self, err_param)
                 return;
 
-            #
+            # gen
             out = genPlacements(zongid)
-            self.write(out)
-        
+            js = json.dumps(out)
+            self.write(js)
+
+            # redis store
+            key = str(session["userid"])+"/zonecache"
+            rv = yield g.redis.hmset(key, out)
+            if not rv:
+                send_error(self, err_redis)
+                return;
+
         except:
             send_internal_error(self)
         finally:
             self.finish()
 
 
+class Redis(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            import config
+            c = brukva.Client(**config.redis)
+            c.connect()
+            redis = c.async
+
+            # redis store
+            key = "redistest"
+            out = {"35,19": 1, "14,28": -2, "14,25": -1, "14,22": -2, "32,28": -2, "41,16": -2, "35,22": -2, "35,25": -2, "26,25": -2, "23,37": -1, "26,22": 1, "26,28": -2, "14,19": 4, "35,28": -2, "14,31": 10000, "38,16": -1, "35,16": -2, "17,37": 5, "17,19": -2, "26,31": -2, "26,34": 4, "26,37": -2}
+            rv = yield redis.hmset(key, out)
+            if not rv:
+                send_error(self, err_redis)
+                return;
+            rv = yield redis.hgetall(key)
+            self.write(rv)
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/zone/get", Get),
+    (r"/whapi/redis", Redis),
 ]
 
-map_tbl = MapTbl()
+map_tbl = CsvTbl("data/map.csv", "zoneID")
 plc_tbl = PlacementTbl()
+mongrp_tbl = CsvTbl("data/monster.csv", "ID")
 
 # =============================================
 if __name__ == "__main__":

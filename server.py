@@ -49,15 +49,19 @@ def main():
     if (config.debug):
         logging.getLogger().setLevel(logging.DEBUG)
         options.enable_pretty_logging()
-        print "Server start in debug mode"
+        print "Server running in debug mode"
     else:
         logging.disable(logging.WARNING)
-        print "Server start"
+        print "Server running"
 
     # server loop
     try:
         ioloop.IOLoop.instance().start()
-    except:
+    except KeyboardInterrupt as e:
+        print "KeyboardInterrupt."
+    except Exception:
+        print e
+    finally:
         print "Server shutting down..."
         g.authdb.stop()
         g.whdb.stop()
