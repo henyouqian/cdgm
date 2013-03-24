@@ -17,6 +17,7 @@ redis = {
 #     "num_threads": 3,
 #     "tx_connection_pool_size": 2,
 #     "queue_timeout": 1,
+#     "thread_idle_life": 60*60,
 # }
 
 auth_db = {
@@ -28,6 +29,7 @@ auth_db = {
     "num_threads": 3,
     "tx_connection_pool_size": 2,
     "queue_timeout": 1,
+    "thread_idle_life": 0,
 }
 
 # auth_db = {
@@ -50,4 +52,5 @@ wh_db = {
     "num_threads": 3,
     "tx_connection_pool_size": 2,
     "queue_timeout": 1,
+    "thread_idle_life": 60*60,
 }

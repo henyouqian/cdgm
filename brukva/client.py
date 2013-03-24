@@ -154,10 +154,16 @@ class Connection(object):
             sock.settimeout(self.timeout)
             sock.connect((self.host, self.port))
             self._stream = IOStream(sock, io_loop=self._io_loop)
+            self._stream.set_close_callback(self.on_stream_close)
             self.connected()
         except socket.error, e:
             raise ConnectionError(str(e))
         self.on_connect()
+
+    def on_stream_close(self):
+        if self._stream:
+            self._stream = None
+            self.read_queue = []
 
     def disconnect(self):
         if self._stream:

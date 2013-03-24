@@ -98,13 +98,26 @@ class CallbackDispatcher(object):
             self.call(self.g.next())
         except StopIteration:
             pass
+        except Exception as e:
+            try:
+                self.call(self.g.throw(e))
+            except:
+                pass
 
     def _send_result(self, results, single):
         try:
             result = results[0] if single else results
-            self.call(self.g.send(result))
+            if isinstance(result, Exception):
+                self.call(self.g.throw(result))
+            else:
+                self.call(self.g.send(result))
         except StopIteration:
             pass
+        except Exception as e:
+            try:
+                self.call(self.g.throw(e))
+            except:
+                pass
 
     def call(self, callers):
         single = not hasattr(callers, '__iter__')

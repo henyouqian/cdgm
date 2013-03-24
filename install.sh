@@ -12,6 +12,3 @@ easy_install psycopg2
 sudo apt-get build-dep python-mysqldb
 pip install mysql-python
 
-cd brukva
-python setup.py install
-cd ..

@@ -13,12 +13,11 @@ import logging
 import os
 import random
 
-class KeepRedisAliveTread(threading.Thread):
-    """Thread class with a stop() method. The thread itself has to check
-    regularly for the stopped() condition."""
+redis_pool = []
 
+class KeepAliveThread(threading.Thread):
     def __init__(self):
-        super(KeepRedisAliveTread, self).__init__()
+        super(KeepAliveThread, self).__init__()
         self._stop = threading.Event()
 
     def stop(self):
@@ -26,8 +25,10 @@ class KeepRedisAliveTread(threading.Thread):
 
     def run(self):
         while True:
-            g.redis.exists("a")
-            self._stop.wait(30)
+            for c in redis_pool:
+                c.async.exists("a")
+
+            self._stop.wait(60)
             if self._stop.is_set():
                 break
 
@@ -50,7 +51,18 @@ def main():
     try:
         c = brukva.Client(**config.redis)
         c.connect()
-        g.redis = c.async
+        for __ in xrange(10):
+            c = brukva.Client(**config.redis)
+            # c.connect()
+            redis_pool.append(c)
+
+        def redis():
+            c = random.sample(redis_pool, 1)[0]
+            if not c.connection.connected():
+                print("reconnect redis")
+                c.connection.connect()
+            return c.async
+        g.redis = redis
     except:
         print "redis connecting failed"
         return
@@ -58,6 +70,10 @@ def main():
     # database
     g.authdb = Database(**config.auth_db)
     g.whdb = Database(**config.wh_db)
+
+    # keep alive thread
+    thr = KeepAliveThread()
+    thr.start()
     
     # application
     application = web.Application(
@@ -68,15 +84,11 @@ def main():
     application.listen(params.port)
     if (config.debug):
         logging.getLogger().setLevel(logging.DEBUG)
-        options.enable_pretty_logging()
+        # options.enable_pretty_logging()
         print "Server running in debug mode"
     else:
         logging.disable(logging.WARNING)
         print "Server running"
-
-    # keep redis alive thread
-    thr = KeepRedisAliveTread()
-    thr.start()
 
     # server loop
     try:

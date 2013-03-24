@@ -28,7 +28,8 @@ class Database:
                  ioloop=tornado.ioloop.IOLoop.instance(),
                  num_threads=10,
                  tx_connection_pool_size=5,
-                 queue_timeout=1):
+                 queue_timeout=1,
+                 thread_idle_life=60*60):
         if not(driver):
             raise ValueError("Missing 'driver' argument")
         self._driver = driver
@@ -40,7 +41,8 @@ class Database:
             per_thread_init_func=self.create_connection,
             per_thread_close_func=self.close_connection,
             num_threads=num_threads,
-            queue_timeout=queue_timeout)
+            queue_timeout=queue_timeout,
+            thread_idle_life=thread_idle_life)
         self._ioloop = ioloop
 
         # Connection pool for transactions

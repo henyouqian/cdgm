@@ -64,15 +64,19 @@ class ThreadPool:
                  per_thread_close_func=None,
                  num_threads=10,
                  queue_timeout=1,
-                 ioloop=tornado.ioloop.IOLoop.instance()):
+                 ioloop=tornado.ioloop.IOLoop.instance(),
+                 thread_idle_life=0):
         self._ioloop = ioloop
         self._num_threads = num_threads
         self._queue = Queue()
         self._queue_timeout = queue_timeout
         self._threads = []
         self._running = True
+        self._per_thread_init_func = per_thread_init_func
+        self._per_thread_close_func = per_thread_close_func
+        self._thread_idle_life = thread_idle_life
         for i in xrange(num_threads):
-            t = WorkerThread(self, per_thread_init_func, per_thread_close_func)
+            t = WorkerThread(self, per_thread_init_func, per_thread_close_func, thread_idle_life)
             t.start()
             self._threads.append(t)
 
@@ -84,12 +88,26 @@ class ThreadPool:
         self._running = False
         map(lambda t: t.join(), self._threads)
 
+    def reborn_thread(self, thread):
+        if not self._running:
+            return
+        self._threads.remove(thread)
+        t = WorkerThread(self, self._per_thread_init_func, self._per_thread_close_func, self._thread_idle_life)
+        t.start()
+        self._threads.append(t)
+        print "thread reborn", self._thread_idle_life
+
 class WorkerThread(Thread):
-    def __init__(self, pool, per_thread_init_func, per_thread_close_func):
+    def __init__(self, pool, per_thread_init_func, per_thread_close_func, idle_life):
         Thread.__init__(self)
         self._pool = pool
         self._per_thread_init_func = per_thread_init_func
         self._per_thread_close_func = per_thread_close_func
+        self._idle_life = idle_life
+        if idle_life > 0:
+            self._deadtime = time.time() + idle_life
+        else:
+            self._deadtime = 0
 
     def run(self):
         if self._per_thread_init_func:
@@ -99,15 +117,23 @@ class WorkerThread(Thread):
         queue = self._pool._queue
         queue_timeout = self._pool._queue_timeout
         while self._pool._running:
+            t = time.time()
+            if self._deadtime and t >= self._deadtime:
+                self._pool.reborn_thread(self)
+                break
+
             try:
                 (func, callback) = queue.get(True, queue_timeout)
+                if self._deadtime:
+                    self._deadtime = t + self._idle_life
                 result = func(thread_state=thread_state)
-                if callback:
-                    self._pool._ioloop.add_callback(partial(callback, (None, result)))
             except Empty:
                 pass
             except Exception as e:
                 if callback:
-                    self._pool._ioloop.add_callback(partial(callback, (e, None)))
+                    self._pool._ioloop.add_callback(partial(callback, e))
+            else:
+                if callback:
+                    self._pool._ioloop.add_callback(partial(callback, result))
         if self._per_thread_close_func:
             self._per_thread_close_func(thread_state)

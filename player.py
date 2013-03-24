@@ -21,14 +21,15 @@ class Getinfo(tornado.web.RequestHandler):
             userid = session["userid"]
 
             # query user info
-            e, rows = yield g.whdb.runQuery(
-                """ SELECT name, currentBandId, isInMap, lastMapId, 
-                        ap, maxAp, silverCoin, bronzeCoin
-                        FROM playerInfos
-                        WHERE userId=%s"""
-                ,(userid, )
-            )
-            if e:
+            try:
+                rows = yield g.whdb.runQuery(
+                    """ SELECT name, currentBandId, isInMap, lastMapId, 
+                            ap, maxAp, silverCoin, bronzeCoin
+                            FROM playerInfos
+                            WHERE userId=%s"""
+                    ,(userid, )
+                )
+            except Exception as e:
                 logging.error(e)
                 send_error(self, err_db)
                 return;
@@ -77,12 +78,12 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # check exist
-            e, rows = yield g.whdb.runQuery(
-                """SELECT 1 FROM playerInfos WHERE userId=%s"""
-                ,(userid, )
-            )
-
-            if e:
+            try:
+                rows = yield g.whdb.runQuery(
+                    """SELECT 1 FROM playerInfos WHERE userId=%s"""
+                    ,(userid, )
+                )
+            except Exception as e:
                 logging.error(e)
                 send_error(self, err_db)
                 return;
@@ -91,17 +92,18 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # create player info
-            row = (userid, username, 0, 0, 0, INIT_AP, INIT_AP
-                , INIT_SILVER_COIN, INIT_BRONZE_COIN)
-            e, row_nums = yield g.whdb.runOperation(
-                """ INSERT INTO playerInfos
-                        (userId, name, currentBandId, isInMap, lastMapId,
-                            ap, maxAp, silverCoin, bronzeCoin)
-                        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                ,row
-            )
-            if e or row_nums != 1:
-                if e: logging.error(e)
+            try:
+                row = (userid, username, 0, 0, 0, INIT_AP, INIT_AP
+                    , INIT_SILVER_COIN, INIT_BRONZE_COIN)
+            except Exception as e:
+                row_nums = yield g.whdb.runOperation(
+                    """ INSERT INTO playerInfos
+                            (userId, name, currentBandId, isInMap, lastMapId,
+                                ap, maxAp, silverCoin, bronzeCoin)
+                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                    ,row
+                )
+            if row_nums != 1:
                 send_error(self, err_db)
                 return;
 

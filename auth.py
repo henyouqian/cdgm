@@ -27,12 +27,12 @@ class Register(tornado.web.RequestHandler):
             password = hashlib.sha1(password).hexdigest()
 
             #insert to db
-            e, row_nums = yield g.authdb.runOperation(
-                "INSERT INTO user_account (username, password) VALUES(%s, %s)"
-                ,(username, password)
-            )
-
-            if e:
+            try:
+                row_nums = yield g.authdb.runOperation(
+                    "INSERT INTO user_account (username, password) VALUES(%s, %s)"
+                    ,(username, password)
+                )
+            except Exception as e:
                 logging.error(e)
                 send_error(self, err_exist)
                 return;
@@ -64,12 +64,13 @@ class Login(tornado.web.RequestHandler):
             password = hashlib.sha1(password).hexdigest()
 
             #qurey db
-            e, rows = yield g.authdb.runQuery(
-                """SELECT id FROM user_account 
-                        WHERE username=%s AND password=%s"""
-                ,(username, password)
-            )
-            if e:
+            try:
+                rows = yield g.authdb.runQuery(
+                    """SELECT id FROM user_account 
+                            WHERE username=%s AND password=%s"""
+                    ,(username, password)
+                )
+            except Exception as e:
                 logging.error(e)
                 send_error(self, err_db)
                 return
