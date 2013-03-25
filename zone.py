@@ -351,7 +351,7 @@ class Redis3(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         try:
-            foo = r.get('redistest')
+            foo = r.hget('redistest', 'a')
             self.write(foo)
 
         except:
