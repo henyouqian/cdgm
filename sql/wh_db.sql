@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.29-0ubuntu0.12.04.2)
 # Database: wh_db
-# Generation Time: 2013-03-13 15:15:38 +0000
+# Generation Time: 2013-03-25 05:08:25 +0000
 # ************************************************************
 
 
@@ -4955,15 +4955,17 @@ CREATE TABLE `playerInfos` (
   `maxAp` smallint(5) unsigned NOT NULL,
   `silverCoin` int(11) DEFAULT NULL,
   `bronzeCoin` int(11) DEFAULT NULL,
+  `zoneCache` text,
   PRIMARY KEY (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 LOCK TABLES `playerInfos` WRITE;
 /*!40000 ALTER TABLE `playerInfos` DISABLE KEYS */;
 
-INSERT INTO `playerInfos` (`userId`, `name`, `currentBandId`, `isInMap`, `lastMapId`, `ap`, `maxAp`, `silverCoin`, `bronzeCoin`)
+INSERT INTO `playerInfos` (`userId`, `name`, `currentBandId`, `isInMap`, `lastMapId`, `ap`, `maxAp`, `silverCoin`, `bronzeCoin`, `zoneCache`)
 VALUES
-	(22,'cc',0,0,0,30,30,2,5);
+	(12,'aa',0,0,0,30,30,2,5,'{\"14,31\": 3, \"32,28\": 4, \"38,16\": -2, \"35,16\": -2, \"35,22\": 1, \"17,37\": 4, \"23,37\": 5, \"29,28\": -2, \"17,19\": -1, \"26,31\": 1, \"26,34\": 1, \"44,16\": 10000, \"14,34\": 2, \"23,19\": -1, \"14,37\": -2, \"14,25\": 2, \"14,22\": -2, \"20,19\": -1}'),
+	(22,'cc',0,0,0,30,30,2,5,'');
 
 /*!40000 ALTER TABLE `playerInfos` ENABLE KEYS */;
 UNLOCK TABLES;
