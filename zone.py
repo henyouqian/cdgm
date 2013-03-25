@@ -181,16 +181,26 @@ def genPlacements(zoneid):
                     out[k] = itemtype
             elif r == 2:    # monster
                 grpid = choice(mongrpids)
-                row = mongrp_tbl.getRow(grpid)
-                img = mongrp_tbl.getValue(row, "image")
-                out[k] = -int(img)
+                # row = mongrp_tbl.getRow(grpid)
+                # img = mongrp_tbl.getValue(row, "image")
+                # out[k] = -int(img)
+                out[k] = -int(grpid)
             elif r == 3:    # event
                 out[k] = 10000
 
     return out
 
 # =============================================
-class Create(tornado.web.RequestHandler):
+def transCacheFormat(cache):
+    out = []
+    for k, v in cache.iteritems():
+        elem = k.split(",")
+        elem = map(lambda x:int(x), elem)
+        elem.append(v)
+        out.append(elem)
+    return out
+
+class Enter(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -210,25 +220,67 @@ class Create(tornado.web.RequestHandler):
 
             # gen
             try:
-                out = genPlacements(zongid)
-                rsp = []
-                for k, v in out.iteritems():
-                    elem = k.split(",")
-                    elem = map(lambda x:int(x), elem)
-                    elem.append(v)
-                    rsp.append(elem)
-                js = json.dumps(rsp)
-                self.write(js)
+                cache = genPlacements(zongid)
+                rsp = transCacheFormat(cache)
             except:
                 send_error(self, err_not_exist)
 
-            # redis store
-            key = str(session["userid"])+"/zonecache"
-            yield g.redis().delete(key)
-            rv = yield g.redis().hmset(key, out)
-            if not rv:
-                send_error(self, err_redis)
+            cache = json.dumps(cache)
+            rsp = json.dumps(rsp)
+
+            # # redis store
+            # key = str(session["userid"])+"/zonecache"
+            # yield g.redis().delete(key)
+            # rv = yield g.redis().hmset(key, cache)
+            # if not rv:
+            #     send_error(self, err_redis)
+            #     return;
+
+            # db store
+            try:
+                row_nums = yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s
+                            WHERE userid=%s"""
+                    ,(cache, session["userid"])
+                )
+            except Exception as e:
+                logging.debug(e)
+                send_error(self, err_db)
                 return;
+
+            # response
+            self.write(rsp)
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+class Withdraw(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+
+            # db store
+            try:
+                row_nums = yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=NULL
+                            WHERE userid=%s"""
+                    ,(session["userid"],)
+                )
+            except Exception as e:
+                logging.debug(e)
+                send_error(self, err_db)
+                return;
+
+            # response
+            send_ok(self)
 
         except:
             send_internal_error(self)
@@ -246,113 +298,101 @@ class Get(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
 
+
+            # # redis get
+            # key = str(session["userid"])+"/zonecache"
+            # rv = yield g.redis().hgetall(key)
+            # if not rv:
+            #     send_error(self, err_redis)
+            #     return;
+            # else:
+            #     rsp = []
+            #     for k, v in rv.iteritems():
+            #         elem = k.split(",")
+            #         elem.append(v)
+            #         elem = map(lambda x:int(x), elem)
+            #         rsp.append(elem)
+            #     js = json.dumps(rsp)
+            #     self.write(js)
+
+            # db get
+            try:
+                rows = yield g.whdb.runQuery(
+                    """SELECT zoneCache FROM playerInfos 
+                            WHERE userid=%s"""
+                    ,(session["userid"],)
+                )
+                cache = rows[0][0]
+            except Exception as e:
+                logging.debug(e)
+                send_error(self, err_db)
+                return
+
+            if not cache:
+                send_error(self, err_not_exist)
+                return
+            
+            cache = json.loads(cache)
+            rsp = transCacheFormat(cache)
+            rsp = json.dumps(rsp)
+            self.write(rsp)
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+class Move(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+
             # param
             try:
-                zongid = self.get_argument("zoneid")
+                x = self.get_argument("x")
+                y = self.get_argument("y")
             except:
                 send_error(self, err_param)
                 return;
 
-            # redis get
-            key = str(session["userid"])+"/zonecache"
-            rv = yield g.redis().hgetall(key)
-            if not rv:
-                send_error(self, err_redis)
+            # db get cache
+            try:
+                rows = yield g.whdb.runQuery(
+                    """SELECT zoneCache FROM playerInfos 
+                            WHERE userid=%s"""
+                    ,(session["userid"],)
+                )
+                cache = rows[0][0]
+            except Exception as e:
+                logging.debug(e)
+                send_error(self, err_db)
+                return
+
+            if not cache:
+                send_error(self, err_not_exist)
                 return;
+
+            # check event exist
+            cache = json.loads(cache)
+            evtid = cache.get("%d,%d" % (x, y))
+            if not evtid:
+                send_error(self, err_key)
+                return;
+
+            # 
+            if evtid == 10000:  # event
+                pass
+            elif evtid < 0:
+                pass
             else:
-                rsp = []
-                for k, v in rv.iteritems():
-                    elem = k.split(",")
-                    elem.append(v)
-                    elem = map(lambda x:int(x), elem)
-                    rsp.append(elem)
-                js = json.dumps(rsp)
-                self.write(js)
-
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
-
-
-
-
-class Redis(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @adisp.process
-    def get(self):
-        try:
-            # redis store
-            # key = "redistest"
-            # out = {"35,19": 1, "14,28": -2, "14,25": -1, "14,22": -2, "32,28": -2, "41,16": -2, "35,22": -2, "35,25": -2, "26,25": -2, "23,37": -1, "26,22": 1, "26,28": -2, "14,19": 4, "35,28": -2, "14,31": 10000, "38,16": -1, "35,16": -2, "17,37": 5, "17,19": -2, "26,31": -2, "26,34": 4, "26,37": -2}
-            # rv = yield g.redis().set(key, "b"*10)
-            # if not rv:
-            #     send_error(self, err_redis)
-            #     return;
-           
-            rv = yield g.redis().hget('redistest', "a")
-            # rv = yield g.redis().randomkey()
-            self.write(rv)
-
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
-
-class RedisSet(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @adisp.process
-    def get(self):
-        try:
-            # redis store
-            key = "redistest"
-            out = {"35,19": 1, "14,28": -2, "14,25": -1, "14,22": -2, "32,28": -2, "41,16": -2, "35,22": -2, "35,25": -2, "26,25": -2, "23,37": -1, "26,22": 1, "26,28": -2, "14,19": 4, "35,28": -2, "14,31": 10000, "38,16": -1, "35,16": -2, "17,37": 5, "17,19": -2, "26,31": -2, "26,34": 4, "26,37": -2}
-            rv = yield g.redis().hset(key, "a", "b"*100000)
-            # if not rv:
-            #     send_error(self, err_redis)
-            #     return;
-           
-            # rv = yield g.redis().get('redistest')
-            # rv = yield g.redis().randomkey()
-            self.write("ok")
-
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
-
-CONNECTION_POOL = tornadoredis.ConnectionPool(max_connections=10,
-                                              wait_for_available=True)
-
-from tornado.httpclient import AsyncHTTPClient
-class Redis2(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @tornado.gen.engine
-    # @tornado.gen.coroutine
-    def get(self):
-        try:
-            c = tornadoredis.Client(connection_pool=CONNECTION_POOL)
-            foo = yield tornado.gen.Task(c.hgetall, 'redistest')
-            # foo = yield c.hgetall('redistest')
-
-            # http_client = AsyncHTTPClient()
-            # response = yield http_client.fetch("http://weibo.com")
-            # response = yield tornado.gen.Task(http_client.fetch, "http://weibo.com")
-            self.write(foo)
-
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
-
-import redis
-r = redis.Redis("localhost", 6379)
-class Redis3(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    def get(self):
-        try:
-            foo = r.hget('redistest', 'a')
-            self.write(foo)
+                pass
+            self.write("xxxx")
 
         except:
             send_internal_error(self)
@@ -360,12 +400,10 @@ class Redis3(tornado.web.RequestHandler):
             self.finish()
 
 handlers = [
-    (r"/whapi/zone/create", Create),
+    (r"/whapi/zone/enter", Enter),
+    (r"/whapi/zone/withdraw", Withdraw),
     (r"/whapi/zone/get", Get),
-    (r"/whapi/redis", Redis),
-    (r"/whapi/redisset", RedisSet),
-    (r"/whapi/redis2", Redis2),
-    (r"/whapi/redis3", Redis3),
+    (r"/whapi/zone/move", Move),
 ]
 
 map_tbl = CsvTbl("data/map.csv", "zoneID")

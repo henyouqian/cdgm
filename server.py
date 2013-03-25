@@ -1,9 +1,11 @@
-﻿import auth
-import player
-import zone
-import g
+﻿import g
 import config
 import threading
+
+import auth
+import player
+import zone
+import redistest
 
 from tornado import web, httpserver, ioloop
 from tornado import options
@@ -26,14 +28,14 @@ class KeepAliveThread(threading.Thread):
     def run(self):
         while True:
             for c in redis_pool:
-                c.async.exists("a")
+                c.exists("a")
 
             self._stop.wait(60)
             if self._stop.is_set():
                 break
 
 
-handlers = auth.handlers + player.handlers + zone.handlers
+handlers = auth.handlers + player.handlers + zone.handlers + redistest.handlers
 if config.debug:
     import cheat
     handlers = handlers + cheat.handlers

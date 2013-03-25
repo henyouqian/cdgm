@@ -10,10 +10,15 @@ err_not_match = "err_not_match"
 err_db = "err_db"
 err_redis = "err_redis"
 err_auth = "err_auth"
+err_key = "err_key"
+err_value = "err_value"
 
 def send_error(hdl, err):
     reply = '{"error":"' + err + '"}'
     hdl.write(reply)
+
+def send_ok(hdl):
+    hdl.write('{"error":0}')
 
 def send_internal_error(hdl):
 	reply = '{"error":"err_internal"}'
