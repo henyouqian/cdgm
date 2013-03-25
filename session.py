@@ -4,6 +4,7 @@ import brukva
 import adisp
 import simplejson as json
 import tornado.web
+import config
 
 SESSION_TTL = 60*60*24*7
 
@@ -29,16 +30,27 @@ def new_session(userid, username, appid, callback):
 @adisp.async
 @adisp.process
 def find_session(rqHandler, callback):
-    usertoken = rqHandler.get_cookie("usertoken")
+    def try_auto_auth():
+        if config.auto_auth:
+            session = {"userid":12, "appid":123}
+            callback(session)
+            return
+        else:
+            callback(None)
+
+    usertoken = rqHandler.get_argument("token", None)
     if not usertoken:
-        callback(None)
+        usertoken = rqHandler.get_cookie("usertoken")
+
+    if not usertoken:
+        try_auto_auth()
         return;
     session = yield g.redis().get(usertoken)
     if not session:
-        callback(None)
+        try_auto_auth()
         return
     try:
         session = json.loads(session)
         callback(session)
     except:
-        callback(None)
+        try_auto_auth()

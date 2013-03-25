@@ -95,7 +95,6 @@ class Create(tornado.web.RequestHandler):
             try:
                 row = (userid, username, 0, 0, 0, INIT_AP, INIT_AP
                     , INIT_SILVER_COIN, INIT_BRONZE_COIN)
-            except Exception as e:
                 row_nums = yield g.whdb.runOperation(
                     """ INSERT INTO playerInfos
                             (userId, name, currentBandId, isInMap, lastMapId,
@@ -103,6 +102,11 @@ class Create(tornado.web.RequestHandler):
                             VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
                     ,row
                 )
+            except Exception as e:
+                logging.debug(e)
+                send_error(self, err_db)
+                return;
+
             if row_nums != 1:
                 send_error(self, err_db)
                 return;

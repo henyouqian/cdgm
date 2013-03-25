@@ -13,9 +13,12 @@ from random import random, choice
 import tornadoredis
 import tornado.gen
 
-BLANK_ALL = 4       # tile index in tiled(the editor), gen item or monster
-BLANK_ITEM = 5      # tile index which generate item only
-BLANK_MON = 6       # tile index which generate monster only
+
+TILE_ALL = 4        # tile index in tiled(the editor), gen item or monster
+TILE_ITEM = 5       # tile index which generate item only
+TILE_MON = 6        # tile index which generate monster only
+TILE_START = 2      # start tile
+TILE_GOAL = 3       # goal tile
 
 class CsvTbl(object):
     def __init__(self, csvpath, keycol):
@@ -54,7 +57,7 @@ class PlacementTbl(object):
                 nameext = filename.split(".")
                 if nameext[-1] == "json" and len(nameext) == 2:
                     path = root + "/" + filename
-                    zongid = nameext[0]
+                    zoneid = nameext[0]
                     with open(path, "rb") as f:
                         root = json.load(f)
 
@@ -66,7 +69,7 @@ class PlacementTbl(object):
                             if layer["name"] == "event":
                                 zone["placements"] = self._parse_placement_conf(layer["data"], width, height)
 
-                        self.placements[zongid] = zone
+                        self.placements[zoneid] = zone
             break
 
 
@@ -131,9 +134,8 @@ class WeightedRandom(object):
             idx += 1
         return idx-1
 
-def genPlacements(zoneid):
-    out = {}
-    plcs = plc_tbl.getZoneData(zoneid)
+def genCache(zoneid):
+    tiles = plc_tbl.getZoneData(zoneid)
     maprow = map_tbl.getRow(zoneid)
     itemrate = float(map_tbl.getValue(maprow, "item%"))
     monsterrate = float(map_tbl.getValue(maprow, "monster%"))
@@ -166,38 +168,57 @@ def genPlacements(zoneid):
         else:
             break
 
-    for k, v in plcs.items():
-        if v in (BLANK_ALL, BLANK_ITEM, BLANK_MON):
-            if v == BLANK_ALL:
-                r = rand1all.get();
-            elif v == BLANK_ITEM:
-                r = rand1item.get();
-            elif v == BLANK_MON:
-                r = rand1mon.get();
+    objs = {}
+    startpos = None
+    goalpos = None
+    for k, v in tiles.iteritems():
+        r = 0
+        if v == TILE_ALL:
+            r = rand1all.get();
+        elif v == TILE_ITEM:
+            r = rand1item.get();
+        elif v == TILE_MON:
+            r = rand1mon.get();
+        elif v == TILE_START:
+            startpos = dict(zip(("x", "y"), map(int, k.split(","))))
+            continue
+        elif v == TILE_GOAL:
+            goalpos = dict(zip(("x", "y"), map(int, k.split(","))))
+            continue
 
-            if r == 1:      # item
-                itemtype = rand2item.get()
-                if itemtype:
-                    out[k] = itemtype
-            elif r == 2:    # monster
-                grpid = choice(mongrpids)
-                # row = mongrp_tbl.getRow(grpid)
-                # img = mongrp_tbl.getValue(row, "image")
-                # out[k] = -int(img)
-                out[k] = -int(grpid)
-            elif r == 3:    # event
-                out[k] = 10000
+        if r == 1:      # item
+            itemtype = rand2item.get()
+            if itemtype:
+                objs[k] = itemtype
+        elif r == 2:    # battle
+            grpid = choice(mongrpids)
+            # row = mongrp_tbl.getRow(grpid)
+            # img = mongrp_tbl.getValue(row, "image")
+            # objs[k] = -int(img)
+            objs[k] = -int(grpid)
+        elif r == 3:    # event
+            objs[k] = 10000
 
-    return out
+
+    cache = {"zoneId":zoneid, "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos}
+    return cache
 
 # =============================================
-def transCacheFormat(cache):
-    out = []
-    for k, v in cache.iteritems():
+def transCacheToClient(cache):
+    out = cache
+    objs = cache["objs"]
+    outobjs = []
+    for k, v in objs.iteritems():
         elem = k.split(",")
-        elem = map(lambda x:int(x), elem)
+        elem = map(int, elem)
+        #battle
+        if v < 0:
+            row = mongrp_tbl.getRow(str(-v))
+            img = mongrp_tbl.getValue(row, "image")
+            v = -int(img)
         elem.append(v)
-        out.append(elem)
+        outobjs.append(elem)
+    out["objs"] = outobjs
     return out
 
 class Enter(tornado.web.RequestHandler):
@@ -213,20 +234,20 @@ class Enter(tornado.web.RequestHandler):
 
             # param
             try:
-                zongid = self.get_argument("zoneid")
+                zoneid = self.get_argument("zoneid")
             except:
                 send_error(self, err_param)
                 return;
 
             # gen
             try:
-                cache = genPlacements(zongid)
-                rsp = transCacheFormat(cache)
+                cache = genCache(zoneid)
             except:
                 send_error(self, err_not_exist)
 
-            cache = json.dumps(cache)
-            rsp = json.dumps(rsp)
+            
+            cacheJs = json.dumps(cache)
+            startpos = cache["startPos"]
 
             # # redis store
             # key = str(session["userid"])+"/zonecache"
@@ -239,9 +260,9 @@ class Enter(tornado.web.RequestHandler):
             # db store
             try:
                 row_nums = yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s
+                    """UPDATE playerInfos SET zoneCache=%s, zonePosX=%s, zonePosY=%s
                             WHERE userid=%s"""
-                    ,(cache, session["userid"])
+                    ,(cacheJs, startpos["x"], startpos["y"], session["userid"])
                 )
             except Exception as e:
                 logging.debug(e)
@@ -249,7 +270,10 @@ class Enter(tornado.web.RequestHandler):
                 return;
 
             # response
-            self.write(rsp)
+            clientCache = transCacheToClient(cache)
+            clientCache["error"] = 0
+            rspJs = json.dumps(clientCache)
+            self.write(rspJs)
 
         except:
             send_internal_error(self)
@@ -298,23 +322,6 @@ class Get(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
 
-
-            # # redis get
-            # key = str(session["userid"])+"/zonecache"
-            # rv = yield g.redis().hgetall(key)
-            # if not rv:
-            #     send_error(self, err_redis)
-            #     return;
-            # else:
-            #     rsp = []
-            #     for k, v in rv.iteritems():
-            #         elem = k.split(",")
-            #         elem.append(v)
-            #         elem = map(lambda x:int(x), elem)
-            #         rsp.append(elem)
-            #     js = json.dumps(rsp)
-            #     self.write(js)
-
             # db get
             try:
                 rows = yield g.whdb.runQuery(
@@ -333,9 +340,10 @@ class Get(tornado.web.RequestHandler):
                 return
             
             cache = json.loads(cache)
-            rsp = transCacheFormat(cache)
-            rsp = json.dumps(rsp)
-            self.write(rsp)
+            clientCache = transCacheToClient(cache)
+            clientCache["error"] = 0
+            rspJs = json.dumps(clientCache)
+            self.write(rspJs)
 
         except:
             send_internal_error(self)
@@ -378,9 +386,12 @@ class Move(tornado.web.RequestHandler):
                 send_error(self, err_not_exist)
                 return;
 
-            # check event exist
             cache = json.loads(cache)
-            evtid = cache.get("%d,%d" % (x, y))
+            lastpos = cache["currPos"]
+
+            # check event exist
+            poskey = "%d,%d" % (int(x), int(y))
+            evtid = cache["objs"].get(poskey)
             if not evtid:
                 send_error(self, err_key)
                 return;
@@ -392,7 +403,25 @@ class Move(tornado.web.RequestHandler):
                 pass
             else:
                 pass
-            self.write("xxxx")
+
+            # update
+            cache["currPos"] = {"x":x, "y":y}
+            del cache["objs"][poskey]
+            cacheJs = json.dumps(cache)
+            try:
+                row_nums = yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s
+                            WHERE userid=%s"""
+                    ,(cacheJs, session["userid"])
+                )
+            except Exception as e:
+                logging.debug(e)
+                send_error(self, err_db)
+                return;
+
+            # response
+            
+            self.write(poskey)
 
         except:
             send_internal_error(self)
@@ -412,5 +441,5 @@ mongrp_tbl = CsvTbl("data/monster.csv", "ID")
 
 # =============================================
 if __name__ == "__main__":
-    out = genPlacements("50101")
+    out = genCache("50101")
     print out
