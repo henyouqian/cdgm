@@ -112,16 +112,7 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # response
-            resp = {"error":0, "id":userid}
-            resp["name"] = row[1]
-            resp["currentBandId"] = row[2]
-            resp["isInMap"] = row[3]
-            resp["lastMapId"] = row[4]
-            resp["ap"] = row[5]
-            resp["maxAp"] = row[6]
-            resp["silverCoin"] = row[7]
-            resp["bronzeCoin"] = row[8]
-            self.write(json.dumps(resp))
+            send_ok(self)
         except:
             send_internal_error(self)
         finally:

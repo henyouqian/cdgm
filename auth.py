@@ -40,8 +40,37 @@ class Register(tornado.web.RequestHandler):
             if row_nums != 1:
                 send_error(self, err_db)
                 return;
+
+            #qurey db
+            try:
+                rows = yield g.authdb.runQuery(
+                    """SELECT id FROM user_account 
+                            WHERE username=%s AND password=%s"""
+                    ,(username, password)
+                )
+            except Exception as e:
+                logging.error(e)
+                send_error(self, err_db)
+                return
+
+            try:
+                userid = rows[0][0]
+            except:
+                send_error(self, err_not_match)
+                return
+
+            #login
+            usertoken = yield new_session(userid, username, config.app_id);
+            if usertoken == None:
+                send_error(self, err_redis)
+                return
+
+            reply = {"error":0, "usertoken":usertoken}
+            self.write(json.dumps(reply))
+            self.set_cookie("usertoken", usertoken, 
+                            expires=datetime.datetime.utcnow()+datetime.timedelta(seconds=SESSION_TTL), 
+                            path='/') #fixme expires and path
             
-            self.write('{"error":0}')
         except:
             send_internal_error(self)
         finally:
