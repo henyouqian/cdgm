@@ -243,7 +243,6 @@ class Enter(tornado.web.RequestHandler):
             # gen
             try:
                 cache = genCache(zoneid)
-                t.prt("gen finish")
             except:
                 send_error(self, err_not_exist)
 
@@ -276,7 +275,6 @@ class Enter(tornado.web.RequestHandler):
             clientCache["error"] = 0
             rspJs = json.dumps(clientCache)
             self.write(rspJs)
-
         except:
             send_internal_error(self)
         finally:
