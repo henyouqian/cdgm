@@ -253,7 +253,7 @@ class Enter(tornado.web.RequestHandler):
             
             cacheJs = json.dumps(cache)
             t.prt("dump cache")
-            startpos = cache["startPos"]
+            startpos = cache["startPos"] 
 
             # # redis store
             # key = str(session["userid"])+"/zonecache"
