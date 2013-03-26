@@ -27,10 +27,10 @@ auth_db = {
     "database": "account_db",
     "user": "root",
     "password": "Nmmgb808313",
-    "num_threads": 3,
-    "tx_connection_pool_size": 2,
+    "num_threads": 30,
+    "tx_connection_pool_size": 5,
     "queue_timeout": 1,
-    "thread_idle_life": 0,
+    "thread_idle_life": 60*60,
 }
 
 # auth_db = {
@@ -50,8 +50,8 @@ wh_db = {
     "database": "wh_db",
     "user": "root",
     "password": "Nmmgb808313",
-    "num_threads": 3,
-    "tx_connection_pool_size": 2,
+    "num_threads": 30,
+    "tx_connection_pool_size": 5,
     "queue_timeout": 1,
     "thread_idle_life": 60*60,
 }

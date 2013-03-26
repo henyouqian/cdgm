@@ -38,7 +38,7 @@ class Getinfo(tornado.web.RequestHandler):
                 return;
 
             # response
-            resp = {"error":0, "id":userid}
+            resp = {"error":no_error, "id":userid}
             try:
                 row = rows[0]
                 resp["name"] = row[0]

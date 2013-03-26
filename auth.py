@@ -65,7 +65,7 @@ class Register(tornado.web.RequestHandler):
                 send_error(self, err_redis)
                 return
 
-            reply = {"error":0, "usertoken":usertoken}
+            reply = {"error":no_error, "usertoken":usertoken}
             self.write(json.dumps(reply))
             self.set_cookie("usertoken", usertoken, 
                             expires=datetime.datetime.utcnow()+datetime.timedelta(seconds=SESSION_TTL), 
@@ -116,7 +116,7 @@ class Login(tornado.web.RequestHandler):
                 send_error(self, err_redis)
                 return
 
-            reply = {"error":0, "usertoken":usertoken}
+            reply = {"error":no_error, "usertoken":usertoken}
             self.write(json.dumps(reply))
 
             self.set_cookie("usertoken", usertoken, 

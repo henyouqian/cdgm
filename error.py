@@ -13,12 +13,14 @@ err_auth = "err_auth"
 err_key = "err_key"
 err_value = "err_value"
 
+no_error = ""
+
 def send_error(hdl, err):
     reply = '{"error":"' + err + '"}'
     hdl.write(reply)
 
 def send_ok(hdl):
-    hdl.write('{"error":0}')
+    hdl.write('{"error":""}')
 
 def send_internal_error(hdl):
 	reply = '{"error":"err_internal"}'

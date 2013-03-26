@@ -1,6 +1,8 @@
 from error import *
 from session import *
 import g
+import util
+
 import tornado.web
 import adisp
 import brukva
@@ -12,6 +14,7 @@ from random import random, choice
 
 import tornadoredis
 import tornado.gen
+
 
 
 TILE_ALL = 4        # tile index in tiled(the editor), gen item or monster
@@ -226,27 +229,30 @@ class Enter(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            t = util.Tm()
             # session
             session = yield find_session(self)
             if not session:
                 send_error(self, err_auth)
                 return
-
+            t.prt("sesson")
             # param
             try:
                 zoneid = self.get_argument("zoneid")
             except:
                 send_error(self, err_param)
                 return;
-
+            t.prt("param")
             # gen
             try:
                 cache = genCache(zoneid)
+                t.prt("gen finish")
             except:
                 send_error(self, err_not_exist)
 
             
             cacheJs = json.dumps(cache)
+            t.prt("dump cache")
             startpos = cache["startPos"]
 
             # # redis store
@@ -260,19 +266,22 @@ class Enter(tornado.web.RequestHandler):
             # db store
             try:
                 row_nums = yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s, zonePosX=%s, zonePosY=%s
+                    """UPDATE playerInfos SET zoneCache=%s
                             WHERE userid=%s"""
-                    ,(cacheJs, startpos["x"], startpos["y"], session["userid"])
+                    ,(cacheJs, session["userid"])
                 )
             except Exception as e:
                 logging.debug(e)
                 send_error(self, err_db)
                 return;
 
+            t.prt("db")
             # response
             clientCache = transCacheToClient(cache)
+            t.prt("transCacheToClient")
             clientCache["error"] = 0
             rspJs = json.dumps(clientCache)
+            t.prt("dumps(clientCache)")
             self.write(rspJs)
 
         except:
