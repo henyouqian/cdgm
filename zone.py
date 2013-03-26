@@ -229,20 +229,17 @@ class Enter(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
-            t = util.Tm()
             # session
             session = yield find_session(self)
             if not session:
                 send_error(self, err_auth)
                 return
-            t.prt("sesson")
             # param
             try:
                 zoneid = self.get_argument("zoneid")
             except:
                 send_error(self, err_param)
                 return;
-            t.prt("param")
             # gen
             try:
                 cache = genCache(zoneid)
@@ -252,7 +249,6 @@ class Enter(tornado.web.RequestHandler):
 
             
             cacheJs = json.dumps(cache)
-            t.prt("dump cache")
             startpos = cache["startPos"] 
 
             # # redis store
@@ -275,13 +271,10 @@ class Enter(tornado.web.RequestHandler):
                 send_error(self, err_db)
                 return;
 
-            t.prt("db")
             # response
             clientCache = transCacheToClient(cache)
-            t.prt("transCacheToClient")
             clientCache["error"] = 0
             rspJs = json.dumps(clientCache)
-            t.prt("dumps(clientCache)")
             self.write(rspJs)
 
         except:
