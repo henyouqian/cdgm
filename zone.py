@@ -25,7 +25,7 @@ TILE_GOAL = 3       # goal tile
 
 class CsvTbl(object):
     def __init__(self, csvpath, keycol):
-        self.header = {}
+        self.header = {}    # {colName:colIndex}
         self.body = {}
         with open(csvpath, 'rb') as csvfile:
             spamreader = csv.reader(csvfile)
@@ -93,39 +93,41 @@ class PlacementTbl(object):
     def getZoneData(self, zoneid):
         return self.placements[zoneid]["placements"]
 
-class MonGrpTbl(object):
+class CaseTbl(object):
     def __init__(self):
-        self.header = {}
-        self.body = {}
-        csvpath = "data/monster.csv"
-        with open(csvpath, 'rb') as csvfile:
-            spamreader = csv.reader(csvfile)
-            firstrow = True;
-            for row in spamreader:
-                if firstrow:
-                    firstrow = False
-                    i = 0
-                    row = row[1:]
-                    for colname in row:
-                        self.header[colname] = i
-                        i += 1
-                else:
-                    self.body[row[0]] = row[1:]
+        cvs_case = CsvTbl("data/case.csv", "ID")
+        self._t = {}
+        for k, v in cvs_case.body.iteritems():
+            row = v[1:]
+            indices = []
+            weights = []
+            for idx, weight in enumerate(row):
+                w = float(weight)
+                if w > 0:
+                    indices.append(idx+1)
+                    weights.append(w)
+            self._t[int(k)] = (indices, weights)
 
-    def getRow(self, key):
-        return self.body[key]
-
-    def getValue(self, row, colname):
-        return row[self.header[colname]]
-
+    def getItem(self, caseId):
+        try:
+            indices, weights = self._t[caseId]
+            rdm = WeightedRandom(1.0, *weights)
+            idx = rdm.get()          
+            return indices[idx]
+        except:
+            return 0
+        
 
 class WeightedRandom(object):
-    def __init__(self, *weights):
+    def __init__(self, totalWeight, *weights):
+        """if totalWeight <= 0, auto sum weights as totalWeight"""
         sum = 0
         uppers = []
         for weight in weights:
             sum += weight
             uppers.append(sum)
+        if totalWeight > 0:
+            sum = totalWeight
         self.uppers = [x/float(sum) for x in uppers]
 
     def get(self):
@@ -135,7 +137,7 @@ class WeightedRandom(object):
             if rdm <= upper:
                 return idx
             idx += 1
-        return idx-1
+        return -1
 
 def genCache(zoneid):
     tiles = plc_tbl.getZoneData(zoneid)
@@ -144,24 +146,17 @@ def genCache(zoneid):
     monsterrate = float(map_tbl.getValue(maprow, "monster%"))
     eventrate = float(map_tbl.getValue(maprow, "event%"))
 
-    nonerate = 1.0 - itemrate - monsterrate - eventrate
-    if nonerate < 0:
-        raise ValueError("sum of percent greater than 1");
-
-    rand1all = WeightedRandom(nonerate, itemrate, monsterrate, eventrate)
-    rand1item = WeightedRandom(nonerate, itemrate + monsterrate, 0, eventrate)
-    rand1mon = WeightedRandom(nonerate, 0, itemrate + monsterrate, eventrate)
+    rand1all = WeightedRandom(1.0, itemrate, monsterrate, eventrate)
+    rand1item = WeightedRandom(1.0, itemrate + monsterrate, 0, eventrate)
+    rand1mon = WeightedRandom(1.0, 0, itemrate + monsterrate, eventrate)
 
     woodrate = float(map_tbl.getValue(maprow, "wood%"))
     treasurerate = float(map_tbl.getValue(maprow, "treasure%"))
     chestrate = float(map_tbl.getValue(maprow, "chest%"))
     littlegoldrate = float(map_tbl.getValue(maprow, "littlegold%"))
     biggoldrate = float(map_tbl.getValue(maprow, "biggold%"))
-    nonerate = 1.0 - woodrate - treasurerate - chestrate - littlegoldrate - biggoldrate
-    if nonerate < -0.0001:
-        raise ValueError("sum of percent greater than 1: nonerate = %s" % nonerate);
 
-    rand2item = WeightedRandom(nonerate, woodrate, treasurerate, chestrate, littlegoldrate, biggoldrate)
+    rand2item = WeightedRandom(1.0, woodrate, treasurerate, chestrate, littlegoldrate, biggoldrate)
 
     mongrpids = []
     for i in xrange(1, 11):
@@ -189,21 +184,21 @@ def genCache(zoneid):
             goalpos = dict(zip(("x", "y"), map(int, k.split(","))))
             continue
 
-        if r == 1:      # item
+        if r == 0:      # item
             itemtype = rand2item.get()
-            if itemtype:
+            if itemtype >= 0:
                 objs[k] = itemtype
-        elif r == 2:    # battle
+        elif r == 1:    # battle
             grpid = choice(mongrpids)
             # row = mongrp_tbl.getRow(grpid)
             # img = mongrp_tbl.getValue(row, "image")
             # objs[k] = -int(img)
             objs[k] = -int(grpid)
-        elif r == 3:    # event
+        elif r == 2:    # event
             objs[k] = 10000
 
 
-    cache = {"zoneId":zoneid, "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos}
+    cache = {"zoneId":int(zoneid), "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos}
     return cache
 
 # =============================================
@@ -246,7 +241,6 @@ class Enter(tornado.web.RequestHandler):
             except:
                 send_error(self, err_not_exist)
 
-            
             cacheJs = json.dumps(cache)
             startpos = cache["startPos"] 
 
@@ -272,7 +266,7 @@ class Enter(tornado.web.RequestHandler):
 
             # response
             clientCache = transCacheToClient(cache)
-            clientCache["error"] = 0
+            clientCache["error"] = no_error
             rspJs = json.dumps(clientCache)
             self.write(rspJs)
         except:
@@ -341,7 +335,7 @@ class Get(tornado.web.RequestHandler):
             
             cache = json.loads(cache)
             clientCache = transCacheToClient(cache)
-            clientCache["error"] = 0
+            clientCache["error"] = no_error
             rspJs = json.dumps(clientCache)
             self.write(rspJs)
 
@@ -399,9 +393,9 @@ class Move(tornado.web.RequestHandler):
             # 
             if evtid == 10000:  # event
                 pass
-            elif evtid < 0:
+            elif evtid < 0:     # battle
                 pass
-            else:
+            else:               # item
                 pass
 
             # update
@@ -438,6 +432,7 @@ handlers = [
 map_tbl = CsvTbl("data/map.csv", "zoneID")
 plc_tbl = PlacementTbl()
 mongrp_tbl = CsvTbl("data/monster.csv", "ID")
+case_tbl = CaseTbl()
 
 # =============================================
 if __name__ == "__main__":
