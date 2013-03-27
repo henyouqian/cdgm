@@ -10,6 +10,8 @@ import simplejson as json
 import csv
 import logging
 import os
+from datetime import datetime, timedelta
+import logging
 from random import random, choice
 
 import tornadoredis
@@ -29,7 +31,7 @@ class CsvTbl(object):
         self.body = {}
         with open(csvpath, 'rb') as csvfile:
             spamreader = csv.reader(csvfile)
-            firstrow = True;
+            firstrow = True
             keycolidx = None
             for row in spamreader:
                 if firstrow:
@@ -45,11 +47,14 @@ class CsvTbl(object):
                 else:
                     self.body[row[keycolidx]] = row
 
-    def getRow(self, key):
+    def get_row(self, key):
         return self.body[key]
 
-    def getValue(self, row, colname):
+    def get_value(self, row, colname):
         return row[self.header[colname]]
+
+    def get(self, rowkey, colname):
+        return self.body[rowkey][self.header[colname]]
 
 
 class PlacementTbl(object):
@@ -90,7 +95,7 @@ class PlacementTbl(object):
             i = i + 1
         return out
 
-    def getZoneData(self, zoneid):
+    def get_zone_data(self, zoneid):
         return self.placements[zoneid]["placements"]
 
 class CaseTbl(object):
@@ -108,10 +113,10 @@ class CaseTbl(object):
                     weights.append(w)
             self._t[int(k)] = (indices, weights)
 
-    def getItem(self, caseId):
+    def get_item(self, caseId):
         try:
             indices, weights = self._t[caseId]
-            rdm = WeightedRandom(1.0, *weights)
+            rdm = WeightedRandom(0, *weights)
             idx = rdm.get()          
             return indices[idx]
         except:
@@ -131,7 +136,7 @@ class WeightedRandom(object):
         self.uppers = [x/float(sum) for x in uppers]
 
     def get(self):
-        rdm = random();
+        rdm = random()
         idx = 0
         for upper in self.uppers:
             if rdm <= upper:
@@ -139,28 +144,28 @@ class WeightedRandom(object):
             idx += 1
         return -1
 
-def genCache(zoneid):
-    tiles = plc_tbl.getZoneData(zoneid)
-    maprow = map_tbl.getRow(zoneid)
-    itemrate = float(map_tbl.getValue(maprow, "item%"))
-    monsterrate = float(map_tbl.getValue(maprow, "monster%"))
-    eventrate = float(map_tbl.getValue(maprow, "event%"))
+def gen_cache(zoneid):
+    tiles = plc_tbl.get_zone_data(zoneid)
+    maprow = map_tbl.get_row(zoneid)
+    itemrate = float(map_tbl.get_value(maprow, "item%"))
+    monsterrate = float(map_tbl.get_value(maprow, "monster%"))
+    eventrate = float(map_tbl.get_value(maprow, "event%"))
 
     rand1all = WeightedRandom(1.0, itemrate, monsterrate, eventrate)
     rand1item = WeightedRandom(1.0, itemrate + monsterrate, 0, eventrate)
     rand1mon = WeightedRandom(1.0, 0, itemrate + monsterrate, eventrate)
 
-    woodrate = float(map_tbl.getValue(maprow, "wood%"))
-    treasurerate = float(map_tbl.getValue(maprow, "treasure%"))
-    chestrate = float(map_tbl.getValue(maprow, "chest%"))
-    littlegoldrate = float(map_tbl.getValue(maprow, "littlegold%"))
-    biggoldrate = float(map_tbl.getValue(maprow, "biggold%"))
+    woodrate = float(map_tbl.get_value(maprow, "wood%"))
+    treasurerate = float(map_tbl.get_value(maprow, "treasure%"))
+    chestrate = float(map_tbl.get_value(maprow, "chest%"))
+    littlegoldrate = float(map_tbl.get_value(maprow, "littlegold%"))
+    biggoldrate = float(map_tbl.get_value(maprow, "biggold%"))
 
     rand2item = WeightedRandom(1.0, woodrate, treasurerate, chestrate, littlegoldrate, biggoldrate)
 
     mongrpids = []
     for i in xrange(1, 11):
-        monid = map_tbl.getValue(maprow, "monster%dID" % i)
+        monid = map_tbl.get_value(maprow, "monster%dID" % i)
         if monid != "0":
             mongrpids.append(monid)
         else:
@@ -172,11 +177,11 @@ def genCache(zoneid):
     for k, v in tiles.iteritems():
         r = 0
         if v == TILE_ALL:
-            r = rand1all.get();
+            r = rand1all.get()
         elif v == TILE_ITEM:
-            r = rand1item.get();
+            r = rand1item.get()
         elif v == TILE_MON:
-            r = rand1mon.get();
+            r = rand1mon.get()
         elif v == TILE_START:
             startpos = dict(zip(("x", "y"), map(int, k.split(","))))
             continue
@@ -190,19 +195,20 @@ def genCache(zoneid):
                 objs[k] = itemtype
         elif r == 1:    # battle
             grpid = choice(mongrpids)
-            # row = mongrp_tbl.getRow(grpid)
-            # img = mongrp_tbl.getValue(row, "image")
+            # row = mongrp_tbl.get_row(grpid)
+            # img = mongrp_tbl.get_value(row, "image")
             # objs[k] = -int(img)
             objs[k] = -int(grpid)
         elif r == 2:    # event
             objs[k] = 10000
 
 
-    cache = {"zoneId":int(zoneid), "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos}
+    cache = {"zoneId":int(zoneid), "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos, 
+                "redCase":0, "metalCase":0, "monGrpId":-1}
     return cache
 
 # =============================================
-def transCacheToClient(cache):
+def trans_cache_to_client(cache):
     out = cache
     objs = cache["objs"]
     outobjs = []
@@ -211,8 +217,8 @@ def transCacheToClient(cache):
         elem = map(int, elem)
         #battle
         if v < 0:
-            row = mongrp_tbl.getRow(str(-v))
-            img = mongrp_tbl.getValue(row, "image")
+            row = mongrp_tbl.get_row(str(-v))
+            img = mongrp_tbl.get_value(row, "image")
             v = -int(img)
         elem.append(v)
         outobjs.append(elem)
@@ -234,14 +240,14 @@ class Enter(tornado.web.RequestHandler):
                 zoneid = self.get_argument("zoneid")
             except:
                 send_error(self, err_param)
-                return;
+                return
             # gen
             try:
-                cache = genCache(zoneid)
+                cache = gen_cache(zoneid)
             except:
                 send_error(self, err_not_exist)
 
-            cacheJs = json.dumps(cache)
+            cachejs = json.dumps(cache)
             startpos = cache["startPos"] 
 
             # # redis store
@@ -250,22 +256,22 @@ class Enter(tornado.web.RequestHandler):
             # rv = yield g.redis().hmset(key, cache)
             # if not rv:
             #     send_error(self, err_redis)
-            #     return;
+            #     return
 
             # db store
             try:
                 row_nums = yield g.whdb.runOperation(
                     """UPDATE playerInfos SET zoneCache=%s
                             WHERE userid=%s"""
-                    ,(cacheJs, session["userid"])
+                    ,(cachejs, session["userid"])
                 )
             except Exception as e:
                 logging.debug(e)
                 send_error(self, err_db)
-                return;
+                return
 
             # response
-            clientCache = transCacheToClient(cache)
+            clientCache = trans_cache_to_client(cache)
             clientCache["error"] = no_error
             rspJs = json.dumps(clientCache)
             self.write(rspJs)
@@ -295,7 +301,7 @@ class Withdraw(tornado.web.RequestHandler):
             except Exception as e:
                 logging.debug(e)
                 send_error(self, err_db)
-                return;
+                return
 
             # response
             send_ok(self)
@@ -334,7 +340,7 @@ class Get(tornado.web.RequestHandler):
                 return
             
             cache = json.loads(cache)
-            clientCache = transCacheToClient(cache)
+            clientCache = trans_cache_to_client(cache)
             clientCache["error"] = no_error
             rspJs = json.dumps(clientCache)
             self.write(rspJs)
@@ -347,7 +353,7 @@ class Get(tornado.web.RequestHandler):
 class Move(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
-    def get(self):
+    def post(self):
         try:
             # session
             session = yield find_session(self)
@@ -356,65 +362,160 @@ class Move(tornado.web.RequestHandler):
                 return
 
             # param
+            path = []
             try:
-                x = self.get_argument("x")
-                y = self.get_argument("y")
+                itpath = iter(json.loads(self.request.body))
+                try:
+                    lastPoint = None
+                    while True:
+                        x = itpath.next()
+                        y = itpath.next()
+                        if lastPoint and (abs(lastPoint[0]-x) + abs(lastPoint[1]-y) != 3):
+                            raise Exception("dist not 3")
+                        lastPoint = (x, y)
+                        path.append(lastPoint)
+                except StopIteration:
+                    pass
+                except:
+                    raise
+                
+                if len(path) < 2:
+                    raise Exception("path too short")
+
             except:
-                send_error(self, err_param)
-                return;
+                send_error(self, err_post)
+                return
 
             # db get cache
             try:
                 rows = yield g.whdb.runQuery(
-                    """SELECT zoneCache FROM playerInfos 
+                    """SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, gold FROM playerInfos 
                             WHERE userid=%s"""
                     ,(session["userid"],)
                 )
-                cache = rows[0][0]
+                row = rows[0]
+                cache = row[0]
+                ap = row[1]
+                max_ap = row[2]
+                last_ap_time = row[3]
+                curr_time = row[4]
+                items = row[5]
+                gold = row[6]
+
+                if not last_ap_time:
+                    last_ap_time = datetime(2013, 1, 1)
+
+                if not items:
+                    items = {}
+                else:
+                    items = json.loads(items)
+
+                if not cache:
+                    send_error(self, "err_no_cache")
+                    return
+                else:
+                    cache = json.loads(cache)
+
             except Exception as e:
                 logging.debug(e)
                 send_error(self, err_db)
                 return
 
-            if not cache:
-                send_error(self, err_not_exist)
-                return;
+            
 
-            cache = json.loads(cache)
-            lastpos = cache["currPos"]
+            # check path
+            try:
+                #check start pos
+                currpos = cache["currPos"]
+                currpos = (currpos["x"], currpos["y"])
+                if currpos != path[0]:
+                    raise Exception("begin coord not match")
+
+                #update ap
+                print "curr_time:", curr_time
+                print "last_ap_time:", last_ap_time
+                dt = curr_time - last_ap_time
+                dt = int(dt.total_seconds())
+                print "dt:", dt
+                ap_add_duration = 10
+                dap = dt // ap_add_duration
+                print "dap:", dap
+                if dap:
+                    ap = min(max_ap, ap + dap)
+                if ap == max_ap:
+                    last_ap_time = curr_time
+                else:
+                    last_ap_time = curr_time - timedelta(seconds = dt % ap_add_duration)
+
+                if ap == 0:
+                    send_error(self, "no_ap")
+                    return
+
+                path = path[1:]
+                print "path:", path, "ap:", ap
+                if len(path) > ap:
+                    path = path[:ap]
+
+                ap -= len(path)
+                print "ap:", ap
+            except:
+                send_error(self, err_post)
+                return
 
             # check event exist
-            poskey = "%d,%d" % (int(x), int(y))
+            currpos = path[-1]
+            poskey = "%d,%d" % (currpos[0], currpos[1])
             evtid = cache["objs"].get(poskey)
-            if not evtid:
-                send_error(self, err_key)
-                return;
-
-            # 
-            if evtid == 10000:  # event
-                pass
-            elif evtid < 0:     # battle
-                pass
-            else:               # item
-                pass
-
+            item_updated = False
+            if evtid:
+                del cache["objs"][poskey]
+                zoneid = cache["zoneId"]
+                maprow = map_tbl.get_row(zoneid)
+                if evtid == 10000:      # event
+                    pass
+                elif evtid < 0:         # battle
+                    cache["monGrpId"] = -evtid
+                    monrow = mongrp_tbl.get_row(str(-evtid))
+                    # img = mongrp_tbl.get_value(monrow, "image")
+                    # fixme
+                elif evtid == 1:    # wood case
+                    caseid = map_tbl.get_value(maprow, "woodprobabilityID")
+                    itemid = case_tbl.get_item(caseid)
+                    item_updated = True
+                elif evtid == 2:    # red case
+                    cache["redCase"] += 1
+                elif evtid == 3:    # metal case
+                    cache["metalCase"] += 1
+                elif evtid == 4:
+                    gold += 100
+                elif evtid == 5:
+                    gold += 1000
+            
             # update
-            cache["currPos"] = {"x":x, "y":y}
-            del cache["objs"][poskey]
-            cacheJs = json.dumps(cache)
+            cache["currPos"] = {"x":currpos[0], "y":currpos[1]}
+            cachejs = json.dumps(cache)
             try:
-                row_nums = yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s
-                            WHERE userid=%s"""
-                    ,(cacheJs, session["userid"])
-                )
+                if item_updated:
+                    itemjs = json.dumps(item)
+                    yield g.whdb.runOperation(
+                        """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s,
+                            gold=%s, items=%s
+                                WHERE userid=%s"""
+                        ,(cachejs, ap, last_ap_time, gold, itemjs, session["userid"])
+                    )
+                else:
+                    yield g.whdb.runOperation(
+                        """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s,
+                            gold=%s
+                                WHERE userid=%s"""
+                        ,(cachejs, ap, last_ap_time, gold, session["userid"])
+                    )
             except Exception as e:
                 logging.debug(e)
                 send_error(self, err_db)
-                return;
+                return
 
             # response
-            
             self.write(poskey)
 
         except:
@@ -436,5 +537,5 @@ case_tbl = CaseTbl()
 
 # =============================================
 if __name__ == "__main__":
-    out = genCache("50101")
+    out = gen_cache("50101")
     print out

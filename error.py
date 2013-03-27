@@ -5,6 +5,7 @@ import config
 
 err_internal = "err_internal"
 err_param = "err_param"
+err_post = "err_post"
 err_exist = "err_exist"
 err_not_exist = "err_not_exist"
 err_not_match = "err_not_match"
