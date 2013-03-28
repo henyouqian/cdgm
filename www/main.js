@@ -9,7 +9,11 @@ $(document).ready(function(){
 function getPlayerInfo(){
 	$.getJSON('/whapi/player/getinfo', function(json){
 		var err = json.error;
-		if (err == 0){
+		if (err){
+			if (err == "err_not_exist") {
+				window.location.href="create_player.html";
+			}
+		}else{
 			playerInfo = json
 			playerInfoStr = JSON.stringify(json)
 			$("#info").text(playerInfoStr);
@@ -17,11 +21,6 @@ function getPlayerInfo(){
 			window.localStorage.playerInfo = playerInfoStr
 			if (json.isInMap)
 				$("#adv").text("resume");
-
-		}else{
-			if (err == "err_not_exist") {
-				window.location.href="create_player.html";
-			}
 		}
 	});
 }

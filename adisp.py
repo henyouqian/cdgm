@@ -98,11 +98,12 @@ class CallbackDispatcher(object):
             self.call(self.g.next())
         except StopIteration:
             pass
-        except Exception as e:
-            try:
-                self.call(self.g.throw(e))
-            except:
-                pass
+        # except Exception as e:
+        #     try:
+        #         print 111111111111
+        #         self.call(self.g.throw(e))
+        #     except:
+        #         pass
 
     def _send_result(self, results, single):
         try:

@@ -1,5 +1,5 @@
 ﻿import tornado.web
-import json
+import simplejson as json
 import traceback
 import config
 
@@ -14,28 +14,29 @@ err_redis = "err_redis"
 err_auth = "err_auth"
 err_key = "err_key"
 err_value = "err_value"
+err_permission = "err_permission"
 
 no_error = ""
 
 if config.debug:
-	def send_error(hdl, err):
-	    reply = '{"error":"%s", "traceback":"%s"}' % (err, traceback.format_exc())
-	    hdl.write(reply)
+    def send_error(hdl, err):
+        reply = {"error":"%s" % err, "traceback":"%s" % traceback.format_exc()}
+        hdl.write(json.dumps(reply))
 else:
-	def send_error(hdl, err):
-	    reply = '{"error":"%s"}' % (err, )
-	    hdl.write(reply)
+    def send_error(hdl, err):
+        reply = '{"error":"%s"}' % (err, )
+        hdl.write(reply)
 
 def send_ok(hdl):
     hdl.write('{"error":""}')
 
 if config.debug:
-	def send_internal_error(hdl):
-		reply = '{"error":"err_internal", "traceback":"%s"}' % traceback.format_exc()
-		hdl.write(reply)
-		traceback.print_exc()
+    def send_internal_error(hdl):
+        reply = {"error":"err_internal", "traceback":"%s" % traceback.format_exc()}
+        hdl.write(json.dumps(reply))
+        traceback.print_exc()
 else:
-	def send_internal_error(hdl):
-		reply = '{"error":"err_internal"}'
-		hdl.write(reply)
-		traceback.print_exc()
+    def send_internal_error(hdl):
+        reply = '{"error":"err_internal"}'
+        hdl.write(reply)
+        traceback.print_exc()

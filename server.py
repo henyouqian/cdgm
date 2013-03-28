@@ -6,6 +6,7 @@ import auth
 import player
 import zone
 import redistest
+import card
 
 from tornado import web, httpserver, ioloop
 from tornado import options
@@ -35,7 +36,8 @@ class KeepAliveThread(threading.Thread):
                 break
 
 
-handlers = auth.handlers + player.handlers + zone.handlers + redistest.handlers
+handlers = auth.handlers + player.handlers + zone.handlers + redistest.handlers + card.handlers
+
 if config.debug:
     import cheat
     handlers = handlers + cheat.handlers

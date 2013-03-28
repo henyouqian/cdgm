@@ -1,13 +1,12 @@
 from error import *
 from session import *
 import g
-import util
+from util import CsvTbl
 
 import tornado.web
 import adisp
 import brukva
 import simplejson as json
-import csv
 import logging
 import os
 from datetime import datetime, timedelta
@@ -15,8 +14,6 @@ import logging
 from random import random, choice
 
 import tornadoredis
-import tornado.gen
-
 
 
 TILE_ALL = 4        # tile index in tiled(the editor), gen item or monster
@@ -24,37 +21,6 @@ TILE_ITEM = 5       # tile index which generate item only
 TILE_MON = 6        # tile index which generate monster only
 TILE_START = 2      # start tile
 TILE_GOAL = 3       # goal tile
-
-class CsvTbl(object):
-    def __init__(self, csvpath, keycol):
-        self.header = {}    # {colName:colIndex}
-        self.body = {}
-        with open(csvpath, 'rb') as csvfile:
-            spamreader = csv.reader(csvfile)
-            firstrow = True
-            keycolidx = None
-            for row in spamreader:
-                if firstrow:
-                    firstrow = False
-                    i = 0
-                    for colname in row:
-                        if colname == keycol:
-                            keycolidx = i
-                        self.header[colname] = i
-                        i += 1
-                    if keycolidx == None:
-                        raise ValueError("key column not found:" + keycol)
-                else:
-                    self.body[row[keycolidx]] = row
-
-    def get_row(self, key):
-        return self.body[key]
-
-    def get_value(self, row, colname):
-        return row[self.header[colname]]
-
-    def get(self, rowkey, colname):
-        return self.body[rowkey][self.header[colname]]
 
 
 class PlacementTbl(object):
@@ -100,7 +66,7 @@ class PlacementTbl(object):
 
 class CaseTbl(object):
     def __init__(self):
-        cvs_case = CsvTbl("data/case.csv", "ID")
+        cvs_case = CsvTbl("data/cases.csv", "ID")
         self._t = {}
         for k, v in cvs_case.body.iteritems():
             row = v[1:]
@@ -393,21 +359,21 @@ class Move(tornado.web.RequestHandler):
             # db get cache
             try:
                 rows = yield g.whdb.runQuery(
-                    """SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, gold FROM playerInfos 
+                    """SELECT zoneCache, xp, maxXp, lastXpTime, UTC_TIMESTAMP(), items, gold FROM playerInfos 
                             WHERE userid=%s"""
                     ,(session["userid"],)
                 )
                 row = rows[0]
                 cache = row[0]
-                ap = row[1]
-                max_ap = row[2]
-                last_ap_time = row[3]
+                xp = row[1]
+                max_xp = row[2]
+                last_xp_time = row[3]
                 curr_time = row[4]
                 items = row[5]
                 gold = row[6]
 
-                if not last_ap_time:
-                    last_ap_time = datetime(2013, 1, 1)
+                if not last_xp_time:
+                    last_xp_time = datetime(2013, 1, 1)
 
                 if not items:
                     items = {}
@@ -435,33 +401,27 @@ class Move(tornado.web.RequestHandler):
                 if currpos != path[0]:
                     raise Exception("begin coord not match")
 
-                #update ap
-                print "curr_time:", curr_time
-                print "last_ap_time:", last_ap_time
-                dt = curr_time - last_ap_time
+                #update xp
+                dt = curr_time - last_xp_time
                 dt = int(dt.total_seconds())
-                print "dt:", dt
-                ap_add_duration = 10
-                dap = dt // ap_add_duration
-                print "dap:", dap
-                if dap:
-                    ap = min(max_ap, ap + dap)
-                if ap == max_ap:
-                    last_ap_time = curr_time
+                xp_add_duration = 10
+                dxp = dt // xp_add_duration
+                if dxp:
+                    xp = min(max_xp, xp + dxp)
+                if xp == max_xp:
+                    last_xp_time = curr_time
                 else:
-                    last_ap_time = curr_time - timedelta(seconds = dt % ap_add_duration)
+                    last_xp_time = curr_time - timedelta(seconds = dt % xp_add_duration)
 
-                if ap == 0:
-                    send_error(self, "no_ap")
+                if xp == 0:
+                    send_error(self, "no_xp")
                     return
 
                 path = path[1:]
-                print "path:", path, "ap:", ap
-                if len(path) > ap:
-                    path = path[:ap]
+                if len(path) > xp:
+                    path = path[:xp]
 
-                ap -= len(path)
-                print "ap:", ap
+                xp -= len(path)
             except:
                 send_error(self, err_post)
                 return
@@ -502,17 +462,17 @@ class Move(tornado.web.RequestHandler):
                 if item_updated:
                     itemjs = json.dumps(item)
                     yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s,
+                        """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
                             gold=%s, items=%s
                                 WHERE userid=%s"""
-                        ,(cachejs, ap, last_ap_time, gold, itemjs, session["userid"])
+                        ,(cachejs, xp, last_xp_time, gold, itemjs, session["userid"])
                     )
                 else:
                     yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s,
+                        """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
                             gold=%s
                                 WHERE userid=%s"""
-                        ,(cachejs, ap, last_ap_time, gold, session["userid"])
+                        ,(cachejs, xp, last_xp_time, gold, session["userid"])
                     )
             except Exception as e:
                 logging.debug(e)
@@ -534,9 +494,9 @@ handlers = [
     (r"/whapi/zone/move", Move),
 ]
 
-map_tbl = CsvTbl("data/map.csv", "zoneID")
+map_tbl = CsvTbl("data/maps.csv", "zoneID")
 plc_tbl = PlacementTbl()
-mongrp_tbl = CsvTbl("data/monster.csv", "ID")
+mongrp_tbl = CsvTbl("data/monsters.csv", "ID")
 case_tbl = CaseTbl()
 
 # =============================================

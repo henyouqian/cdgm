@@ -23,11 +23,10 @@ function register(){
 	}
 	$.getJSON('/authapi/register', {username:username, password:password}, function(json){
 		var err = json.error;
-		if (err==0){
-			// window.location.href="login.html?username="+username;
-			window.location.href="create_player.html";
-		}else{
+		if (err){
 			alert("Sign up failed. Error=" + err);
+		}else{
+			window.location.href="create_player.html";
 		}
 	});
 }

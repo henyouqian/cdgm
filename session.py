@@ -11,7 +11,7 @@ SESSION_TTL = 60*60*24*7
 @adisp.async
 @adisp.process
 def new_session(userid, username, appid, callback):
-    uidtokenkey = "{}:usertoken".format(userid)
+    uidtokenkey = "{}/tokenkey".format(userid)
     usertoken = yield g.redis().get(uidtokenkey)
     if usertoken:
         a = yield g.redis().delete(usertoken)
@@ -40,7 +40,7 @@ def find_session(rqHandler, callback):
 
     usertoken = rqHandler.get_argument("token", None)
     if not usertoken:
-        usertoken = rqHandler.get_cookie("usertoken")
+        usertoken = rqHandler.get_cookie("token")
 
     if not usertoken:
         try_auto_auth()

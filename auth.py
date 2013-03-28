@@ -65,9 +65,9 @@ class Register(tornado.web.RequestHandler):
                 send_error(self, err_redis)
                 return
 
-            reply = {"error":no_error, "usertoken":usertoken}
+            reply = {"error":no_error, "token":usertoken}
             self.write(json.dumps(reply))
-            self.set_cookie("usertoken", usertoken, 
+            self.set_cookie("token", usertoken, 
                             expires=datetime.datetime.utcnow()+datetime.timedelta(seconds=SESSION_TTL), 
                             path='/') #fixme expires and path
             
@@ -123,17 +123,20 @@ class Login(tornado.web.RequestHandler):
                     """SELECT 1 FROM playerInfos WHERE userId=%s"""
                     ,(userid, )
                 )
-                player_exist = bool(rows[0][0])
+                try:
+                    player_exist = bool(rows[0][0])
+                except:
+                    pass
             except Exception as e:
                 logging.error(e)
                 send_error(self, err_db)
                 return;
 
             # reply
-            reply = {"error":no_error, "usertoken":usertoken, "playerExist":player_exist}
+            reply = {"error":no_error, "token":usertoken, "playerExist":player_exist}
             self.write(json.dumps(reply))
 
-            self.set_cookie("usertoken", usertoken, 
+            self.set_cookie("token", usertoken, 
                             expires=datetime.datetime.utcnow()+datetime.timedelta(seconds=SESSION_TTL), 
                             path='/') #fixme expires and path
         except:

@@ -22,10 +22,10 @@ function login(){
 	}
 	$.getJSON('/authapi/login', {username:username, password:password}, function(json){
 		var err = json.error;
-		if (err==0){
-			window.location.href="main.html";
-		}else{
+		if (err){
 			alert("Sign in failed. Error=" + err);
+		}else{
+			window.location.href="main.html";
 		}
 	});
 }

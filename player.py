@@ -7,6 +7,7 @@ import adisp
 import brukva
 import simplejson as json
 import logging
+import card
 
 class Create(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -24,6 +25,9 @@ class Create(tornado.web.RequestHandler):
             # param
             try:
                 warlord_idx = int(self.get_argument("warlord"))
+                if warlord_idx not in xrange(8):
+                    raise IndexError("warlord_idx not in [0, 7]")
+                warlord_proto_id = 117 + warlord_idx
             except:
                 send_error(self, err_param)
                 return;
@@ -42,15 +46,18 @@ class Create(tornado.web.RequestHandler):
                 send_error(self, err_exist)
                 return;
 
+            # add war lord card
+            entity_id = yield card.create(warlord_proto_id, userid)
+
             # create player info
             try:
-                row = (userid, username, warlord_idx, 0, 0, INIT_AP, INIT_AP
+                row = (userid, username, entity_id, 0, 0, INIT_XP, INIT_XP, INIT_AP, INIT_AP
                     , INIT_SILVER_COIN, INIT_BRONZE_COIN)
                 row_nums = yield g.whdb.runOperation(
                     """ INSERT INTO playerInfos
                             (userId, name, warLord, isInZone, lastZoneId,
-                                ap, maxAp, silverCoin, bronzeCoin)
-                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                                xp, maxXp, ap, maxAp, silverCoin, bronzeCoin)
+                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
                     ,row
                 )
             except Exception as e:
