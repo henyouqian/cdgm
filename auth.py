@@ -116,7 +116,21 @@ class Login(tornado.web.RequestHandler):
                 send_error(self, err_redis)
                 return
 
-            reply = {"error":no_error, "usertoken":usertoken}
+            # check player exist
+            player_exist = False
+            try:
+                rows = yield g.whdb.runQuery(
+                    """SELECT 1 FROM playerInfos WHERE userId=%s"""
+                    ,(userid, )
+                )
+                player_exist = bool(rows[0][0])
+            except Exception as e:
+                logging.error(e)
+                send_error(self, err_db)
+                return;
+
+            # reply
+            reply = {"error":no_error, "usertoken":usertoken, "playerExist":player_exist}
             self.write(json.dumps(reply))
 
             self.set_cookie("usertoken", usertoken, 

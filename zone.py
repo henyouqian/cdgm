@@ -204,7 +204,7 @@ def gen_cache(zoneid):
 
 
     cache = {"zoneId":int(zoneid), "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos, 
-                "redCase":0, "metalCase":0, "monGrpId":-1}
+                "redCase":0, "goldenCase":0, "monGrpId":-1}
     return cache
 
 # =============================================
@@ -238,6 +238,7 @@ class Enter(tornado.web.RequestHandler):
             # param
             try:
                 zoneid = self.get_argument("zoneid")
+                bandidx = self.get_argument("bandidx")
             except:
                 send_error(self, err_param)
                 return
@@ -246,6 +247,9 @@ class Enter(tornado.web.RequestHandler):
                 cache = gen_cache(zoneid)
             except:
                 send_error(self, err_not_exist)
+
+            #band
+
 
             cachejs = json.dumps(cache)
             startpos = cache["startPos"] 
@@ -484,8 +488,8 @@ class Move(tornado.web.RequestHandler):
                     item_updated = True
                 elif evtid == 2:    # red case
                     cache["redCase"] += 1
-                elif evtid == 3:    # metal case
-                    cache["metalCase"] += 1
+                elif evtid == 3:    # golden case
+                    cache["goldenCase"] += 1
                 elif evtid == 4:
                     gold += 100
                 elif evtid == 5:
