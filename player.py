@@ -19,6 +19,7 @@ class Create(tornado.web.RequestHandler):
             if not session:
                 send_error(self, err_auth)
                 return
+            print session, 'sssssssss'
             userid = session["userid"]
             username = session["username"]
 
@@ -131,7 +132,39 @@ class Getinfo(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+# bands=[{"index":0, "formation":23, "members":[34, 643, None, 456, None, 54]}]
+class Setband(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def post(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+
+            # input
+            try:
+                bands = json.loads(self.request.body)
+                for band in bands:
+                    index = band["index"]
+                    if index not in [0, 1, 2]:
+                        raise IndexError;
+                    formation = band["formation"]
+
+            except:
+                send_error(self, err_post)
+                return
+            
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/player/create", Create),
     (r"/whapi/player/getinfo", Getinfo),
+    (r"/whapi/player/setband", Setband),
 ]

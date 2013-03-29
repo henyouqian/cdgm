@@ -32,7 +32,7 @@ def new_session(userid, username, appid, callback):
 def find_session(rqHandler, callback):
     def try_auto_auth():
         if config.auto_auth:
-            session = {"userid":12, "appid":123}
+            session = {"userid":12, "username":"aa", "appid":123}
             callback(session)
             return
         else:
