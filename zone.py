@@ -1,5 +1,6 @@
 from error import *
 from session import *
+from gamedata import BAND_NUM
 import g
 from util import CsvTbl
 
@@ -7,10 +8,8 @@ import tornado.web
 import adisp
 import brukva
 import simplejson as json
-import logging
 import os
 from datetime import datetime, timedelta
-import logging
 from random import random, choice
 
 import tornadoredis
@@ -189,6 +188,12 @@ def trans_cache_to_client(cache):
         elem.append(v)
         outobjs.append(elem)
     out["objs"] = outobjs
+
+    band = cache["band"]
+    outband = {}
+    outband["formation"] = band[0]
+    outband["members"] = band[1:]
+    out["band"] = outband
     return out
 
 class Enter(tornado.web.RequestHandler):
@@ -201,10 +206,13 @@ class Enter(tornado.web.RequestHandler):
             if not session:
                 send_error(self, err_auth)
                 return
+            userid = session["userid"]
             # param
             try:
                 zoneid = self.get_argument("zoneid")
                 bandidx = self.get_argument("bandidx")
+                if int(bandidx) not in xrange(BAND_NUM):
+                    raise Exception("Bad bandidx")
             except:
                 send_error(self, err_param)
                 return
@@ -214,11 +222,51 @@ class Enter(tornado.web.RequestHandler):
             except:
                 send_error(self, err_not_exist)
 
-            #band
+            # band
+            try:
+                rows = yield g.whdb.runQuery(
+                    """ SELECT bands FROM playerInfos
+                            WHERE userId=%s"""
+                    ,(userid, )
+                )
+                row = rows[0]
+                bands = row[0]
+                bands = json.loads(bands)
+            except:
+                send_error(self, err_db)
+                return
 
+            band = bands[int(bandidx)][:]
+            members = [mem for mem in band[1:] if mem]
+            
+            try:
+                sql = """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
+                            WHERE id IN {} AND ownerId=%s"""
+                if len(members) == 1:
+                    sql = sql.format("(%s)"% members[0])
+                else:
+                    sql = sql.format(str(tuple(members)))
+                rows = yield g.whdb.runQuery(
+                    sql, (userid, )
+                )
+            except:
+                send_error(self, err_db)
+                return
 
-            cachejs = json.dumps(cache)
-            startpos = cache["startPos"] 
+            if len(rows) != len(members):
+                raise Exception("len(rows) != len(members)")
+            
+            hps = [sum(row) for row in rows]
+            mem_hp = dict(zip(members, hps))
+            new_members = []
+            for member in band[1:]:
+                if member:
+                    new_members.append((member, mem_hp[member]))
+                else:
+                    new_members.append(None)
+            
+            band[1:] = new_members
+            cache["band"] = band
 
             # # redis store
             # key = str(session["userid"])+"/zonecache"
@@ -229,22 +277,22 @@ class Enter(tornado.web.RequestHandler):
             #     return
 
             # db store
+            cachejs = json.dumps(cache)
             try:
                 row_nums = yield g.whdb.runOperation(
                     """UPDATE playerInfos SET zoneCache=%s
                             WHERE userid=%s"""
                     ,(cachejs, session["userid"])
                 )
-            except Exception as e:
-                logging.debug(e)
+            except:
                 send_error(self, err_db)
                 return
 
             # response
             clientCache = trans_cache_to_client(cache)
             clientCache["error"] = no_error
-            rspJs = json.dumps(clientCache)
-            self.write(rspJs)
+            reply = json.dumps(clientCache)
+            self.write(reply)
         except:
             send_internal_error(self)
         finally:
@@ -268,8 +316,7 @@ class Withdraw(tornado.web.RequestHandler):
                             WHERE userid=%s"""
                     ,(session["userid"],)
                 )
-            except Exception as e:
-                logging.debug(e)
+            except:
                 send_error(self, err_db)
                 return
 
@@ -300,8 +347,7 @@ class Get(tornado.web.RequestHandler):
                     ,(session["userid"],)
                 )
                 cache = rows[0][0]
-            except Exception as e:
-                logging.debug(e)
+            except:
                 send_error(self, err_db)
                 return
 
@@ -386,8 +432,7 @@ class Move(tornado.web.RequestHandler):
                 else:
                     cache = json.loads(cache)
 
-            except Exception as e:
-                logging.debug(e)
+            except:
                 send_error(self, err_db)
                 return
 
@@ -445,6 +490,10 @@ class Move(tornado.web.RequestHandler):
                 elif evtid == 1:    # wood case
                     caseid = map_tbl.get_value(maprow, "woodprobabilityID")
                     itemid = case_tbl.get_item(caseid)
+                    if itemid in items:
+                        items[itemid] += 1
+                    else:
+                        items[itemid] = 1
                     item_updated = True
                 elif evtid == 2:    # red case
                     cache["redCase"] += 1
@@ -460,12 +509,12 @@ class Move(tornado.web.RequestHandler):
             cachejs = json.dumps(cache)
             try:
                 if item_updated:
-                    itemjs = json.dumps(item)
+                    itemsjs = json.dumps(items)
                     yield g.whdb.runOperation(
                         """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
                             gold=%s, items=%s
                                 WHERE userid=%s"""
-                        ,(cachejs, xp, last_xp_time, gold, itemjs, session["userid"])
+                        ,(cachejs, xp, last_xp_time, gold, itemsjs, session["userid"])
                     )
                 else:
                     yield g.whdb.runOperation(
@@ -474,8 +523,7 @@ class Move(tornado.web.RequestHandler):
                                 WHERE userid=%s"""
                         ,(cachejs, xp, last_xp_time, gold, session["userid"])
                     )
-            except Exception as e:
-                logging.debug(e)
+            except:
                 send_error(self, err_db)
                 return
 

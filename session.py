@@ -37,20 +37,21 @@ def find_session(rqHandler, callback):
             return
         else:
             callback(None)
-
+            
     usertoken = rqHandler.get_argument("token", None)
-    if not usertoken:
+    if usertoken:
+        session = yield g.redis().get(usertoken)
+        if session:
+            callback(json.loads(session))
+        else:
+            callback(None)
+    else:
         usertoken = rqHandler.get_cookie("token")
-
-    if not usertoken:
-        try_auto_auth()
-        return;
-    session = yield g.redis().get(usertoken)
-    if not session:
-        try_auto_auth()
-        return
-    try:
-        session = json.loads(session)
-        callback(session)
-    except:
-        try_auto_auth()
+        if not usertoken:
+            try_auto_auth()
+            return;
+        session = yield g.redis().get(usertoken)
+        if session:
+            callback(json.loads(session))
+        else:
+            callback(None)

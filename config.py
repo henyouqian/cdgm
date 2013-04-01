@@ -28,7 +28,7 @@ auth_db = {
     "user": "root",
     "password": "Nmmgb808313",
     "num_threads": 3,
-    "tx_connection_pool_size": 2,
+    "tx_connection_pool_size": 3,
     "queue_timeout": 1,
     "thread_idle_life": 60*60,
 }
@@ -51,7 +51,7 @@ wh_db = {
     "user": "root",
     "password": "Nmmgb808313",
     "num_threads": 3,
-    "tx_connection_pool_size": 2,
+    "tx_connection_pool_size": 3,
     "queue_timeout": 1,
     "thread_idle_life": 60*60,
 }

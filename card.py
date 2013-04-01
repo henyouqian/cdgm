@@ -8,7 +8,6 @@ import adisp
 
 import simplejson as json
 from itertools import repeat, imap
-import logging
 from random import randint
 
 
@@ -58,24 +57,24 @@ def is_war_lord(entity_id):
 @adisp.process
 def create(proto_id, owner_id, callback):
     hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, 1)
+    conn = yield g.whdb.beginTransaction()
     try:
-        conn = yield g.whdb.beginTransaction()
         row_nums = yield g.whdb.runOperation(
-            """ INSERT INTO cardEntitys
+            """ INSERT INTO cardEntities
                     (hp, atk, def, wis, agi, cardId, ownerId)
                     VALUES(%s, %s, %s, %s, %s, %s, %s)"""
-            ,(hp, atk, _def, wis, agi, proto_id, owner_id)
-            ,conn
+            ,(hp, atk, _def, wis, agi, proto_id, owner_id), conn
         )
         rows = yield g.whdb.runQuery("SELECT LAST_INSERT_ID()", None, conn)
+    except:
+        yield g.whdb.rollbackTransaction(conn)
+    else:
         yield g.whdb.commitTransaction(conn)
-        if row_nums != 1:
-            raise Exception("db insert error")
-        entity_id = rows[0][0]
-        callback(entity_id)
-    except Exception as e:
-        logging.debug(e)
-        raise;
+
+    if row_nums != 1:
+        raise Exception("db insert error")
+    entity_id = rows[0][0]
+    callback(entity_id)
 
 # ====================================================
 class Create(tornado.web.RequestHandler):
@@ -134,7 +133,7 @@ class Sell(tornado.web.RequestHandler):
 
             # db
             rows = yield g.whdb.runQuery(
-                """SELECT cardId FROM cardEntitys
+                """SELECT cardId FROM cardEntities
                         WHERE id = %s and ownerId = %s"""
                 ,(entity_id, user_id)
             )
@@ -152,7 +151,7 @@ class Sell(tornado.web.RequestHandler):
 
             #fixme: add gold
             yield g.whdb.runOperation(
-                "DELETE FROM cardEntitys WHERE id = %s",
+                "DELETE FROM cardEntities WHERE id = %s",
                 entity_id
             )
 

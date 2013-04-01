@@ -2,11 +2,12 @@
 import g
 from gamedata import *
 from session import *
+from util import CsvTbl
+
 import tornado.web
 import adisp
 import brukva
 import simplejson as json
-import logging
 import card
 
 class Create(tornado.web.RequestHandler):
@@ -19,7 +20,6 @@ class Create(tornado.web.RequestHandler):
             if not session:
                 send_error(self, err_auth)
                 return
-            print session, 'sssssssss'
             userid = session["userid"]
             username = session["username"]
 
@@ -39,8 +39,7 @@ class Create(tornado.web.RequestHandler):
                     """SELECT 1 FROM playerInfos WHERE userId=%s"""
                     ,(userid, )
                 )
-            except Exception as e:
-                logging.error(e)
+            except:
                 send_error(self, err_db)
                 return;
             if rows:
@@ -48,21 +47,34 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # add war lord card
-            entity_id = yield card.create(warlord_proto_id, userid)
+            try:
+                entity_id = yield card.create(warlord_proto_id, userid)
+            except:
+                send_error(self, "err_create_card")
+
+            # init bands
+            bands = INIT_BANDS
+            for band in bands:
+                band[2] = entity_id
+
+            bands = json.dumps(bands)
+
+            # init items
+            items = INIT_ITEMS
+            items = json.dumps(items)
+
 
             # create player info
             try:
-                row = (userid, username, entity_id, 0, 0, INIT_XP, INIT_XP, INIT_AP, INIT_AP
-                    , INIT_SILVER_COIN, INIT_BRONZE_COIN)
                 row_nums = yield g.whdb.runOperation(
                     """ INSERT INTO playerInfos
                             (userId, name, warLord, isInZone, lastZoneId,
-                                xp, maxXp, ap, maxAp, silverCoin, bronzeCoin)
-                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                    ,row
+                                xp, maxXp, ap, maxAp, silverCoin, bronzeCoin, bands, items)
+                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                    ,(userid, username, entity_id, 0, 0, INIT_XP, INIT_XP, INIT_AP, INIT_AP, 
+                        INIT_SILVER_COIN, INIT_BRONZE_COIN, bands, items)
                 )
-            except Exception as e:
-                logging.debug(e)
+            except:
                 send_error(self, err_db)
                 return;
 
@@ -84,7 +96,7 @@ class Create(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-class Getinfo(tornado.web.RequestHandler):
+class GetInfo(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -98,42 +110,40 @@ class Getinfo(tornado.web.RequestHandler):
 
             # query user info
             try:
+                cols = "userId,name,warlord,gold,isInZone,lastZoneId," \
+                        "xp,maxXp,lastXpTime,ap,maxAp,lastApTime," \
+                        "silverCoin,bronzeCoin,lastFormation,bands,items"
+
+                sql = "SELECT {} FROM playerInfos WHERE userId=%s".format(cols)
                 rows = yield g.whdb.runQuery(
-                    """ SELECT name, isInZone, lastZoneId, 
-                            ap, maxAp, silverCoin, bronzeCoin
-                            FROM playerInfos
-                            WHERE userId=%s"""
-                    ,(userid, )
+                    sql,
+                    (userid, )
                 )
-            except Exception as e:
-                logging.error(e)
+                cols = cols.split(",")
+                reply = dict(zip(cols, rows[0]))
+            except:
                 send_error(self, err_db)
                 return;
             if not rows:
                 send_error(self, err_not_exist)
                 return;
 
-            # response
-            resp = {"error":no_error, "id":userid}
-            try:
-                row = rows[0]
-                resp["name"] = row[0]
-                resp["isInZone"] = bool(row[1])
-                resp["lastZoneId"] = row[2]
-                resp["ap"] = row[3]
-                resp["maxAp"] = row[4]
-                self.write(json.dumps(resp))
-            except:
-                send_error(self, err_db)
-                return;
+            # reply
+            reply["error"] = no_error
+            reply["lastXpTime"] = str(reply["lastXpTime"])
+            reply["lastApTime"] = str(reply["lastApTime"])
+            bands = json.loads(reply["bands"])
+            reply["bands"] = [{"index":idx, "formation":band[0], "members":band[1:]} for idx, band in enumerate(bands)]
+            reply["items"] = json.loads(reply["items"])
+            self.write(json.dumps(reply))
             
         except:
             send_internal_error(self)
         finally:
             self.finish()
 
-# bands=[{"index":0, "formation":23, "members":[34, 643, None, 456, None, 54]}]
-class Setband(tornado.web.RequestHandler):
+# bands=[{"index":0, "formation":23, "members":[34, 643, null, 456, null, 54]}]
+class SetBand(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def post(self):
@@ -145,18 +155,170 @@ class Setband(tornado.web.RequestHandler):
                 return
             userid = session["userid"]
 
+            # query player info
+            try:
+                rows = yield g.whdb.runQuery(
+                    """ SELECT lastFormation, bands, warLord FROM playerInfos
+                            WHERE userId=%s"""
+                    ,(userid, )
+                )
+                row = rows[0]
+                last_formation = row[0]
+                db_bands = row[1]
+                war_lord = row[2]
+            except:
+                send_error(self, err_db)
+                return
+
+            db_bands = json.loads(db_bands)
+
+            member_set = set()
             # input
             try:
                 bands = json.loads(self.request.body)
                 for band in bands:
                     index = band["index"]
+                    formation = int(band["formation"])
+                    members = band["members"]
+
+                    # check band index
                     if index not in [0, 1, 2]:
-                        raise IndexError;
-                    formation = band["formation"]
+                        send_error(self, err_index)
+                        return
+
+                    # check formation
+                    try:
+                        max_num = int(fmt_tbl.get(str(formation), "maxNum"))
+                        if max_num != last_max_num:
+                            raise Exception("Invalid formation member number")
+                        if formation > last_formation:
+                            raise Exception("Formation not available now")
+                    except:
+                        send_error(self, "err_formation")
+                        return
+
+                    # check and collect members
+                    try:
+                        if len(members) != max_num * 2:
+                            raise Exception("member_num error")
+                        mems_not_none = [int(mem) for mem in members if mem]
+                        ms = set(members)
+                        ms.discard(None)
+                        if len(ms) != len(mems_not_none):
+                            raise Exception("card entity id repeated")
+                        member_set |= ms
+
+                    except:
+                        send_error(self, "err_members")
+                        return
+
+                    db_bands[index] = [formation] + members
 
             except:
                 send_error(self, err_post)
                 return
+
+            # check member
+            mem_proto_num = len(member_set)
+            if mem_proto_num:
+                try:
+                    rows = yield g.whdb.runQuery(
+                        """ SELECT COUNT(1) FROM cardEntities
+                                WHERE ownerId = %s AND id in %s"""
+                        ,(userid, tuple(member_set))
+                    )
+                    count = rows[0][0]
+                except:
+                    send_error(self, err_db)
+                    return
+
+                if count != mem_proto_num:
+                    send_error(self, "err_members", "Not your card")
+                    return
+
+            # store db
+            try:
+                yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET bands=%s
+                            WHERE userid=%s"""
+                    ,(json.dumps(db_bands), userid)
+                )
+            except:
+                send_error(self, err_db)
+                return
+            
+            # reply
+            send_ok(self)
+            
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+class UseItem(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+
+            # params
+            try:
+                item_id = self.get_argument("itemid")
+            except:
+                send_error(self, err_param)
+                return;
+
+            # query items info
+            conn = yield g.whdb.beginTransaction()
+            try:
+                rows = yield g.whdb.runQuery(
+                    """ SELECT items FROM playerInfos
+                            WHERE userId=%s"""
+                    ,(userid, )
+                    , conn
+                )
+                row = rows[0]
+                items = row[0]
+                items = json.loads(items)
+
+                # check item count
+                item_num = items[item_id]
+                if item_num == 0:
+                    raise Exception("Not have this item")
+
+                # update item count
+                item_num -= 1
+                items[item_id] = item_num
+                try:
+                    row_nums = yield g.whdb.runOperation(
+                        """ UPDATE playerInfos SET items=%s
+                                WHERE userId=%s"""
+                        ,(json.dumps(items), userid)
+                        ,conn
+                    )
+                except:
+                    send_error(self, err_db)
+                    return;
+            except:
+                send_error(self, err_not_exist)
+                return
+            finally:
+                yield g.whdb.commitTransaction(conn)
+
+
+            # use item(fixme)
+
+            
+            
+            # reply
+            reply = {"error":no_error, "itemId":int(item_id), "itemNum":item_num}
+            self.write(json.dumps(reply))
             
         except:
             send_internal_error(self)
@@ -165,6 +327,9 @@ class Setband(tornado.web.RequestHandler):
 
 handlers = [
     (r"/whapi/player/create", Create),
-    (r"/whapi/player/getinfo", Getinfo),
-    (r"/whapi/player/setband", Setband),
+    (r"/whapi/player/getinfo", GetInfo),
+    (r"/whapi/player/setband", SetBand),
+    (r"/whapi/player/useitem", UseItem),
 ]
+
+fmt_tbl = CsvTbl("data/formations.csv", "id")

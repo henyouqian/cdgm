@@ -7,7 +7,6 @@ import adisp
 import brukva
 import simplejson as json
 import hashlib
-import logging
 import datetime
 
 class Register(tornado.web.RequestHandler):
@@ -32,8 +31,7 @@ class Register(tornado.web.RequestHandler):
                     "INSERT INTO user_account (username, password) VALUES(%s, %s)"
                     ,(username, password)
                 )
-            except Exception as e:
-                logging.error(e)
+            except:
                 send_error(self, err_exist)
                 return;
 
@@ -48,8 +46,7 @@ class Register(tornado.web.RequestHandler):
                             WHERE username=%s AND password=%s"""
                     ,(username, password)
                 )
-            except Exception as e:
-                logging.error(e)
+            except:
                 send_error(self, err_db)
                 return
 
@@ -99,8 +96,7 @@ class Login(tornado.web.RequestHandler):
                             WHERE username=%s AND password=%s"""
                     ,(username, password)
                 )
-            except Exception as e:
-                logging.error(e)
+            except:
                 send_error(self, err_db)
                 return
 
@@ -127,8 +123,7 @@ class Login(tornado.web.RequestHandler):
                     player_exist = bool(rows[0][0])
                 except:
                     pass
-            except Exception as e:
-                logging.error(e)
+            except:
                 send_error(self, err_db)
                 return;
 

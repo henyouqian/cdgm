@@ -2,6 +2,7 @@
 import simplejson as json
 import traceback
 import config
+import logging
 
 err_internal = "err_internal"
 err_param = "err_param"
@@ -14,16 +15,24 @@ err_redis = "err_redis"
 err_auth = "err_auth"
 err_key = "err_key"
 err_value = "err_value"
+err_index = "err_index"
 err_permission = "err_permission"
 
 no_error = ""
 
 if config.debug:
-    def send_error(hdl, err):
-        reply = {"error":"%s" % err, "traceback":"%s" % traceback.format_exc()}
-        hdl.write(json.dumps(reply))
+    def send_error(hdl, err, text=None):
+        try:
+            if text:
+                raise Exception(str(text))
+        except:
+            pass
+        finally:
+            reply = {"error":"%s" % err, "traceback":"%s" % traceback.format_exc()}
+            hdl.write(json.dumps(reply))
+            traceback.print_exc()
 else:
-    def send_error(hdl, err):
+    def send_error(hdl, err, text=None):
         reply = '{"error":"%s"}' % (err, )
         hdl.write(reply)
 
@@ -39,4 +48,3 @@ else:
     def send_internal_error(hdl):
         reply = '{"error":"err_internal"}'
         hdl.write(reply)
-        traceback.print_exc()

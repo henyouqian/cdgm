@@ -8,8 +8,7 @@ import zone
 import redistest
 import card
 
-from tornado import web, httpserver, ioloop
-from tornado import options
+from tornado import web, httpserver, ioloop, options
 import brukva
 from adb import Database
 import logging
