@@ -1,4 +1,4 @@
-ID,image,num,band,order1ID,level,order2ID,level,order3ID,level,order4ID,level,order5ID,level,order6ID,level
-1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-50101021,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+ID,image,formation,type,order1ID,order1level,order1skilllevel,order2ID,order2level,order2skilllevel,order3ID,order3level,order3skilllevel,order4ID,order4level,order4skilllevel,order5ID,order5level,order5skilllevel,order6ID,order6level,order6skilllevel,order7ID,order7level,order7skilllevel,order8ID,order8level,order8skilllevel,order9ID,order9level,order9skilllevel,order10ID,order10level,order10skilllevel
+1,1,1,0,1,1,1,2,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+2,2,1,0,1,1,1,2,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+50101021,3,1,1,1,1,1,3,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

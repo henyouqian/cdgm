@@ -36,7 +36,7 @@ class CsvTbl(object):
                     self.body[row[keycolidx]] = row
 
     def get_row(self, key):
-        return self.body[key]
+        return self.body[str(key)]
 
     def get_value(self, row, colname):
         return row[self.header[colname]]
@@ -45,7 +45,7 @@ class CsvTbl(object):
         return (row[self.header[colname]] for colname in colnames)
 
     def get(self, rowkey, colname):
-        return self.body[rowkey][self.header[colname]]
+        return self.body[str(rowkey)][self.header[colname]]
 
 class CsvTblMulKey(object):
     def __init__(self, csvpath, *keycols):

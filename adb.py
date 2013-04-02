@@ -213,3 +213,43 @@ class Database:
             if should_commit:
                 conn.commit()
             cursor.close()
+
+    @async
+    def runOperationMany(self, stmt, args=None, conn=None, callback=None):
+        """Execute a SQL statement other than a SELECT.
+
+        The statement is committed immediately. The number of rows
+        affected by the statement is passed as argument to the
+        callback.
+        """
+        self._threadpool.add_task(
+            partial(self._executeMany, stmt, args, conn), callback)
+
+    def _executeMany(self, stmt, args, conn=None, thread_state=None):
+        """This method is called in a worker thread.
+
+        Executes the statement.
+        """
+        # Check if stmt is a tuple. This can happen when we use map()
+        # with adisp to execute multiple statements in parallel.
+        if isinstance(stmt, tuple):
+            args = stmt[1]
+            stmt = stmt[0]
+        if not conn:
+            conn = thread_state
+            should_commit = True
+        else:
+            should_commit = False
+        cursor = conn.cursor()
+        
+        try:
+            cursor.executemany(stmt, args)
+        except:
+            raise
+        else:
+            rowcount = cursor.rowcount
+            return rowcount
+        finally:
+            if should_commit:
+                conn.commit()
+            cursor.close()

@@ -3,6 +3,7 @@ from session import *
 from gamedata import BAND_NUM
 import g
 from util import CsvTbl
+from card import card_tbl, calc_card_proto_attr
 
 import tornado.web
 import adisp
@@ -169,7 +170,7 @@ def gen_cache(zoneid):
 
 
     cache = {"zoneId":int(zoneid), "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos, 
-                "redCase":0, "goldenCase":0, "monGrpId":-1}
+                "redCase":0, "goldCase":0, "monGrpId":-1}
     return cache
 
 # =============================================
@@ -192,7 +193,8 @@ def trans_cache_to_client(cache):
     band = cache["band"]
     outband = {}
     outband["formation"] = band[0]
-    outband["members"] = band[1:]
+    members = band[1:]
+    outband["members"] = [{"id": m[0], "hp":m[1]} if m else None for m in members]
     out["band"] = outband
     return out
 
@@ -280,7 +282,7 @@ class Enter(tornado.web.RequestHandler):
             cachejs = json.dumps(cache)
             try:
                 row_nums = yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s
+                    """UPDATE playerInfos SET zoneCache=%s, isInZone=1
                             WHERE userid=%s"""
                     ,(cachejs, session["userid"])
                 )
@@ -312,7 +314,7 @@ class Withdraw(tornado.web.RequestHandler):
             # db store
             try:
                 row_nums = yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=NULL
+                    """UPDATE playerInfos SET zoneCache=NULL, isInZone=0
                             WHERE userid=%s"""
                     ,(session["userid"],)
                 )
@@ -377,23 +379,15 @@ class Move(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
 
-            # param
+            # post input
             path = []
             try:
-                itpath = iter(json.loads(self.request.body))
-                try:
-                    lastPoint = None
-                    while True:
-                        x = itpath.next()
-                        y = itpath.next()
-                        if lastPoint and (abs(lastPoint[0]-x) + abs(lastPoint[1]-y) != 3):
-                            raise Exception("dist not 3")
-                        lastPoint = (x, y)
-                        path.append(lastPoint)
-                except StopIteration:
-                    pass
-                except:
-                    raise
+                path = json.loads(self.request.body)
+                last_xy = None
+                for xy in path:
+                    if last_xy and (abs(last_xy[0]-xy[0]) + abs(last_xy[1]-xy[1]) != 3):
+                        raise Exception("dist not 3")
+                    last_xy = xy
                 
                 if len(path) < 2:
                     raise Exception("path too short")
@@ -442,7 +436,7 @@ class Move(tornado.web.RequestHandler):
             try:
                 #check start pos
                 currpos = cache["currPos"]
-                currpos = (currpos["x"], currpos["y"])
+                currpos = [currpos["x"], currpos["y"]]
                 if currpos != path[0]:
                     raise Exception("begin coord not match")
 
@@ -476,6 +470,9 @@ class Move(tornado.web.RequestHandler):
             poskey = "%d,%d" % (currpos[0], currpos[1])
             evtid = cache["objs"].get(poskey)
             item_updated = False
+            gold_add = 0
+            red_case_add = 0
+            gold_case_add = 0
             if evtid:
                 del cache["objs"][poskey]
                 zoneid = cache["zoneId"]
@@ -497,12 +494,17 @@ class Move(tornado.web.RequestHandler):
                     item_updated = True
                 elif evtid == 2:    # red case
                     cache["redCase"] += 1
+                    red_case_add = 1
                 elif evtid == 3:    # golden case
-                    cache["goldenCase"] += 1
+                    cache["goldCase"] += 1
+                    gold_case_add = 1
                 elif evtid == 4:
-                    gold += 100
+                    gold_add = 100
                 elif evtid == 5:
-                    gold += 1000
+                    gold_add = 1000
+
+                if gold_add:
+                    gold += gold_add
             
             # update
             cache["currPos"] = {"x":currpos[0], "y":currpos[1]}
@@ -527,9 +529,168 @@ class Move(tornado.web.RequestHandler):
                 send_error(self, err_db)
                 return
 
-            # response
-            self.write(poskey)
+            # reply
+            reply = {"error":no_error, "pos":currpos}
+            reply["xp"] = xp
+            reply["lastXpTime"] = last_xp_time
+            reply["gold"] = gold_add
+            reply["redCase"] = red_case_add
+            reply["goldCase"] = gold_case_add
+            reply["items"] = []
+            reply["foes"] = []
+            reply["eventId"] = None
 
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+class BattleResult(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def post(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+
+            # get player info
+            try:
+                rows = yield g.whdb.runQuery(
+                    """ SELECT warlord, zoneCache FROM playerInfos
+                            WHERE userId=%s"""
+                    ,(userid, )
+                )
+                row = rows[0]
+                warlord = row[0]
+                cache = row[1]
+                cache = json.loads(cache)
+            except:
+                send_error(self, err_db)
+                return
+
+            band = cache["band"]
+            members = [m for m in band[1:]]
+
+            # post input
+            input = json.loads(self.request.body)
+
+            win = input["isWin"]
+            if not win:
+                try:
+                    yield g.whdb.runOperation(
+                        """UPDATE playerInfos SET isInZone=0, zoneCache=NULL
+                                WHERE userid=%s"""
+                        ,(userid,)
+                )
+                except:
+                    send_error(self, err_db)
+                    return
+                reply = {"error":no_error}
+                self.write(reply)
+                return
+
+            # win
+            # check members valid and store new member status
+            try:
+                inmembers = input["members"]
+                if len(inmembers)*2 != len(members):
+                    raise Exception("Error member num")
+
+                mems_per_row = len(inmembers)
+                for idx, inmem in enumerate(inmembers):
+                    if inmem:
+                        if inmem[0] == members[idx][0]:
+                            members[idx] = inmem[:]
+                        elif inmem[0] == members[idx+mems_per_row][0]:
+                            members[idx+mems_per_row] = inmem[:]
+                            members[idx], members[idx+mems_per_row] = members[idx+mems_per_row], members[idx]
+                        else:
+                            raise Exception("Error member pos")
+                        if inmem[1] > members[idx][1]:
+                            raise Exception("Error member hp")
+
+            except:
+                send_error(self, "err_member")
+                return
+
+            # add exp
+            try:
+                # calc exp
+                mon_grp_id = cache["monGrpId"]
+                row = mongrp_tbl.get_row(str(mon_grp_id))
+                cols = ["order%sID"%(i+1) for i in xrange(10)]
+                monsters = []
+                for col in cols:
+                    mon = int(mongrp_tbl.get_value(row, col))
+                    if mon:
+                        monsters.append(mon)
+                
+                exp = 0
+                for mon in monsters:
+                    exp += int(card_tbl.get(mon, "battleExp"))
+
+                try:
+                    # get band card entity
+                    sql = """SELECT id, level, exp, cardId, hp, atk, def, wis, agi FROM cardEntities
+                                WHERE ownerId=%s AND id in {}"""
+                    inmembers_alive = [m[0] for m in inmembers if m and m[1] != 0]
+                    live_num = len(inmembers_alive)
+                    if live_num == 1:
+                        sql = sql.format("(%s)"% inmembers_alive[0])
+                    elif live_num == 0:
+                        raise Exception("All dead")
+                    else:
+                        sql = sql.format(str(tuple(inmembers_alive)))
+                    rows = yield g.whdb.runQuery(
+                        sql
+                        ,(userid, )
+                    )
+                    cards = [{"id":row[0], "level":row[1], "exp":row[2], "proto":row[3]
+                        ,"attrs":[row[4], row[5], row[6], row[7], row[8]]} for row in rows]
+                    
+                except:
+                    send_error(self, err_db)
+                    return
+
+                exp_per_card = int(exp / live_num)
+                for card in cards:
+                    lvtbl = level_tbl if card["id"] == warlord else card_level_tbl
+                    level = card["level"]
+                    try:
+                        next_lv_exp = int(lvtbl.get(level+1, "exp"))
+                        card["exp"] += exp_per_card
+                        while card["exp"] >= next_lv_exp:
+                            level += 1
+                            next_lv_exp = int(lvtbl.get(level, "exp"))
+                        if level != card["level"]:
+                            card["level"] = level
+                            card["attrs"] = calc_card_proto_attr(card["proto"], level)
+                    except:
+                        card["exp"] = lvtbl.get(level, "exp")
+
+                # update db
+                try:
+                    arg_list = [(c["level"], c["exp"], c["attrs"][0], c["attrs"][1]
+                        ,c["attrs"][2], c["attrs"][3], c["attrs"][4], c["id"]) for c in cards]
+                    row_nums = yield g.whdb.runOperationMany(
+                        """UPDATE cardEntities SET level=%s, exp=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s
+                                WHERE id=%s"""
+                        ,arg_list
+                    )
+                except:
+                    send_error(self, err_db)
+                    return
+            except:
+                send_error(self, "err_add_exp")
+                return
+
+            send_ok(self)
         except:
             send_internal_error(self)
         finally:
@@ -540,12 +701,16 @@ handlers = [
     (r"/whapi/zone/withdraw", Withdraw),
     (r"/whapi/zone/get", Get),
     (r"/whapi/zone/move", Move),
+    (r"/whapi/zone/battleresult", BattleResult),
+
 ]
 
 map_tbl = CsvTbl("data/maps.csv", "zoneID")
 plc_tbl = PlacementTbl()
 mongrp_tbl = CsvTbl("data/monsters.csv", "ID")
 case_tbl = CaseTbl()
+level_tbl = CsvTbl("data/levels.csv", "level")
+card_level_tbl = CsvTbl("data/cardLevels.csv", "level")
 
 # =============================================
 if __name__ == "__main__":

@@ -128,13 +128,26 @@ class GetInfo(tornado.web.RequestHandler):
                 send_error(self, err_not_exist)
                 return;
 
+            # query cards
+            try:
+                rows = yield g.whdb.runQuery(
+                    """SELECT id FROM cardEntities WHERE ownerId=%s"""
+                    ,(userid, )
+                )
+                cards = [row[0] for row in rows]
+            except:
+                send_error(self, err_db)
+                return;
+
             # reply
             reply["error"] = no_error
             reply["lastXpTime"] = str(reply["lastXpTime"])
             reply["lastApTime"] = str(reply["lastApTime"])
             bands = json.loads(reply["bands"])
             reply["bands"] = [{"index":idx, "formation":band[0], "members":band[1:]} for idx, band in enumerate(bands)]
-            reply["items"] = json.loads(reply["items"])
+            items = json.loads(reply["items"])
+            reply["items"] = [{"id": int(k), "num": v} for k, v in items.iteritems()]
+            reply["cards"] = cards
             self.write(json.dumps(reply))
             
         except:
@@ -165,7 +178,7 @@ class SetBand(tornado.web.RequestHandler):
                 row = rows[0]
                 last_formation = row[0]
                 db_bands = row[1]
-                war_lord = row[2]
+                warlord = row[2]
             except:
                 send_error(self, err_db)
                 return
@@ -184,6 +197,11 @@ class SetBand(tornado.web.RequestHandler):
                     # check band index
                     if index not in [0, 1, 2]:
                         send_error(self, err_index)
+                        return
+
+                    # check warlord exist
+                    if warlord not in members:
+                        send_error(self, "err_warlord")
                         return
 
                     # check formation
