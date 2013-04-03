@@ -68,10 +68,10 @@ class Create(tornado.web.RequestHandler):
             try:
                 row_nums = yield g.whdb.runOperation(
                     """ INSERT INTO playerInfos
-                            (userId, name, warLord, isInZone, lastZoneId,
+                            (userId, name, warLord, gold, isInZone, lastZoneId,
                                 xp, maxXp, ap, maxAp, silverCoin, bronzeCoin, bands, items)
-                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                    ,(userid, username, entity_id, 0, 0, INIT_XP, INIT_XP, INIT_AP, INIT_AP, 
+                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                    ,(userid, username, entity_id, INIT_GOLD, 0, 0, INIT_XP, INIT_XP, INIT_AP, INIT_AP, 
                         INIT_SILVER_COIN, INIT_BRONZE_COIN, bands, items)
                 )
             except:
@@ -129,20 +129,25 @@ class GetInfo(tornado.web.RequestHandler):
                 return;
 
             # query cards
+            fields_str = """id, protoId, level, exp, skillLevel, skillExp, addSkill1, addSkill2
+                            hp, atk, def, wis, agi,
+                            hpCrystal, atkCrystal, defCrystal, wisCrystal, agiCrystal,
+                            hpExtra, atkExtra, defExtra, wisExtra, agiExtra"""
+            fields = fields_str.translate(None, "\n ").split(",")
             try:
                 rows = yield g.whdb.runQuery(
-                    """SELECT id FROM cardEntities WHERE ownerId=%s"""
+                    """SELECT {} FROM cardEntities WHERE ownerId=%s""".format(fields_str)
                     ,(userid, )
                 )
-                cards = [row[0] for row in rows]
+                cards = [dict(zip(fields, row)) for row in rows]
             except:
                 send_error(self, err_db)
                 return;
 
             # reply
             reply["error"] = no_error
-            reply["lastXpTime"] = str(reply["lastXpTime"])
-            reply["lastApTime"] = str(reply["lastApTime"])
+            reply["lastXpTime"] = str(reply["lastXpTime"]) if reply["lastXpTime"] else None
+            reply["lastApTime"] = str(reply["lastApTime"]) if reply["lastApTime"] else None
             bands = json.loads(reply["bands"])
             reply["bands"] = [{"index":idx, "formation":band[0], "members":band[1:]} for idx, band in enumerate(bands)]
             items = json.loads(reply["items"])

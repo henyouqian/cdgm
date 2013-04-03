@@ -473,6 +473,8 @@ class Move(tornado.web.RequestHandler):
             gold_add = 0
             red_case_add = 0
             gold_case_add = 0
+            items_add = []
+            monGrpId = None
             if evtid:
                 del cache["objs"][poskey]
                 zoneid = cache["zoneId"]
@@ -481,7 +483,7 @@ class Move(tornado.web.RequestHandler):
                     pass
                 elif evtid < 0:         # battle
                     cache["monGrpId"] = -evtid
-                    monrow = mongrp_tbl.get_row(str(-evtid))
+                    # monrow = mongrp_tbl.get_row(str(-evtid))
                     # img = mongrp_tbl.get_value(monrow, "image")
                     # fixme
                 elif evtid == 1:    # wood case
@@ -492,6 +494,7 @@ class Move(tornado.web.RequestHandler):
                     else:
                         items[itemid] = 1
                     item_updated = True
+                    items_add.append({"id":itemid, "num":1})
                 elif evtid == 2:    # red case
                     cache["redCase"] += 1
                     red_case_add = 1
@@ -536,8 +539,8 @@ class Move(tornado.web.RequestHandler):
             reply["gold"] = gold_add
             reply["redCase"] = red_case_add
             reply["goldCase"] = gold_case_add
-            reply["items"] = []
-            reply["foes"] = []
+            reply["items"] = items_add
+            reply["monGrpId"] = monGrpId
             reply["eventId"] = None
 
             self.write(json.dumps(reply))
@@ -612,8 +615,10 @@ class BattleResult(tornado.web.RequestHandler):
                             members[idx], members[idx+mems_per_row] = members[idx+mems_per_row], members[idx]
                         else:
                             raise Exception("Error member pos")
-                        if inmem[1] > members[idx][1]:
+                        if inmem[1] > members[idx][1] or inmem[1] < 0:
                             raise Exception("Error member hp")
+                        if inmem[0] == warlord and inmem[1] == 0:
+                            raise Exception("Dead warlord")
 
             except:
                 send_error(self, "err_member")
@@ -637,7 +642,7 @@ class BattleResult(tornado.web.RequestHandler):
 
                 try:
                     # get band card entity
-                    sql = """SELECT id, level, exp, cardId, hp, atk, def, wis, agi FROM cardEntities
+                    sql = """SELECT id, level, exp, protoId, hp, atk, def, wis, agi FROM cardEntities
                                 WHERE ownerId=%s AND id in {}"""
                     inmembers_alive = [m[0] for m in inmembers if m and m[1] != 0]
                     live_num = len(inmembers_alive)
@@ -662,17 +667,25 @@ class BattleResult(tornado.web.RequestHandler):
                 for card in cards:
                     lvtbl = level_tbl if card["id"] == warlord else card_level_tbl
                     level = card["level"]
+                    max_level = int(card_tbl.get(card["proto"], "maxlevel"))
                     try:
                         next_lv_exp = int(lvtbl.get(level+1, "exp"))
                         card["exp"] += exp_per_card
                         while card["exp"] >= next_lv_exp:
                             level += 1
                             next_lv_exp = int(lvtbl.get(level, "exp"))
+
+                        #max level check
+                        if level >= max_level:
+                            level = max_level
+                            card["exp"] = int(lvtbl.get(level, "exp"))
+
+                        #level up
                         if level != card["level"]:
                             card["level"] = level
                             card["attrs"] = calc_card_proto_attr(card["proto"], level)
                     except:
-                        card["exp"] = lvtbl.get(level, "exp")
+                        card["exp"] = int(lvtbl.get(level, "exp"))
 
                 # update db
                 try:
@@ -696,13 +709,63 @@ class BattleResult(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+class Complete(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+            
+            # get player info
+            try:
+                rows = yield g.whdb.runQuery(
+                    """ SELECT zoneCache FROM playerInfos
+                            WHERE userId=%s"""
+                    ,(userid, )
+                )
+                row = rows[0]
+                warlord = row[0]
+                cache = row[1]
+                cache = json.loads(cache)
+            except:
+                send_error(self, err_db)
+                return
+
+            # open cases
+
+            # unlock new zone
+
+            # db store
+            try:
+                row_nums = yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=NULL, isInZone=0
+                            WHERE userid=%s"""
+                    ,(session["userid"],)
+                )
+            except:
+                send_error(self, err_db)
+                return
+
+            # response
+            send_ok(self)
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/zone/enter", Enter),
     (r"/whapi/zone/withdraw", Withdraw),
     (r"/whapi/zone/get", Get),
     (r"/whapi/zone/move", Move),
     (r"/whapi/zone/battleresult", BattleResult),
-
+    (r"/whapi/zone/complete", Complete),
 ]
 
 map_tbl = CsvTbl("data/maps.csv", "zoneID")

@@ -13,7 +13,7 @@ def add_cards(n):
     for __ in xrange(n):
         test_db.executemany(
             """ INSERT INTO cardEntities
-                    (hp, atk, def, wis, agi, cardId, ownerId)
+                    (hp, atk, def, wis, agi, protoId, ownerId)
                     VALUES(%s, %s, %s, %s, %s, %s, %s)"""
             ,repeat((randint(1000, 10000), randint(1000, 10000), randint(1000, 10000), randint(1000, 10000), randint(1000, 10000), randint(0, 100), randint(1000, 1000000)), 10000)
         )
