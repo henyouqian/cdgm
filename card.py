@@ -157,6 +157,11 @@ class Sell(tornado.web.RequestHandler):
             )
 
             # query player info
+            rows = yield g.whdb.runQuery(
+                        """SELECT gold, bands, isInZone FROM playerInfos
+                                WHERE userId=%s"""
+                        ,(user_id, )
+                    )
             row = rows[0]
             gold = row[0]
             bands = json.loads(row[1])
@@ -172,8 +177,8 @@ class Sell(tornado.web.RequestHandler):
             # delete if in band
             inband = False
             for band in bands:
-                for idx, entityid in enumerate(band):
-                    if idx > 0 and entityid == card2["id"]:
+                for idx, member in enumerate(band["members"]):
+                    if member == card2["id"]:
                         band[idx] = None
                         inband = True
                         break
@@ -246,7 +251,6 @@ class Evolution(tornado.web.RequestHandler):
             rarity1 = card_tbl.get(card1["protoId"], "rarity")
             rarity2 = card_tbl.get(card2["protoId"], "rarity")
             cost = int(evo_cost_tbl.get((rarity1, rarity2), "cost"))
-            print cost
             rows = yield g.whdb.runQuery(
                         """SELECT gold, bands, isInZone FROM playerInfos
                                 WHERE userId=%s"""
@@ -301,8 +305,8 @@ class Evolution(tornado.web.RequestHandler):
             # del from band if need
             inband = False
             for band in bands:
-                for idx, entityid in enumerate(band):
-                    if idx > 0 and entityid == card2["id"]:
+                for idx, member in enumerate(band["members"]):
+                    if member == card2["id"]:
                         band[idx] = None
                         inband = True
                         break

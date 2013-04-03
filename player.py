@@ -55,7 +55,7 @@ class Create(tornado.web.RequestHandler):
             # init bands
             bands = INIT_BANDS
             for band in bands:
-                band[2] = entity_id
+                band["members"][1] = entity_id
 
             bands = json.dumps(bands)
 
@@ -120,7 +120,9 @@ class GetInfo(tornado.web.RequestHandler):
                     (userid, )
                 )
                 cols = cols.split(",")
-                reply = dict(zip(cols, rows[0]))
+                print cols
+                print rows[0]
+                infos = dict(zip(cols, rows[0]))
             except:
                 send_error(self, err_db)
                 return;
@@ -145,12 +147,13 @@ class GetInfo(tornado.web.RequestHandler):
                 return;
 
             # reply
+            reply = {}
             reply["error"] = no_error
-            reply["lastXpTime"] = str(reply["lastXpTime"]) if reply["lastXpTime"] else None
-            reply["lastApTime"] = str(reply["lastApTime"]) if reply["lastApTime"] else None
-            bands = json.loads(reply["bands"])
-            reply["bands"] = [{"index":idx, "formation":band[0], "members":band[1:]} for idx, band in enumerate(bands)]
-            items = json.loads(reply["items"])
+            reply["lastXpTime"] = str(infos["lastXpTime"]) if infos["lastXpTime"] else None
+            reply["lastApTime"] = str(infos["lastApTime"]) if infos["lastApTime"] else None
+            bands = json.loads(infos["bands"])
+            reply["bands"] = [{"index":idx, "formation":band["formation"], "members":band["members"]} for idx, band in enumerate(bands)]
+            items = json.loads(infos["items"])
             reply["items"] = [{"id": int(k), "num": v} for k, v in items.iteritems()]
             reply["cards"] = cards
             self.write(json.dumps(reply))
@@ -235,7 +238,7 @@ class SetBand(tornado.web.RequestHandler):
                         send_error(self, "err_members")
                         return
 
-                    db_bands[index] = [formation] + members
+                    db_bands[index] = {"formation":formation, "members":members}
 
             except:
                 send_error(self, err_post)

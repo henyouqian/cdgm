@@ -191,10 +191,8 @@ def trans_cache_to_client(cache):
     out["objs"] = outobjs
 
     band = cache["band"]
-    outband = {}
-    outband["formation"] = band[0]
-    members = band[1:]
-    outband["members"] = [{"id": m[0], "hp":m[1]} if m else None for m in members]
+    outband = {"formation":band["formation"]}
+    outband["members"] = [{"id": m[0], "hp":m[1]} if m else None for m in band["members"]]
     out["band"] = outband
     return out
 
@@ -238,9 +236,9 @@ class Enter(tornado.web.RequestHandler):
                 send_error(self, err_db)
                 return
 
-            band = bands[int(bandidx)][:]
-            members = [mem for mem in band[1:] if mem]
-            
+            band = bands[int(bandidx)]
+            members = [mem for mem in band["members"] if mem]
+
             try:
                 sql = """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
                             WHERE id IN {} AND ownerId=%s"""
@@ -256,18 +254,19 @@ class Enter(tornado.web.RequestHandler):
                 return
 
             if len(rows) != len(members):
-                raise Exception("len(rows) != len(members)")
+                send_error(self, "err_member")
+                return
             
             hps = [sum(row) for row in rows]
             mem_hp = dict(zip(members, hps))
             new_members = []
-            for member in band[1:]:
+            for member in band["members"]:
                 if member:
                     new_members.append((member, mem_hp[member]))
                 else:
                     new_members.append(None)
             
-            band[1:] = new_members
+            band["members"] = new_members
             cache["band"] = band
 
             # # redis store
