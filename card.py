@@ -133,7 +133,7 @@ class Sell(tornado.web.RequestHandler):
                 send_error(self, err_param)
                 return
 
-            # db
+            # query card info and check owner
             rows = yield g.whdb.runQuery(
                 """SELECT protoId FROM cardEntities
                         WHERE id = %s and ownerId = %s"""
@@ -150,11 +150,47 @@ class Sell(tornado.web.RequestHandler):
                 send_error(self, err_permission)
                 return
 
-            #fixme: add gold
+            # delete card
             yield g.whdb.runOperation(
                 "DELETE FROM cardEntities WHERE id = %s",
                 entity_id
             )
+
+            # query player info
+            row = rows[0]
+            gold = row[0]
+            bands = json.loads(row[1])
+            isInZone = row[2]
+            if isInZone:
+                send_error(self, "err_in_zone")
+                return
+
+            # add gold
+            price = card_tbl.get(proto_id, "price")
+            gold += price
+
+            # delete if in band
+            inband = False
+            for band in bands:
+                for idx, entityid in enumerate(band):
+                    if idx > 0 and entityid == card2["id"]:
+                        band[idx] = None
+                        inband = True
+                        break
+
+            # update playerInfo
+            if inband:
+                yield g.whdb.runOperation(
+                        """UPDATE playerInfos SET gold=%s, bands=%s
+                                WHERE userId=%s"""
+                        ,(gold, json.dumps(bands), user_id)
+                    )
+            else:
+                yield g.whdb.runOperation(
+                        """UPDATE playerInfos SET gold=%s
+                                WHERE userId=%s"""
+                        ,(gold, user_id)
+                    )
 
             self.write('{"error"="%s", "protoId"=%s, "entityId"=%s}' % (no_error, proto_id, entity_id))
         except:
@@ -206,27 +242,28 @@ class Evolution(tornado.web.RequestHandler):
 
             card1, card2 = cards
             
-            
             # spend gold
             rarity1 = card_tbl.get(card1["protoId"], "rarity")
             rarity2 = card_tbl.get(card2["protoId"], "rarity")
             cost = int(evo_cost_tbl.get((rarity1, rarity2), "cost"))
             print cost
             rows = yield g.whdb.runQuery(
-                        """SELECT gold FROM playerInfos
+                        """SELECT gold, bands, isInZone FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
                     )
-            gold = rows[0][0]
+            row = rows[0]
+            gold = row[0]
+            bands = json.loads(row[1])
+            isInZone = row[2]
+            if isInZone:
+                send_error(self, "err_in_zone")
+                return
+
             if gold < cost:
                 send_error(self, "err_gold_not_enough")
                 return
             gold -= cost
-            yield g.whdb.runQuery(
-                    """UPDATE playerInfos SET gold=%s
-                            WHERE userId=%s"""
-                    ,(gold, user_id, )
-                )
 
             # look up evolution table
             try:
@@ -261,8 +298,30 @@ class Evolution(tornado.web.RequestHandler):
                             WHERE id=%s"""
                     ,(card2["id"], )
                 )
+            # del from band if need
+            inband = False
+            for band in bands:
+                for idx, entityid in enumerate(band):
+                    if idx > 0 and entityid == card2["id"]:
+                        band[idx] = None
+                        inband = True
+                        break
+            
+            # update playerInfo
+            if inband:
+                yield g.whdb.runOperation(
+                        """UPDATE playerInfos SET gold=%s, bands=%s
+                                WHERE userId=%s"""
+                        ,(gold, json.dumps(bands), user_id)
+                    )
+            else:
+                yield g.whdb.runOperation(
+                        """UPDATE playerInfos SET gold=%s
+                                WHERE userId=%s"""
+                        ,(gold, user_id)
+                    )
 
-            #reply
+            # reply
             reply = {"error":no_error}
             reply["delCardId"] = card2["id"]
             reply["cardId"] = card1["id"]
@@ -288,6 +347,26 @@ class Evolution(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
+
+class addSkill(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+
+            proto = randint(0, 63)
+
+            entity_id = yield create(proto, session["userid"])
+            self.write('{"error"="%s", "protoId"=%s, "entityId"=%s}' % (no_error, proto, entity_id))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
             
 
 handlers = [
@@ -295,6 +374,7 @@ handlers = [
     (r"/whapi/card/random", Random),
     (r"/whapi/card/sell", Sell),
     (r"/whapi/card/evolution", Evolution),
+
 ]
 
 # test
