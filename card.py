@@ -253,7 +253,7 @@ class Evolution(tornado.web.RequestHandler):
                 send_error(self, err_param)
                 return
 
-            fields_str = """id, protoId, ownerId, level, 
+            fields_str = """id, protoId, level, exp, skillLevel, skillExp, addSkill1, addSkill2,
                             hp, atk, def, wis, agi,
                             hpCrystal, atkCrystal, defCrystal, wisCrystal, agiCrystal,
                             hpExtra, atkExtra, defExtra, wisExtra, agiExtra"""
@@ -320,6 +320,19 @@ class Evolution(tornado.web.RequestHandler):
 
             hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, card1["level"])
 
+            card1["protoId"] = proto_id
+            card1["hpExtra"] = hp_ex
+            card1["atkExtra"] = atk_ex
+            card1["defExtra"] = def_ex
+            card1["wisExtra"] = wis_ex
+            card1["agiExtra"] = agi_ex
+            card1["hp"] = hp
+            card1["atk"] = atk
+            card1["def"] = _def
+            card1["wis"] = wis
+            card1["agi"] = agi
+
+
             yield g.whdb.runOperation(
                     """UPDATE cardEntities SET protoId=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s, 
                             hpExtra=%s, atkExtra=%s, defExtra=%s, wisExtra=%s, agiExtra=%s
@@ -357,24 +370,9 @@ class Evolution(tornado.web.RequestHandler):
 
             # reply
             reply = {"error":no_error}
+            reply["gold"] = gold
             reply["delCardId"] = card2["id"]
-            reply["cardId"] = card1["id"]
-            reply["protoId"] = proto_id
-            reply["hp"] = hp
-            reply["atk"] = atk
-            reply["def"] = _def
-            reply["wis"] = wis
-            reply["agi"] = agi
-            reply["hpCrystal"] = card1["hpCrystal"]
-            reply["atkCrystal"] = card1["atkCrystal"]
-            reply["defCrystal"] = card1["defCrystal"]
-            reply["wisCrystal"] = card1["wisCrystal"]
-            reply["agiCrystal"] = card1["agiCrystal"]
-            reply["hpExtra"] = hp_ex
-            reply["atkExtra"] = atk_ex
-            reply["defExtra"] = def_ex
-            reply["wisExtra"] = wis_ex
-            reply["agiExtra"] = agi_ex
+            reply["evoCard"] = card1
 
             self.write(json.dumps(reply))
         except:
@@ -382,16 +380,41 @@ class Evolution(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-class addSkill(tornado.web.RequestHandler):
+class Absorb(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
-    def get(self):
+    def post(self):
         try:
             # session
             session = yield find_session(self)
             if not session:
                 send_error(self, err_auth)
                 return
+            user_id = session["userid"]
+
+            # post input
+            try:
+                print self.request.body, "xxxxxxx"
+                cards = json.loads(self.request.body)
+                card_num = len(cards)
+                if card_num < 2 or card_num > 9:
+                    raise Exception("card_num < 2 or card_num > 9")
+                for card in cards:
+                    if type(card) != int:
+                        raise Exception("id must be int")
+            except:
+                send_error(self, err_post)
+                return
+
+            master_card = cards[0]
+            absorb_cards = cards[1:]
+
+            rows = yield g.whdb.runQuery(
+                """SELECT id, protoId FROM cardEntities
+                        WHERE id IN {} AND ownerId = %s""".format(str(tuple(cards)))
+                ,(user_id, )
+            )
+            print rows
 
             send_ok(self)
         except:
@@ -405,7 +428,7 @@ handlers = [
     (r"/whapi/card/random", Random),
     (r"/whapi/card/sell", Sell),
     (r"/whapi/card/evolution", Evolution),
-
+    (r"/whapi/card/absorb", Absorb),
 ]
 
 # test
