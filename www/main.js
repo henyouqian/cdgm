@@ -4,6 +4,9 @@ $(document).ready(function(){
 	$("#adv").click(function(){
 		clickZone()
 	})
+	$("#card").click(function(){
+		clickCard()
+	})
 });
 
 function getPlayerInfo(){
@@ -27,4 +30,8 @@ function getPlayerInfo(){
 
 function clickZone(){
 	window.location.href="zone.html";
+}
+
+function clickCard(){
+	window.location.href="card.html";
 }

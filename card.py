@@ -46,7 +46,7 @@ def calc_card_proto_attr(proto_id, level):
     def lerp(min, max, f):
         min = float(min)
         max = float(max)
-        return min + (max - min)*f
+        return int(min + (max - min)*f)
 
     f = (growcurr - growmin) / (growmax - growmin)
     return tuple(imap(lerp, min_attrs, max_attrs, repeat(f)))
@@ -57,26 +57,31 @@ def is_war_lord(entity_id):
 
 @adisp.async
 @adisp.process
-def create(proto_id, owner_id, callback):
-    hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, 1)
-    conn = yield g.whdb.beginTransaction()
+def create(owner_id, proto_id, level, callback):
     try:
-        row_nums = yield g.whdb.runOperation(
-            """ INSERT INTO cardEntities
-                    (hp, atk, def, wis, agi, protoId, ownerId)
-                    VALUES(%s, %s, %s, %s, %s, %s, %s)"""
-            ,(hp, atk, _def, wis, agi, proto_id, owner_id), conn
-        )
-        rows = yield g.whdb.runQuery("SELECT LAST_INSERT_ID()", None, conn)
-    except:
-        yield g.whdb.rollbackTransaction(conn)
-    else:
-        yield g.whdb.commitTransaction(conn)
+        hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
+        conn = yield g.whdb.beginTransaction()
+        try:
+            row_nums = yield g.whdb.runOperation(
+                """ INSERT INTO cardEntities
+                        (hp, atk, def, wis, agi, protoId, ownerId)
+                        VALUES(%s, %s, %s, %s, %s, %s, %s)"""
+                ,(hp, atk, _def, wis, agi, proto_id, owner_id), conn
+            )
+            rows = yield g.whdb.runQuery("SELECT LAST_INSERT_ID()", None, conn)
+        finally:
+            yield g.whdb.commitTransaction(conn)
 
-    if row_nums != 1:
-        raise Exception("db insert error")
-    entity_id = rows[0][0]
-    callback(entity_id)
+        if row_nums != 1:
+            raise Exception("db insert error")
+        entity_id = rows[0][0]
+        card = {"id":entity_id, "protoId":proto_id, "level":level, "exp":0, "hp":hp, "atk":atk, "def":_def, "wis":wis, "agi":agi}
+        card.update({"hpCrystal":0, "atkCrystal":0, "defCrystal":0, "wisCrystal":0, "agiCrystal":0})
+        card.update({"hpExtra":0, "atkExtra":0, "defExtra":0, "wisExtra":0, "agiExtra":0})
+        card.update({})
+        callback(card)
+    except Exception as e:
+        callback(e)
 
 # ====================================================
 class Create(tornado.web.RequestHandler):
@@ -84,10 +89,31 @@ class Create(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
-            yield create(2, 12)
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            user_id = session["userid"]
 
-            # response
-            send_ok(self)
+            # param
+            try:
+                proto = int(self.get_argument("proto"))
+                level = int(self.get_argument("level"))
+            except:
+                send_error(self, err_param)
+                return
+
+            try:
+                card = yield create(user_id, proto, level)
+            except:
+                send_error(self, "err_card_type_or_level")
+                return
+
+            # reply
+            reply = {"error":no_error}
+            reply["card"] = card
+            self.write(json.dumps(reply))
 
         except:
             send_internal_error(self)
@@ -107,7 +133,7 @@ class Random(tornado.web.RequestHandler):
 
             proto = randint(0, 63)
 
-            entity_id = yield create(proto, session["userid"])
+            entity_id = yield create(session["userid"], proto, 1)
             self.write('{"error"="%s", "protoId"=%s, "entityId"=%s}' % (no_error, proto, entity_id))
         except:
             send_internal_error(self)
@@ -128,7 +154,7 @@ class Sell(tornado.web.RequestHandler):
 
             # param
             try:
-                entity_id = self.get_argument("entityid")
+                entity_id = int(self.get_argument("id"))
             except:
                 send_error(self, err_param)
                 return
@@ -150,12 +176,6 @@ class Sell(tornado.web.RequestHandler):
                 send_error(self, err_permission)
                 return
 
-            # delete card
-            yield g.whdb.runOperation(
-                "DELETE FROM cardEntities WHERE id = %s",
-                entity_id
-            )
-
             # query player info
             rows = yield g.whdb.runQuery(
                         """SELECT gold, bands, isInZone FROM playerInfos
@@ -171,14 +191,14 @@ class Sell(tornado.web.RequestHandler):
                 return
 
             # add gold
-            price = card_tbl.get(proto_id, "price")
+            price = int(card_tbl.get(proto_id, "price"))
             gold += price
 
             # delete if in band
             inband = False
             for band in bands:
                 for idx, member in enumerate(band["members"]):
-                    if member == card2["id"]:
+                    if member == entity_id:
                         band[idx] = None
                         inband = True
                         break
@@ -197,7 +217,17 @@ class Sell(tornado.web.RequestHandler):
                         ,(gold, user_id)
                     )
 
-            self.write('{"error"="%s", "protoId"=%s, "entityId"=%s}' % (no_error, proto_id, entity_id))
+            # delete card
+            yield g.whdb.runOperation(
+                "DELETE FROM cardEntities WHERE id = %s",
+                entity_id
+            )
+
+            # reply
+            reply = {"error":no_error}
+            reply["id"] = entity_id
+            reply["gold"] = gold
+            self.write(json.dumps(reply))
         except:
             send_internal_error(self)
         finally:
@@ -363,10 +393,7 @@ class addSkill(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
 
-            proto = randint(0, 63)
-
-            entity_id = yield create(proto, session["userid"])
-            self.write('{"error"="%s", "protoId"=%s, "entityId"=%s}' % (no_error, proto, entity_id))
+            send_ok(self)
         except:
             send_internal_error(self)
         finally:

@@ -11,20 +11,23 @@ SESSION_TTL = 60*60*24*7
 @adisp.async
 @adisp.process
 def new_session(userid, username, appid, callback):
-    uidtokenkey = "{}/tokenkey".format(userid)
-    usertoken = yield g.redis().get(uidtokenkey)
-    if usertoken:
-        a = yield g.redis().delete(usertoken)
+    try:
+        uidtokenkey = "{}/tokenkey".format(userid)
+        usertoken = yield g.redis().get(uidtokenkey)
+        if usertoken:
+            a = yield g.redis().delete(usertoken)
 
-    usertoken = uuid.uuid4().hex
-    userinfo = {"userid":userid, "username":username, "appid":appid}  #set userinfo
+        usertoken = uuid.uuid4().hex
+        userinfo = {"userid":userid, "username":username, "appid":appid}  #set userinfo
 
-    rv = yield g.redis().setex(usertoken, SESSION_TTL, json.dumps(userinfo))
-    if rv:
-        yield g.redis().setex(uidtokenkey, SESSION_TTL, usertoken)
-        callback(usertoken)
-    else:
-        callback(None)
+        rv = yield g.redis().setex(usertoken, SESSION_TTL, json.dumps(userinfo))
+        if rv:
+            yield g.redis().setex(uidtokenkey, SESSION_TTL, usertoken)
+            callback(usertoken)
+        else:
+            callback(None)
+    except Exception as e:
+        callback(e)
 
 #return {"userid":userid, "appid":appid} or None
 @adisp.async
@@ -37,21 +40,23 @@ def find_session(rqHandler, callback):
             return
         else:
             callback(None)
-            
-    usertoken = rqHandler.get_argument("token", None)
-    if usertoken:
-        session = yield g.redis().get(usertoken)
-        if session:
-            callback(json.loads(session))
+    try:
+        usertoken = rqHandler.get_argument("token", None)
+        if usertoken:
+            session = yield g.redis().get(usertoken)
+            if session:
+                callback(json.loads(session))
+            else:
+                callback(None)
         else:
-            callback(None)
-    else:
-        usertoken = rqHandler.get_cookie("token")
-        if not usertoken:
-            try_auto_auth()
-            return;
-        session = yield g.redis().get(usertoken)
-        if session:
-            callback(json.loads(session))
-        else:
-            callback(None)
+            usertoken = rqHandler.get_cookie("token")
+            if not usertoken:
+                try_auto_auth()
+                return;
+            session = yield g.redis().get(usertoken)
+            if session:
+                callback(json.loads(session))
+            else:
+                callback(None)
+    except Exception as e:
+        callback(e)

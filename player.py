@@ -48,7 +48,7 @@ class Create(tornado.web.RequestHandler):
 
             # add war lord card
             try:
-                entity_id = yield card.create(warlord_proto_id, userid)
+                entity_id = yield card.create(userid, warlord_proto_id, 1)
             except:
                 send_error(self, "err_create_card")
 
@@ -120,8 +120,6 @@ class GetInfo(tornado.web.RequestHandler):
                     (userid, )
                 )
                 cols = cols.split(",")
-                print cols
-                print rows[0]
                 infos = dict(zip(cols, rows[0]))
             except:
                 send_error(self, err_db)
@@ -131,7 +129,7 @@ class GetInfo(tornado.web.RequestHandler):
                 return;
 
             # query cards
-            fields_str = """id, protoId, level, exp, skillLevel, skillExp, addSkill1, addSkill2
+            fields_str = """id, protoId, level, exp, skillLevel, skillExp, addSkill1, addSkill2,
                             hp, atk, def, wis, agi,
                             hpCrystal, atkCrystal, defCrystal, wisCrystal, agiCrystal,
                             hpExtra, atkExtra, defExtra, wisExtra, agiExtra"""
@@ -147,7 +145,7 @@ class GetInfo(tornado.web.RequestHandler):
                 return;
 
             # reply
-            reply = {}
+            reply = infos
             reply["error"] = no_error
             reply["lastXpTime"] = str(infos["lastXpTime"]) if infos["lastXpTime"] else None
             reply["lastApTime"] = str(infos["lastApTime"]) if infos["lastApTime"] else None

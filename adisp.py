@@ -90,20 +90,19 @@ After *all* the asynchronous calls will complete `responses` will be a list of
 responses corresponding to given urls.
 '''
 from functools import partial
+from tornado.ioloop import IOLoop
 
 class CallbackDispatcher(object):
     def __init__(self, generator):
+        self.io_loop = IOLoop.instance()
         self.g = generator
         try:
             self.call(self.g.next())
         except StopIteration:
             pass
-        # except Exception as e:
-        #     try:
-        #         print 111111111111
-        #         self.call(self.g.throw(e))
-        #     except:
-        #         pass
+
+    def _queue_send_result(self, result, single):
+        self.io_loop.add_callback(partial(self._send_result, result, single))
 
     def _send_result(self, results, single):
         try:
@@ -114,11 +113,6 @@ class CallbackDispatcher(object):
                 self.call(self.g.send(result))
         except StopIteration:
             pass
-        except Exception as e:
-            try:
-                self.call(self.g.throw(e))
-            except:
-                pass
 
     def call(self, callers):
         single = not hasattr(callers, '__iter__')
@@ -127,7 +121,7 @@ class CallbackDispatcher(object):
         self.call_count = len(list(callers))
         results = [None] * self.call_count
         if self.call_count == 0:
-            self._send_result(results, single)
+            self._queue_send_result(results, single)
         else:
             for count, caller in enumerate(callers):
                 caller(callback=partial(self.callback, results, count, single))
@@ -137,7 +131,7 @@ class CallbackDispatcher(object):
         results[index] = arg
         if self.call_count > 0:
             return
-        self._send_result(results, single)
+        self._queue_send_result(results, single)
 
 def process(func):
     def wrapper(*args, **kwargs):
