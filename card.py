@@ -394,7 +394,6 @@ class Absorb(tornado.web.RequestHandler):
 
             # post input
             try:
-                print self.request.body, "xxxxxxx"
                 cards = json.loads(self.request.body)
                 card_num = len(cards)
                 if card_num < 2 or card_num > 9:
@@ -414,7 +413,7 @@ class Absorb(tornado.web.RequestHandler):
                         WHERE id IN {} AND ownerId = %s""".format(str(tuple(cards)))
                 ,(user_id, )
             )
-            print rows
+            print str(tuple(cards)), rows, "rrrrrr", user_id
 
             send_ok(self)
         except:

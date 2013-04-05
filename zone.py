@@ -181,11 +181,6 @@ def trans_cache_to_client(cache):
     for k, v in objs.iteritems():
         elem = k.split(",")
         elem = map(int, elem)
-        #battle
-        if v < 0:
-            row = mongrp_tbl.get_row(str(-v))
-            img = mongrp_tbl.get_value(row, "image")
-            v = -int(img)
         elem.append(v)
         outobjs.append(elem)
     out["objs"] = outobjs

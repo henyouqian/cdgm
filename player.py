@@ -48,14 +48,14 @@ class Create(tornado.web.RequestHandler):
 
             # add war lord card
             try:
-                entity_id = yield card.create(userid, warlord_proto_id, 1)
+                warload_id = yield card.create(userid, warlord_proto_id, 1)
             except:
                 send_error(self, "err_create_card")
 
             # init bands
             bands = INIT_BANDS
             for band in bands:
-                band["members"][1] = entity_id
+                band["members"][1] = warload_id
 
             bands = json.dumps(bands)
 
@@ -71,7 +71,7 @@ class Create(tornado.web.RequestHandler):
                             (userId, name, warLord, gold, isInZone, lastZoneId,
                                 xp, maxXp, ap, maxAp, silverCoin, bronzeCoin, bands, items)
                             VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                    ,(userid, username, entity_id, INIT_GOLD, 0, 0, INIT_XP, INIT_XP, INIT_AP, INIT_AP, 
+                    ,(userid, username, warload_id, INIT_GOLD, 0, INIT_ZONE_ID, INIT_XP, INIT_XP, INIT_AP, INIT_AP, 
                         INIT_SILVER_COIN, INIT_BRONZE_COIN, bands, items)
                 )
             except:
