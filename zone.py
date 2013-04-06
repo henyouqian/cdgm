@@ -3,7 +3,7 @@ from session import *
 from gamedata import BAND_NUM
 import g
 from util import CsvTbl
-from card import card_tbl, calc_card_proto_attr
+from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
 
 import tornado.web
 import adisp
@@ -659,7 +659,7 @@ class BattleResult(tornado.web.RequestHandler):
 
                 exp_per_card = int(exp / live_num)
                 for card in cards:
-                    lvtbl = level_tbl if card["id"] == warlord else card_level_tbl
+                    lvtbl = warlord_level_tbl if card["id"] == warlord else card_level_tbl
                     level = card["level"]
                     max_level = int(card_tbl.get(card["proto"], "maxlevel"))
                     try:
@@ -766,8 +766,6 @@ map_tbl = CsvTbl("data/maps.csv", "zoneID")
 plc_tbl = PlacementTbl()
 mongrp_tbl = CsvTbl("data/monsters.csv", "ID")
 case_tbl = CaseTbl()
-level_tbl = CsvTbl("data/levels.csv", "level")
-card_level_tbl = CsvTbl("data/cardLevels.csv", "level")
 
 # =============================================
 if __name__ == "__main__":

@@ -48,16 +48,18 @@ class Create(tornado.web.RequestHandler):
 
             # add war lord card
             try:
-                warload_card = yield card.create(userid, warlord_proto_id, 1)
-                warload_id = warload_card["id"]
+                warlord_card = yield card.create(userid, warlord_proto_id, 1)
+                print warlord_card
+                warlord_id = warlord_card["id"]
             except:
                 send_error(self, "err_create_card")
+                return
 
             # init bands
             bands = INIT_BANDS
 
             for band in bands:
-                band["members"][1] = warload_id
+                band["members"][1] = warlord_id
 
             bands = json.dumps(bands)
 
@@ -74,7 +76,7 @@ class Create(tornado.web.RequestHandler):
                             (userId, name, warLord, gold, isInZone, lastZoneId,
                                 xp, maxXp, ap, maxAp, silverCoin, bronzeCoin, bands, items)
                             VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                    ,(userid, username, warload_id, INIT_GOLD, 0, INIT_ZONE_ID, INIT_XP, INIT_XP, INIT_AP, INIT_AP, 
+                    ,(userid, username, warlord_id, INIT_GOLD, 0, INIT_ZONE_ID, INIT_XP, INIT_XP, INIT_AP, INIT_AP, 
                         INIT_SILVER_COIN, INIT_BRONZE_COIN, bands, items)
                 )
             except:
@@ -132,7 +134,10 @@ class GetInfo(tornado.web.RequestHandler):
                 return;
 
             # query cards
-            fields_str = """id, protoId, level, exp, skillLevel, skillExp, addSkill1, addSkill2,
+            fields_str = """id, protoId, level, exp, 
+                            skill1Id, skill1Level, skill1Exp, 
+                            skill2Id, skill2Level, skill2Exp, 
+                            skill3Id, skill3Level, skill3Exp, 
                             hp, atk, def, wis, agi,
                             hpCrystal, atkCrystal, defCrystal, wisCrystal, agiCrystal,
                             hpExtra, atkExtra, defExtra, wisExtra, agiExtra"""

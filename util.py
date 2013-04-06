@@ -1,5 +1,6 @@
 ﻿import time
 import csv
+import __builtin__
 
 # simple profile
 class Tm(object):
@@ -47,6 +48,10 @@ class CsvTbl(object):
     def get(self, rowkey, colname):
         return self.body[str(rowkey)][self.header[colname]]
 
+    def gets(self, rowkey, *colnames):
+        row = self.get_row(rowkey)
+        return self.get_values(row, *colnames)
+
 class CsvTblMulKey(object):
     def __init__(self, csvpath, *keycols):
         self.header = {}    # {colName:colIndex}
@@ -67,10 +72,79 @@ class CsvTblMulKey(object):
                     self.body[tuple(row[colidx] for colidx in keycolids)] = row
 
     def get_row(self, *keys):
+        keys = tuple(str(key) for key in keys)
         return self.body[keys]
 
     def get_value(self, row, colname):
         return row[self.header[colname]]
 
     def get(self, rowkeys, colname):
+        rowkeys = tuple(str(key) for key in rowkeys)
         return self.body[rowkeys][self.header[colname]]
+
+
+def lower_bound(haystack, needle, lo = 0, hi = None, cmp = None, key = None):
+    """lower_bound(haystack, needle[, lo = 0[, hi = None[, cmp = None[, key = None]]]]) => n
+
+    Find var{needle} via a binary search on var{haystack}.  Returns the
+    index of the first match if var{needle} is found, else a negative
+    value var{N} is returned indicating the index where var{needle}
+    belongs with the formula "-var{N}-1".
+
+    var{haystack} - the ordered, indexable sequence to search.
+    var{needle} - the value to locate in var{haystack}.
+    var{lo} and var{hi} - the range in var{haystack} to search.
+    var{cmp} - the cmp function used to order the var{haystack} items.
+    var{key} - the key function used to extract keys from the elements.
+    """
+    if cmp is None: cmp = __builtin__.cmp
+    if key is None: key = lambda x: x
+    if lo < 0: raise ValueError( 'lo cannot be negative' )
+    if hi is None: hi = len(haystack)
+
+    val = None
+    while lo < hi:
+        mid = (lo + hi) >> 1
+        val = cmp(key(haystack[mid]), needle)
+        if val < 0:
+            lo = mid + 1
+        else:
+            hi = mid
+    if val is None: return -1
+    elif val == 0: return lo
+    elif lo >= len(haystack): return -1 - lo
+    elif cmp(key(haystack[lo]), needle) == 0: return lo
+    else: return -1 - lo
+
+def upper_bound(haystack, needle, lo = 0, hi = None, cmp = None, key = None):
+    """upper_bound(haystack, needle[, lo = 0[, hi = None[, cmp = None[, key = None]]]]) => n
+
+    Find var{needle} via a binary search on var{haystack}.  Returns the
+    non-negative index var{N} of the element that immediately follows the
+    last match of var{needle} if var{needle} is found, else a negative
+    value var{N} is returned indicating the index where var{needle}
+    belongs with the formula "-var{N}-1".
+
+    var{haystack} - the ordered, indexable sequence to search.
+    var{needle} - the value to locate in var{haystack}.
+    var{lo} and var{hi} - the range in var{haystack} to search.
+    var{cmp} - the cmp function used to order the var{haystack} items.
+    var{key} - the key function used to extract keys from the elements.
+    """
+    if cmp is None: cmp = __builtin__.cmp
+    if key is None: key = lambda x: x
+    if lo < 0: raise ValueError( 'lo cannot be negative' )
+    if hi is None: hi = len(haystack)
+
+    val = None
+    while lo < hi:
+        mid = (lo + hi) >> 1
+        val = cmp(key(haystack[mid]), needle)
+        if val > 0:
+            hi = mid
+        else:
+            lo = mid + 1
+    if val is None: return -1
+    elif val == 0: return lo
+    elif lo > 0 and cmp(key(haystack[lo - 1]), needle) == 0: return lo
+    else: return -1 - lo

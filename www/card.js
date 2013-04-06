@@ -4,7 +4,7 @@ $(document).ready(function(){
 	$("#btn_add").click(addCard)
 	$("#btn_sell").click(sellCard)
 	$("#btn_evo").click(evolution)
-	$("#btn_abs").click(absorb)
+	$("#btn_scf").click(sacrifice)
 
 	playerInfo = JSON.parse(window.localStorage.playerInfo)
 	cards = playerInfo.cards
@@ -36,6 +36,20 @@ function updateCards() {
 		str += " def:" + def
 		str += " wis:" + wis
 		str += " agi:" + agi
+		str += " skl1Id:" + card.skill1Id
+		str += " skl1Lv:" + card.skill1Level
+		str += " skl1Exp:" + card.skill1Exp
+		if (card.skill2Id) {
+			str += " skl2Id:" + card.skill2Id
+			str += " skl2Lv:" + card.skill2Level
+			str += " skl2Exp:" + card.skill2Exp
+		}
+		if (card.skill3Id) {
+			str += " skl3Id:" + card.skill3Id
+			str += " skl3Lv:" + card.skill3Level
+			str += " skl3Exp:" + card.skill3Exp
+		}
+
 		ul.append("<li id=card_id_'"+card.id+"'>"+str+"</li>")
 	}
 }
@@ -84,6 +98,7 @@ function evolution() {
 				if (card.id == evoCard.id) {
 					cards[i] = evoCard
 				}
+				break
 			}
 			updateCards()
 			saveLocalStorage()
@@ -91,10 +106,10 @@ function evolution() {
 	})
 }
 
-function absorb() {
+function sacrifice() {
 	var cards = []
 	for (var i = 0; i < 9; ++i) {
-		var card = $("#ipt_abs"+i).val()
+		var card = $("#ipt_scf"+i).val()
 		if (card) {
 			n = parseInt(card)
 			if (!isNaN(n))		
@@ -104,12 +119,26 @@ function absorb() {
 
 	console.log(cards)
 	
-	$.post('/whapi/card/absorb', JSON.stringify(cards), function(json){
+	$.post('/whapi/card/sacrifice', JSON.stringify(cards), function(json){
 		var err = json.error
 		if (err){
 			alert(err)
 		}else{
 			console.log(json)
+			cards = cards.filter(function(card){return json.sacrificers.indexOf(card.id) == -1})
+			master = json.master
+			for (var i in cards) {
+				card = cards[i]
+				if (card.id == master.id) {
+					card.skill1Level = master.skill1Level
+					card.skill1Exp = master.skill1Exp
+					card.skill2Level = master.skill2Level
+					card.skill2Exp = master.skill2Exp
+					card.skill3Level = master.skill3Level
+					card.skill3Exp = master.skill3Exp
+				}
+				break
+			}
 			updateCards()
 			saveLocalStorage()
 		}

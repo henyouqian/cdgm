@@ -15,6 +15,10 @@ card_tbl = CsvTbl("data/cards.csv", "ID")
 grow_tbl = CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
 evo_tbl = CsvTblMulKey("data/cardEvolutions.csv", "masterCardId", "evolverCardId")
 evo_cost_tbl = CsvTblMulKey("data/cardEvolutionCosts.csv", "masterCardRarity", "evolverCardRarity")
+skill_tbl = CsvTbl("data/skills.csv", "id")
+skill_level_tbl = CsvTblMulKey("data/skillLevels.csv", "rarity", "level")
+warlord_level_tbl = CsvTbl("data/levels.csv", "level")
+card_level_tbl = CsvTbl("data/cardLevels.csv", "level")
 
 # # test
 # row = grow_tbl.get_row("1", "11")
@@ -51,8 +55,8 @@ def calc_card_proto_attr(proto_id, level):
     f = (growcurr - growmin) / (growmax - growmin)
     return tuple(imap(lerp, min_attrs, max_attrs, repeat(f)))
 
-def is_war_lord(entity_id):
-    return entity_id >= 119 and entity_id <= 226
+def is_war_lord(proto_id):
+    return 119 <= proto_id <= 226
 
 
 @adisp.async
@@ -60,13 +64,25 @@ def is_war_lord(entity_id):
 def create(owner_id, proto_id, level, callback):
     try:
         hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
+        skill_1_id, skill_2_id = card_tbl.gets(proto_id, "skillid1", "skillid2")
+        lvtbl = warlord_level_tbl if is_war_lord(proto_id) else card_level_tbl
+        exp = lvtbl.get(level, "exp")
+        card = {"protoId":proto_id, "ownerId":owner_id, "level":level, "exp":exp}
+        card.update({"hp":hp, "atk":atk, "def":_def, "wis":wis, "agi":agi})
+        card.update({"hpCrystal":0, "atkCrystal":0, "defCrystal":0, "wisCrystal":0, "agiCrystal":0})
+        card.update({"hpExtra":0, "atkExtra":0, "defExtra":0, "wisExtra":0, "agiExtra":0})
+        card.update({"skill1Id":skill_1_id, "skill2Id":skill_2_id, "skill2Id":0})
+        card.update({"skill1Level":1, "skill2Level":1, "skill2Level":1})
+        card.update({"skill1Exp":0, "skill2Exp":0, "skill2Exp":0})
+
         conn = yield g.whdb.beginTransaction()
         try:
             row_nums = yield g.whdb.runOperation(
                 """ INSERT INTO cardEntities
-                        (hp, atk, def, wis, agi, protoId, ownerId)
-                        VALUES(%s, %s, %s, %s, %s, %s, %s)"""
-                ,(hp, atk, _def, wis, agi, proto_id, owner_id), conn
+                        ({}) VALUES({})
+                """.format(",".join(card.keys()), ",".join(("%s",)*len(card)))
+                , card.values()
+                , conn
             )
             rows = yield g.whdb.runQuery("SELECT LAST_INSERT_ID()", None, conn)
         finally:
@@ -74,14 +90,12 @@ def create(owner_id, proto_id, level, callback):
 
         if row_nums != 1:
             raise Exception("db insert error")
-        entity_id = rows[0][0]
-        card = {"id":entity_id, "protoId":proto_id, "level":level, "exp":0, "hp":hp, "atk":atk, "def":_def, "wis":wis, "agi":agi}
-        card.update({"hpCrystal":0, "atkCrystal":0, "defCrystal":0, "wisCrystal":0, "agiCrystal":0})
-        card.update({"hpExtra":0, "atkExtra":0, "defExtra":0, "wisExtra":0, "agiExtra":0})
-        card.update({})
+        card["id"] = rows[0][0]
+
         callback(card)
     except Exception as e:
         callback(e)
+
 
 # ====================================================
 class Create(tornado.web.RequestHandler):
@@ -253,7 +267,10 @@ class Evolution(tornado.web.RequestHandler):
                 send_error(self, err_param)
                 return
 
-            fields_str = """id, protoId, level, exp, skillLevel, skillExp, addSkill1, addSkill2,
+            fields_str = """id, protoId, level, exp, 
+                            skill1Id, skill1Level, skill1Exp, 
+                            skill2Id, skill2Level, skill2Exp, 
+                            skill3Id, skill3Level, skill3Exp, 
                             hp, atk, def, wis, agi,
                             hpCrystal, atkCrystal, defCrystal, wisCrystal, agiCrystal,
                             hpExtra, atkExtra, defExtra, wisExtra, agiExtra"""
@@ -295,7 +312,7 @@ class Evolution(tornado.web.RequestHandler):
                 return
 
             if gold < cost:
-                send_error(self, "err_gold_not_enough")
+                send_error(self, "err_not_enough_gold")
                 return
             gold -= cost
 
@@ -380,7 +397,7 @@ class Evolution(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-class Absorb(tornado.web.RequestHandler):
+class Sacrifice(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def post(self):
@@ -405,17 +422,127 @@ class Absorb(tornado.web.RequestHandler):
                 send_error(self, err_post)
                 return
 
-            master_card = cards[0]
-            absorb_cards = cards[1:]
-
+            # get player info
             rows = yield g.whdb.runQuery(
-                """SELECT id, protoId FROM cardEntities
-                        WHERE id IN {} AND ownerId = %s""".format(str(tuple(cards)))
+                """SELECT gold, warLord FROM playerInfos
+                        WHERE userId = %s"""
                 ,(user_id, )
             )
-            print str(tuple(cards)), rows, "rrrrrr", user_id
+            gold = rows[0][0]
+            warlord = rows[0][1]
 
-            send_ok(self)
+            # get cards info
+            fields = ["id", "protoId", "skill1Id", "skill1Level", "skill1Exp", 
+                "skill2Id", "skill2Level", "skill2Exp", "skill3Id", "skill3Level", "skill3Exp"]
+            rows = yield g.whdb.runQuery(
+                """SELECT {} FROM cardEntities
+                        WHERE id IN {} AND ownerId = %s""".format(",".join(fields), str(tuple(cards)))
+                ,(user_id, )
+            )
+            if len(rows) != len(cards):
+                send_error(self, "err_card")
+                return
+
+            # make query result to dict
+            master_card = None
+            sacrifice_cards = []
+            for row in rows:
+                if row[0] == cards[0]:
+                    master_card = dict(zip(fields, row))
+                else:
+                    card = dict(zip(fields, row))
+                    if warlord == card["id"]:
+                        send_error(self, "err_warlord_sacrifice")
+                        return
+                    sacrifice_cards.append(card)
+
+            if (not master_card) or (not sacrifice_cards):
+                send_error(self, "err_card")
+                return
+
+            # calc add exp
+            exp_add = 0
+            try:
+                for card in sacrifice_cards:
+                    exp_add += int(card_tbl.get(card["protoId"], "materialexp"))
+            except:
+                send_error(self, "err_card")
+                return
+
+            # add exp and calc cost
+            skills = [{"id":master_card["skill1Id"], "level":master_card["skill1Level"], "exp":master_card["skill1Exp"]},
+                {"id":master_card["skill2Id"], "level":master_card["skill2Level"], "exp":master_card["skill2Exp"]},
+                {"id":master_card["skill3Id"], "level":master_card["skill3Level"], "exp":master_card["skill3Exp"]}
+            ]
+            skillids = card_tbl.gets(master_card["protoId"], "skillid1", "skillid2")
+            skillids = [int(skill) for skill in skillids]
+            rarities = [int(skill_tbl.get(sid, "rarity")) if sid else 0 for sid in skillids]
+            total_cost = 0
+            for skill in skills:
+                sid = skill["id"]
+                level = skill["level"]
+                if sid:
+                    skill["exp"] += exp_add
+                    rarity = int(skill_tbl.get(sid, "rarity"))
+                    first_try = True
+                    exp_alread_full = False
+                    while 1:
+                        try:
+                            next_exp = skill_level_tbl.get((rarity, level + 1, "exp"))
+                            if skill["exp"] < next_exp:
+                                break
+                            else:
+                                level += 1
+                        except:
+                            skill["exp"] = skill_level_tbl.get((rarity, level, "exp"))
+                            if first_try:   # exp full
+                                exp_alread_full = True
+                            break
+
+                    skill["level"] = level
+
+                    if not exp_full:
+                        total_cost += skill_level_tbl.get((rarity, level), "costMoney")
+
+            # check and spend gold
+            gold -= total_cost
+            if gold < 0:
+                send_error(self, "err_not_enough_gold")
+                return
+
+            yield g.whdb.runOperation(
+                """UPDATE playerInfos SET gold=%s
+                        WHERE userId=%s"""
+                ,(gold, user_id)
+            )
+
+            # delete absorbed cards
+            sacrifice_ids = [str(card["id"]) for card in sacrifice_cards]
+
+            yield g.whdb.runOperation(
+                """DELETE FROM cardEntities WHERE id ({}) AND ownerId=%s
+                    """.format(",".join(sacrifice_ids))
+                ,(user_id, )
+            )
+
+            # update card
+            yield g.whdb.runOperation(
+                """UPDATE cardEntities 
+                    SET skill1Level=%s, skill1Exp=%s, 
+                        skill2Level=%s, skill2Exp=%s, 
+                        skill3Level=%s, skill3Exp=%s
+                    WHERE id=%s AND ownerId=%s"""
+                ,(  skills[0]["level"], skills[0]["exp"], 
+                    skills[1]["level"], skills[1]["exp"], 
+                    skills[2]["level"], skills[2]["exp"], 
+                    master_card["id"], user_id)
+            )
+
+            # reply
+            reply = {"error": no_error}
+            reply["sacrificers"] = [card["id"] for card in sacrifice_cards]
+            reply["master"] = master_card
+            self.write(json.dumps(reply))
         except:
             send_internal_error(self)
         finally:
@@ -427,7 +554,7 @@ handlers = [
     (r"/whapi/card/random", Random),
     (r"/whapi/card/sell", Sell),
     (r"/whapi/card/evolution", Evolution),
-    (r"/whapi/card/absorb", Absorb),
+    (r"/whapi/card/sacrifice", Sacrifice),
 ]
 
 # test
