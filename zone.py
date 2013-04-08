@@ -141,7 +141,7 @@ def gen_cache(zoneid):
     startpos = None
     goalpos = None
     for k, v in tiles.iteritems():
-        r = 0
+        r = -1
         if v == TILE_ALL:
             r = rand1all.get()
         elif v == TILE_ITEM:

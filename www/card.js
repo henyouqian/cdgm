@@ -1,6 +1,7 @@
 cards = null
 
 $(document).ready(function(){
+	$("#btn_back").click(back)
 	$("#btn_add").click(addCard)
 	$("#btn_sell").click(sellCard)
 	$("#btn_evo").click(evolution)
@@ -52,6 +53,10 @@ function updateCards() {
 
 		ul.append("<li id=card_id_'"+card.id+"'>"+str+"</li>")
 	}
+}
+
+function back() {
+	window.location.href="main.html";
 }
 
 function addCard() {
