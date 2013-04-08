@@ -1,74 +1,129 @@
 playerInfo = null
 zoneInfo = null
+zoneId = 1
 
 $(document).ready(function(){
 	playerInfo = JSON.parse(window.localStorage.playerInfo)
 	$("#btn_back").click(back)
 	$("#btn_withdraw").click(withdraw)
+	$("#btn_move").click(move)
 	getZoneInfo()
-});
+})
+
+function updateZoneInfo() {
+	var ul = $("#ul_zone")
+	ul.empty()
+
+	var zone = JSON.parse(JSON.stringify(zoneInfo))
+	var player = JSON.parse(JSON.stringify(playerInfo))
+
+	ul.append("<li id=li_band> zoneId:"+JSON.stringify(zone.zoneId)+"</li>")
+	ul.append("<li> startPos:("+zone.startPos.x+","+zone.startPos.y+")</li>")
+	ul.append("<li> goalPos:("+zone.goalPos.x+","+zone.goalPos.y+")</li>")
+	ul.append("<li id=li_curr_pos> currPos:("+zone.currPos.x+","+zone.currPos.y+")</li>")
+	ul.append("<li id=li_red_case> redCase:"+JSON.stringify(zone.redCase)+"</li>")
+	ul.append("<li id=li_gold_case> goldCase:"+JSON.stringify(zone.goldCase)+"</li>")
+	ul.append("<li id=li_band> band:"+JSON.stringify(zone.band)+"</li>")
+
+	ul.append("<li> xp:"+JSON.stringify(player.xp)+"</li>")
+	ul.append("<li> gold:"+JSON.stringify(player.gold)+"</li>")
+	ul.append("<li> objs:"+JSON.stringify(zone.objs.sort())+"</li>")
+}
 
 function getZoneInfo() {
 	if (playerInfo.isInZone) {
 		$.getJSON('/whapi/zone/get', function(json){
-			var err = json.error;
+			var err = json.error
 			if (err){
-				alert(err);
+				alert(err)
 			}else{
-				updateZoneInfo(json)
+				zoneInfo = JSON.parse(JSON.stringify(json))
+				updateZoneInfo()
 			}
-		});
+		})
 	} else {
-		$.getJSON('/whapi/zone/enter', {"zoneid":50101, "bandidx":0}, function(json){
-			var err = json.error;
+		$.getJSON('/whapi/zone/enter', {"zoneid":zoneId, "bandidx":0}, function(json){
+			var err = json.error
 			if (err){
-				alert(err);
+				alert(err)
 			}else{
-				updateZoneInfo(json)
+				zoneInfo = JSON.parse(JSON.stringify(json))
+				updateZoneInfo()
 			}
-		});
+		})
 	}
 }
 
 function back() {
-	window.location.href="main.html";
+	window.location.href="main.html"
 }
 
 function withdraw() {
 	$.getJSON('/whapi/zone/withdraw', function(json){
-		var err = json.error;
+		var err = json.error
 		if (err){
-			alert(err);
+			alert(err)
 		}else{
-			window.location.href="main.html";
+			window.location.href="main.html"
 		}
-	});
+	})
 }
 
-function updateZoneInfo(json) {
-	zoneInfo = JSON.parse(JSON.stringify(json))
-	var ul = $("#ul_zone")
-	ul.empty()
+function move() {
+	var stepNum = parseInt($("#ipt_move").val())+1
+	var currPos = zoneInfo.currPos
+	var goalPos = zoneInfo.goalPos
+	var steps = []
+	for (var i = 0; i < stepNum; ++i) {
+		var step = [currPos.x, currPos.y-i*3]
+		if (step[1] < goalPos.y)
+			break
+		steps.push(step)
+	}
+	if (steps.length == 0) {
+		alert("already got goal")
+		return
+	}
 
-	ul.append("<li id=li_band> zoneId:"+JSON.stringify(json.zoneId)+"</li>")
-	delete json.zoneId
+	$.post('/whapi/zone/move', JSON.stringify(steps), function(json){
+		var err = json.error
+		if (err){
+			alert(err)
+		}else{
+			console.log(json)
 
-	ul.append("<li> startPos:("+json.startPos.x+","+json.startPos.y+")</li>")
-	delete json.startPos
+			playerInfo.xp = json.xp
+			var str = "xp:" + json.xp + "\n"
 
-	ul.append("<li> goalPos:("+json.goalPos.x+","+json.goalPos.y+")</li>")
-	delete json.goalPos
+			zoneInfo.currPos = json.currPos
+			str += "currPos:(" + json.currPos.x + "," + json.currPos.y + ")\n"
 
-	ul.append("<li id=li_curr_pos> currPos:("+json.currPos.x+","+json.currPos.y+")</li>")
-	delete json.currPos
+			if (json.goldAdd) {
+				playerInfo.gold += json.goldAdd
+				str += "goldAdd:" + json.goldAdd + "\n"
+			}
+			if (json.redCaseAdd) {
+				zoneInfo.redCase += json.redCaseAdd
+				str += "redCaseAdd:" + json.redCaseAdd + "\n"
+			}
+			if (json.goldCaseAdd) {
+				zoneInfo.goldCase += json.goldCaseAdd
+				str += "goldCaseAdd:" + json.goldCaseAdd + "\n"
+			}
+			if (json.monGrpId) {
+				str += "Battle:" + json.monGrpId + "\n"
+			}
 
-	ul.append("<li id=li_red_case> redCase:"+JSON.stringify(json.redCase)+"</li>")
-	delete json.redCase
+			if (json.items.length) {
+				str += "GotItems:" + JSON.stringify(json.items) + "\n"
+			}
 
-	ul.append("<li id=li_gold_case> goldCase:"+JSON.stringify(json.goldCase)+"</li>")
-	delete json.goldCase
+			if (json.complete) {
+				str += "Zone compelete"
+			}
 
-	//band info
-	ul.append("<li id=li_band> band:"+JSON.stringify(json.band)+"</li>")
-	delete json.band
+			alert(str)
+			updateZoneInfo()
+		}
+	}, "json")
 }

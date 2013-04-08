@@ -33,11 +33,11 @@ class PlacementTbl(object):
                     path = root + "/" + filename
                     zoneid = nameext[0]
                     with open(path, "rb") as f:
-                        root = json.load(f)
+                        data = json.load(f)
 
-                        layers = root["layers"]
-                        width = root["width"]
-                        height = root["height"]
+                        layers = data["layers"]
+                        width = data["width"]
+                        height = data["height"]
                         zone = {"width":width, "height":height}
                         for layer in layers:
                             if layer["name"] == "event":
@@ -80,13 +80,11 @@ class CaseTbl(object):
             self._t[int(k)] = (indices, weights)
 
     def get_item(self, caseId):
-        try:
-            indices, weights = self._t[caseId]
-            rdm = WeightedRandom(0, *weights)
-            idx = rdm.get()          
-            return indices[idx]
-        except:
-            return 0
+        caseId = int(caseId)
+        indices, weights = self._t[caseId]
+        rdm = WeightedRandom(0, *weights)
+        idx = rdm.get()
+        return indices[idx]
         
 
 class WeightedRandom(object):
@@ -155,8 +153,8 @@ def gen_cache(zoneid):
             goalpos = dict(zip(("x", "y"), map(int, k.split(","))))
             continue
 
-        if r == 0:      # item
-            itemtype = rand2item.get()
+        if r == 0:      # case or gold
+            itemtype = rand2item.get() + 1 # itemtype from 1 to 5
             if itemtype >= 0:
                 objs[k] = itemtype
         elif r == 1:    # battle
@@ -215,7 +213,8 @@ class Enter(tornado.web.RequestHandler):
             try:
                 cache = gen_cache(zoneid)
             except:
-                send_error(self, err_not_exist)
+                send_error(self, "err_gen_cache")
+                return
 
             # band
             try:
@@ -343,6 +342,7 @@ class Get(tornado.web.RequestHandler):
                     ,(session["userid"],)
                 )
                 cache = rows[0][0]
+                print cache
             except:
                 send_error(self, err_db)
                 return
@@ -459,7 +459,7 @@ class Move(tornado.web.RequestHandler):
                 send_error(self, err_post)
                 return
 
-            # check event exist
+            # check and triger event
             currpos = path[-1]
             poskey = "%d,%d" % (currpos[0], currpos[1])
             evtid = cache["objs"].get(poskey)
@@ -476,19 +476,22 @@ class Move(tornado.web.RequestHandler):
                 if evtid == 10000:      # event
                     pass
                 elif evtid < 0:         # battle
-                    cache["monGrpId"] = -evtid
+                    monGrpId = -evtid
+                    cache["monGrpId"] = monGrpId
                     # monrow = mongrp_tbl.get_row(str(-evtid))
                     # img = mongrp_tbl.get_value(monrow, "image")
                     # fixme
                 elif evtid == 1:    # wood case
+                    item_updated = True
                     caseid = map_tbl.get_value(maprow, "woodprobabilityID")
                     itemid = case_tbl.get_item(caseid)
+                    print "itemid:", itemid
                     if itemid in items:
                         items[itemid] += 1
                     else:
                         items[itemid] = 1
-                    item_updated = True
                     items_add.append({"id":itemid, "num":1})
+
                 elif evtid == 2:    # red case
                     cache["redCase"] += 1
                     red_case_add = 1
@@ -502,9 +505,35 @@ class Move(tornado.web.RequestHandler):
 
                 if gold_add:
                     gold += gold_add
+
+            # check zone complete
+            currpos = {"x":currpos[0], "y":currpos[1]}
+            complete = (currpos == cache["goalPos"])
+            if complete:
+                # red case
+                for x in xrange(cache["redCase"]):
+                    item_updated = True
+                    caseid = map_tbl.get_value(maprow, "treasureprobabilityID")
+                    itemid = case_tbl.get_item(caseid)
+                    if itemid in items:
+                        items[itemid] += 1
+                    else:
+                        items[itemid] = 1
+                    items_add.append({"id":itemid, "num":1})
+
+                # gold case
+                for x in xrange(cache["goldCase"]):
+                    item_updated = True
+                    caseid = map_tbl.get_value(maprow, "chestprobabilityID")
+                    itemid = case_tbl.get_item(caseid)
+                    if itemid in items:
+                        items[itemid] += 1
+                    else:
+                        items[itemid] = 1
+                    items_add.append({"id":itemid, "num":1})
             
             # update
-            cache["currPos"] = {"x":currpos[0], "y":currpos[1]}
+            cache["currPos"] = currpos
             cachejs = json.dumps(cache)
             try:
                 if item_updated:
@@ -527,15 +556,17 @@ class Move(tornado.web.RequestHandler):
                 return
 
             # reply
-            reply = {"error":no_error, "pos":currpos}
+            reply = {"error":no_error}
+            reply["currPos"] = cache["currPos"]
             reply["xp"] = xp
-            reply["lastXpTime"] = last_xp_time
-            reply["gold"] = gold_add
-            reply["redCase"] = red_case_add
-            reply["goldCase"] = gold_case_add
+            reply["lastXpTime"] = str(last_xp_time)
+            reply["goldAdd"] = gold_add
+            reply["redCaseAdd"] = red_case_add
+            reply["goldCaseAdd"] = gold_case_add
             reply["items"] = items_add
             reply["monGrpId"] = monGrpId
             reply["eventId"] = None
+            reply["complete"] = complete
 
             self.write(json.dumps(reply))
 
