@@ -342,7 +342,6 @@ class Get(tornado.web.RequestHandler):
                     ,(session["userid"],)
                 )
                 cache = rows[0][0]
-                print cache
             except:
                 send_error(self, err_db)
                 return
@@ -393,7 +392,7 @@ class Move(tornado.web.RequestHandler):
             # db get cache
             try:
                 rows = yield g.whdb.runQuery(
-                    """SELECT zoneCache, xp, maxXp, lastXpTime, UTC_TIMESTAMP(), items, gold FROM playerInfos 
+                    """SELECT zoneCache, xp, maxXp, lastXpTime, UTC_TIMESTAMP(), items, money FROM playerInfos 
                             WHERE userid=%s"""
                     ,(session["userid"],)
                 )
@@ -404,7 +403,7 @@ class Move(tornado.web.RequestHandler):
                 last_xp_time = row[3]
                 curr_time = row[4]
                 items = row[5]
-                gold = row[6]
+                money = row[6]
 
                 if not last_xp_time:
                     last_xp_time = datetime(2013, 1, 1)
@@ -464,7 +463,7 @@ class Move(tornado.web.RequestHandler):
             poskey = "%d,%d" % (currpos[0], currpos[1])
             evtid = cache["objs"].get(poskey)
             item_updated = False
-            gold_add = 0
+            money_add = 0
             red_case_add = 0
             gold_case_add = 0
             items_add = []
@@ -495,16 +494,16 @@ class Move(tornado.web.RequestHandler):
                 elif evtid == 2:    # red case
                     cache["redCase"] += 1
                     red_case_add = 1
-                elif evtid == 3:    # golden case
+                elif evtid == 3:    # gold case
                     cache["goldCase"] += 1
                     gold_case_add = 1
                 elif evtid == 4:
-                    gold_add = 100
+                    money_add = 100
                 elif evtid == 5:
-                    gold_add = 1000
+                    money_add = 1000
 
-                if gold_add:
-                    gold += gold_add
+                if money_add:
+                    money += money_add
 
             # check zone complete
             currpos = {"x":currpos[0], "y":currpos[1]}
@@ -540,16 +539,16 @@ class Move(tornado.web.RequestHandler):
                     itemsjs = json.dumps(items)
                     yield g.whdb.runOperation(
                         """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
-                            gold=%s, items=%s
+                            money=%s, items=%s
                                 WHERE userid=%s"""
-                        ,(cachejs, xp, last_xp_time, gold, itemsjs, session["userid"])
+                        ,(cachejs, xp, last_xp_time, money, itemsjs, session["userid"])
                     )
                 else:
                     yield g.whdb.runOperation(
                         """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
-                            gold=%s
+                            money=%s
                                 WHERE userid=%s"""
-                        ,(cachejs, xp, last_xp_time, gold, session["userid"])
+                        ,(cachejs, xp, last_xp_time, money, session["userid"])
                     )
             except:
                 send_error(self, err_db)
@@ -560,7 +559,7 @@ class Move(tornado.web.RequestHandler):
             reply["currPos"] = cache["currPos"]
             reply["xp"] = xp
             reply["lastXpTime"] = str(last_xp_time)
-            reply["goldAdd"] = gold_add
+            reply["moneyAdd"] = money_add
             reply["redCaseAdd"] = red_case_add
             reply["goldCaseAdd"] = gold_case_add
             reply["items"] = items_add
@@ -603,7 +602,7 @@ class BattleResult(tornado.web.RequestHandler):
                 return
 
             band = cache["band"]
-            members = [m for m in band[1:]]
+            members = band["members"]
 
             # post input
             input = json.loads(self.request.body)
@@ -633,16 +632,16 @@ class BattleResult(tornado.web.RequestHandler):
                 mems_per_row = len(inmembers)
                 for idx, inmem in enumerate(inmembers):
                     if inmem:
-                        if inmem[0] == members[idx][0]:
-                            members[idx] = inmem[:]
-                        elif inmem[0] == members[idx+mems_per_row][0]:
-                            members[idx+mems_per_row] = inmem[:]
+                        if inmem["id"] == members[idx][0]:
+                            members[idx][1] = inmem["hp"]
+                        elif inmem["id"] == members[idx+mems_per_row][0]:
+                            members[idx+mems_per_row][1] = inmem["hp"]
                             members[idx], members[idx+mems_per_row] = members[idx+mems_per_row], members[idx]
                         else:
                             raise Exception("Error member pos")
-                        if inmem[1] > members[idx][1] or inmem[1] < 0:
+                        if inmem["hp"] > members[idx][1] or inmem["hp"] < 0:
                             raise Exception("Error member hp")
-                        if inmem[0] == warlord and inmem[1] == 0:
+                        if inmem["id"] == warlord and inmem["hp"] == 0:
                             raise Exception("Dead warlord")
 
             except:
@@ -653,6 +652,10 @@ class BattleResult(tornado.web.RequestHandler):
             try:
                 # calc exp
                 mon_grp_id = cache["monGrpId"]
+                if mon_grp_id < 0:
+                    send_error(self, "Not in battle")
+                    return
+
                 row = mongrp_tbl.get_row(str(mon_grp_id))
                 cols = ["order%sID"%(i+1) for i in xrange(10)]
                 monsters = []
@@ -667,9 +670,9 @@ class BattleResult(tornado.web.RequestHandler):
 
                 try:
                     # get band card entity
-                    sql = """SELECT id, level, exp, protoId, hp, atk, def, wis, agi FROM cardEntities
+                    sql = """SELECT id, level, exp, protoId, hp, atk, def, wis, agi, hpCrystal, hpExtra FROM cardEntities
                                 WHERE ownerId=%s AND id in {}"""
-                    inmembers_alive = [m[0] for m in inmembers if m and m[1] != 0]
+                    inmembers_alive = [m["id"] for m in inmembers if m and m["hp"] != 0]
                     live_num = len(inmembers_alive)
                     if live_num == 1:
                         sql = sql.format("(%s)"% inmembers_alive[0])
@@ -682,13 +685,15 @@ class BattleResult(tornado.web.RequestHandler):
                         ,(userid, )
                     )
                     cards = [{"id":row[0], "level":row[1], "exp":row[2], "proto":row[3]
-                        ,"attrs":[row[4], row[5], row[6], row[7], row[8]]} for row in rows]
+                        ,"attrs":[row[4], row[5], row[6], row[7], row[8]]
+                        ,"hpCrystal":row[9], "hpExtra":row[10]} for row in rows]
                     
                 except:
                     send_error(self, err_db)
                     return
 
                 exp_per_card = int(exp / live_num)
+                levelups = []
                 for card in cards:
                     lvtbl = warlord_level_tbl if card["id"] == warlord else card_level_tbl
                     level = card["level"]
@@ -706,29 +711,58 @@ class BattleResult(tornado.web.RequestHandler):
                             card["exp"] = int(lvtbl.get(level, "exp"))
 
                         #level up
+                        logging.debug((level, card["level"]))
                         if level != card["level"]:
                             card["level"] = level
                             card["attrs"] = calc_card_proto_attr(card["proto"], level)
+                            new_hp = 0
+                            for member in members:
+                                if member and member[0] == card["id"]:
+                                    new_hp = card["attrs"][0]+card["hpCrystal"]+card["hpExtra"]
+                                    member[1] = new_hp
+                                    break
+                            levelup = {}
+                            levelup["id"] = card["id"]
+                            levelup["level"] = level
+                            # levelup.update(dict(zip(["hp", "atk", "def", "wis", "agi"], card["attrs"])))
+                            levelups.append(levelup)
+
                     except:
                         card["exp"] = int(lvtbl.get(level, "exp"))
 
                 # update db
-                try:
-                    arg_list = [(c["level"], c["exp"], c["attrs"][0], c["attrs"][1]
-                        ,c["attrs"][2], c["attrs"][3], c["attrs"][4], c["id"]) for c in cards]
-                    row_nums = yield g.whdb.runOperationMany(
-                        """UPDATE cardEntities SET level=%s, exp=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s
-                                WHERE id=%s"""
-                        ,arg_list
-                    )
-                except:
-                    send_error(self, err_db)
-                    return
+                # update cardEntities
+                arg_list = [(c["level"], c["exp"], c["attrs"][0], c["attrs"][1]
+                    ,c["attrs"][2], c["attrs"][3], c["attrs"][4], c["id"]) for c in cards]
+                row_nums = yield g.whdb.runOperationMany(
+                    """UPDATE cardEntities SET level=%s, exp=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s
+                            WHERE id=%s"""
+                    ,arg_list
+                )
+
+                # update band infos in zoneCache
+                yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s
+                            WHERE userId=%s"""
+                    ,(json.dumps(cache), userid)
+                )
+
             except:
                 send_error(self, "err_add_exp")
                 return
 
-            send_ok(self)
+            # reply
+            reply = {"error":no_error}
+            members = []
+            for card in cards:
+                member = {}
+                member["id"] = card["id"]
+                member["exp"] = card["exp"]
+                members.append(member)
+
+            reply["members"] = members
+            reply["levelups"] = levelups
+            self.write(json.dumps(reply))
         except:
             send_internal_error(self)
         finally:
@@ -797,6 +831,7 @@ map_tbl = CsvTbl("data/maps.csv", "zoneID")
 plc_tbl = PlacementTbl()
 mongrp_tbl = CsvTbl("data/monsters.csv", "ID")
 case_tbl = CaseTbl()
+
 
 # =============================================
 if __name__ == "__main__":

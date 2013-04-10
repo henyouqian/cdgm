@@ -26,7 +26,7 @@ function updateZoneInfo() {
 	ul.append("<li id=li_band> band:"+JSON.stringify(zone.band)+"</li>")
 
 	ul.append("<li> xp:"+JSON.stringify(player.xp)+"</li>")
-	ul.append("<li> gold:"+JSON.stringify(player.gold)+"</li>")
+	ul.append("<li> money:"+JSON.stringify(player.money)+"</li>")
 	ul.append("<li> objs:"+JSON.stringify(zone.objs.sort())+"</li>")
 }
 
@@ -98,9 +98,9 @@ function move() {
 			zoneInfo.currPos = json.currPos
 			str += "currPos:(" + json.currPos.x + "," + json.currPos.y + ")\n"
 
-			if (json.goldAdd) {
-				playerInfo.gold += json.goldAdd
-				str += "goldAdd:" + json.goldAdd + "\n"
+			if (json.moneyAdd) {
+				playerInfo.money += json.moneyAdd
+				str += "moneyAdd:" + json.moneyAdd + "\n"
 			}
 			if (json.redCaseAdd) {
 				zoneInfo.redCase += json.redCaseAdd
@@ -110,8 +110,10 @@ function move() {
 				zoneInfo.goldCase += json.goldCaseAdd
 				str += "goldCaseAdd:" + json.goldCaseAdd + "\n"
 			}
+			var battle = false
 			if (json.monGrpId) {
 				str += "Battle:" + json.monGrpId + "\n"
+				battle = true
 			}
 
 			if (json.items.length) {
@@ -124,6 +126,30 @@ function move() {
 
 			alert(str)
 			updateZoneInfo()
+
+			//send battle result
+			if (true || battle) {
+				var members = copyObj(zoneInfo.band.members)
+				members = members.slice(0, members.length/2)
+				for (idx in members) {
+					if (members[idx]) {
+						var hp = members[idx].hp - 100;
+						hp = Math.max(0, hp)
+						members[idx].hp = hp
+					}
+				}
+
+				var battleResult = {}
+				battleResult["isWin"] = true
+				battleResult["members"] = members
+				$.post('/whapi/zone/battleresult', JSON.stringify(battleResult), function(json){
+					if (json.error) {
+						alert(json.error)
+					} else {
+						console.log(json)
+					}
+				}, "json")
+			}
 		}
 	}, "json")
 }

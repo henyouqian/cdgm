@@ -73,11 +73,11 @@ class Create(tornado.web.RequestHandler):
             try:
                 row_nums = yield g.whdb.runOperation(
                     """ INSERT INTO playerInfos
-                            (userId, name, warLord, gold, isInZone, lastZoneId,
-                                xp, maxXp, ap, maxAp, silverCoin, bronzeCoin, bands, items)
-                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                    ,(userid, username, warlord_id, INIT_GOLD, 0, INIT_ZONE_ID, INIT_XP, INIT_XP, INIT_AP, INIT_AP, 
-                        INIT_SILVER_COIN, INIT_BRONZE_COIN, bands, items)
+                            (userId, name, warLord, money, isInZone, lastZoneId,
+                                xp, maxXp, ap, maxAp, bands, items)
+                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                    ,(userid, username, warlord_id, INIT_GOLD, 0, INIT_ZONE_ID
+                    , INIT_XP, INIT_XP, INIT_AP, INIT_AP, bands, items)
                 )
             except:
                 send_error(self, err_db)
@@ -115,9 +115,9 @@ class GetInfo(tornado.web.RequestHandler):
 
             # query user info
             try:
-                cols = "userId,name,warlord,gold,isInZone,lastZoneId," \
+                cols = "userId,name,warlord,money,isInZone,lastZoneId," \
                         "xp,maxXp,lastXpTime,ap,maxAp,lastApTime," \
-                        "silverCoin,bronzeCoin,lastFormation,bands,items"
+                        "lastFormation,bands,items"
 
                 sql = "SELECT {} FROM playerInfos WHERE userId=%s".format(cols)
                 rows = yield g.whdb.runQuery(

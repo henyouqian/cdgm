@@ -1,14 +1,15 @@
 ﻿from session import *
 from error import *
 import g
-from util import CsvTbl, CsvTblMulKey
+from util import CsvTbl, CsvTblMulKey, lower_bound, upper_bound
 
 import tornado.web
 import adisp
 
 import simplejson as json
 from itertools import repeat, imap
-from random import randint
+from random import randint, uniform
+import csv
 
 
 card_tbl = CsvTbl("data/cards.csv", "ID")
@@ -192,21 +193,21 @@ class Sell(tornado.web.RequestHandler):
 
             # query player info
             rows = yield g.whdb.runQuery(
-                        """SELECT gold, bands, isInZone FROM playerInfos
+                        """SELECT money, bands, isInZone FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
                     )
             row = rows[0]
-            gold = row[0]
+            money = row[0]
             bands = json.loads(row[1])
             isInZone = row[2]
             if isInZone:
                 send_error(self, "err_in_zone")
                 return
 
-            # add gold
+            # add money
             price = int(card_tbl.get(proto_id, "price"))
-            gold += price
+            money += price
 
             # delete if in band
             inband = False
@@ -220,15 +221,15 @@ class Sell(tornado.web.RequestHandler):
             # update playerInfo
             if inband:
                 yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET gold=%s, bands=%s
+                        """UPDATE playerInfos SET money=%s, bands=%s
                                 WHERE userId=%s"""
-                        ,(gold, json.dumps(bands), user_id)
+                        ,(money, json.dumps(bands), user_id)
                     )
             else:
                 yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET gold=%s
+                        """UPDATE playerInfos SET money=%s
                                 WHERE userId=%s"""
-                        ,(gold, user_id)
+                        ,(money, user_id)
                     )
 
             # delete card
@@ -240,7 +241,7 @@ class Sell(tornado.web.RequestHandler):
             # reply
             reply = {"error":no_error}
             reply["id"] = entity_id
-            reply["gold"] = gold
+            reply["money"] = money
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
@@ -294,27 +295,27 @@ class Evolution(tornado.web.RequestHandler):
 
             card1, card2 = cards
             
-            # spend gold
+            # spend money
             rarity1 = card_tbl.get(card1["protoId"], "rarity")
             rarity2 = card_tbl.get(card2["protoId"], "rarity")
             cost = int(evo_cost_tbl.get((rarity1, rarity2), "cost"))
             rows = yield g.whdb.runQuery(
-                        """SELECT gold, bands, isInZone FROM playerInfos
+                        """SELECT money, bands, isInZone FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
                     )
             row = rows[0]
-            gold = row[0]
+            money = row[0]
             bands = json.loads(row[1])
             isInZone = row[2]
             if isInZone:
                 send_error(self, "err_in_zone")
                 return
 
-            if gold < cost:
-                send_error(self, "err_not_enough_gold")
+            if money < cost:
+                send_error(self, "err_not_enough_money")
                 return
-            gold -= cost
+            money -= cost
 
             # look up evolution table
             try:
@@ -374,20 +375,20 @@ class Evolution(tornado.web.RequestHandler):
             # update playerInfo
             if inband:
                 yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET gold=%s, bands=%s
+                        """UPDATE playerInfos SET money=%s, bands=%s
                                 WHERE userId=%s"""
-                        ,(gold, json.dumps(bands), user_id)
+                        ,(money, json.dumps(bands), user_id)
                     )
             else:
                 yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET gold=%s
+                        """UPDATE playerInfos SET money=%s
                                 WHERE userId=%s"""
-                        ,(gold, user_id)
+                        ,(money, user_id)
                     )
 
             # reply
             reply = {"error":no_error}
-            reply["gold"] = gold
+            reply["money"] = money
             reply["delCardId"] = card2["id"]
             reply["evoCard"] = card1
 
@@ -424,11 +425,11 @@ class Sacrifice(tornado.web.RequestHandler):
 
             # get player info
             rows = yield g.whdb.runQuery(
-                """SELECT gold, warLord FROM playerInfos
+                """SELECT money, warLord FROM playerInfos
                         WHERE userId = %s"""
                 ,(user_id, )
             )
-            gold = rows[0][0]
+            money = rows[0][0]
             warlord = rows[0][1]
 
             # get cards info
@@ -504,16 +505,16 @@ class Sacrifice(tornado.web.RequestHandler):
                     if not exp_full:
                         total_cost += skill_level_tbl.get((rarity, level), "costMoney")
 
-            # check and spend gold
-            gold -= total_cost
-            if gold < 0:
-                send_error(self, "err_not_enough_gold")
+            # check and spend money
+            money -= total_cost
+            if money < 0:
+                send_error(self, "err_not_enough_money")
                 return
 
             yield g.whdb.runOperation(
-                """UPDATE playerInfos SET gold=%s
+                """UPDATE playerInfos SET money=%s
                         WHERE userId=%s"""
-                ,(gold, user_id)
+                ,(money, user_id)
             )
 
             # delete absorbed cards
@@ -548,6 +549,91 @@ class Sacrifice(tornado.web.RequestHandler):
         finally:
             self.finish()
             
+class PactTable(object):
+    def __init__(self, file_path):
+        with open(file_path, 'rb') as csvfile:
+            rows = csv.reader(csvfile)
+            row1 = rows.next();
+            head = dict(zip(row1, xrange(len(row1))))
+            pacts = {}
+            for row in rows:
+                pact_id = row[head["pactid"]]
+                result = row[head["result"]]
+                weight = row[head["weight"]]
+                if weight <= 0:
+                    continue
+                if pact_id in pacts:
+                    pacts[pact_id]["results"].append(row[1])
+                    weights = pacts[pact_id]["weights"]
+                    weights.append(float(row[2])+weights[-1])
+                else:
+                    pacts[pact_id] = {"results":[row[1]], "weights":[float(row[2])]}
+
+            self._pacts = pacts
+
+    def random_get(self, pact_id):
+        pact = self._pacts[pact_id]
+        weights = pact["weights"]
+        max_weight = weights[-1]
+        rd = uniform(0.0, max_weight)
+        idx = lower_bound(weights, rd)
+        if idx < 0:
+            idx = -idx - 1;
+        return pact["results"][idx]
+
+pact_tbl = PactTable("data/pacts.csv")
+sub_pact_tbl = PactTable("data/cardpacts.csv")
+pact_cost_tbl = CsvTbl("data/pactcost.csv", "id")
+
+
+def get_card_from_pact(pact_id):
+    sub_pact_id = pact_tbl.random_get(str(pact_id))
+    card_id = sub_pact_tbl.random_get(sub_pact_id)
+    # print sub_pact_id, card_id
+    return card_id
+
+# # test
+# for i in xrange(50):
+#     get_card_from_pact("1")
+
+class GetPact(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+
+            # param
+            try:
+                pact_cost_id = int(self.get_argument("packid"))
+                num = int(self.get_argument("num"))
+            except:
+                send_error(self, err_param)
+                return
+
+            # pact cost table
+            try:
+                pact_id, cost_item_id, cost_num, pact_num = pact_cost_tbl.gets(pact_cost_id, 
+                    "pactid", "itemid", "costnum", "pactnum")
+
+            except:
+                send_error(self, "err_pact_id")
+                return
+
+            card_ids = []
+            for i in xrange(pact_num):
+                card_ids.append(get_card_from_pact(pact_id))
+
+            # get player info
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
 
 handlers = [
     (r"/whapi/card/create", Create),
@@ -555,6 +641,7 @@ handlers = [
     (r"/whapi/card/sell", Sell),
     (r"/whapi/card/evolution", Evolution),
     (r"/whapi/card/sacrifice", Sacrifice),
+    (r"/whapi/card/getpact", GetPact),
 ]
 
 # test
