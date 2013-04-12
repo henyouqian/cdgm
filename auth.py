@@ -32,35 +32,22 @@ class Register(tornado.web.RequestHandler):
                     ,(username, password)
                 )
             except:
-                send_error(self, err_exist)
-                return;
-
-            if row_nums != 1:
-                send_error(self, err_db)
+                send_error(self, "err_account_exist")
                 return;
 
             #qurey db
-            try:
-                rows = yield g.authdb.runQuery(
-                    """SELECT id FROM user_account 
-                            WHERE username=%s AND password=%s"""
-                    ,(username, password)
-                )
-            except:
-                send_error(self, err_db)
-                return
+            rows = yield g.authdb.runQuery(
+                """SELECT id FROM user_account 
+                        WHERE username=%s"""
+                ,(username,)
+            )
 
-            try:
-                userid = rows[0][0]
-            except:
-                send_error(self, err_not_match)
-                return
+            userid = rows[0][0]
 
-            #login
+            #new session
             usertoken = yield new_session(userid, username, config.app_id);
             if usertoken == None:
-                send_error(self, err_redis)
-                return
+                raise Exception("error new_session")
 
             reply = {"error":no_error, "token":usertoken}
             self.write(json.dumps(reply))
@@ -90,15 +77,11 @@ class Login(tornado.web.RequestHandler):
             password = hashlib.sha1(password).hexdigest()
 
             #qurey db
-            try:
-                rows = yield g.authdb.runQuery(
-                    """SELECT id FROM user_account 
-                            WHERE username=%s AND password=%s"""
-                    ,(username, password)
-                )
-            except:
-                send_error(self, err_db)
-                return
+            rows = yield g.authdb.runQuery(
+                """SELECT id FROM user_account 
+                        WHERE username=%s AND password=%s"""
+                ,(username, password)
+            )
 
             try:
                 userid = rows[0][0]
@@ -109,23 +92,18 @@ class Login(tornado.web.RequestHandler):
             #session
             usertoken = yield new_session(userid, username, config.app_id);
             if usertoken == None:
-                send_error(self, err_redis)
-                return
+                raise Exception("error new_session")
 
             # check player exist
             player_exist = False
+            rows = yield g.whdb.runQuery(
+                """SELECT 1 FROM playerInfos WHERE userId=%s"""
+                ,(userid, )
+            )
             try:
-                rows = yield g.whdb.runQuery(
-                    """SELECT 1 FROM playerInfos WHERE userId=%s"""
-                    ,(userid, )
-                )
-                try:
-                    player_exist = bool(rows[0][0])
-                except:
-                    pass
+                player_exist = bool(rows[0][0])
             except:
-                send_error(self, err_db)
-                return;
+                player_exist = false
 
             # reply
             reply = {"error":no_error, "token":usertoken, "playerExist":player_exist}
@@ -139,21 +117,8 @@ class Login(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-class Test1(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @adisp.process
-    def get(self):
-        send_error(self, err_param)
-        self.finish()
-
-class Test2(tornado.web.RequestHandler):
-    def get(self):
-        send_error(self, err_param)
-
 
 handlers = [
     (r"/authapi/register", Register),
     (r"/authapi/login", Login),
-    (r"/authapi/test1", Test1),
-    (r"/authapi/test2", Test2),
 ]

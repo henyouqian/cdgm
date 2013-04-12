@@ -55,7 +55,7 @@ def main():
     try:
         # c = brukva.Client(**config.redis)
         # c.connect()
-        redis_conn_life = 60*2
+        redis_conn_life = 0
         for __ in xrange(2):
             c = brukva.Client(**config.redis)
             c.connect()
@@ -63,13 +63,13 @@ def main():
 
         def redis():
             ct = random.sample(redis_pool, 1)[0]
-            c, t = ct
-            if (not c.connection.connected()) or time.time() > t:
+            if (not ct[0].connection.connected()) or time.time() > ct[1]:
                 print("reconnect redis")
+                # ct[0].disconnect()
                 ct[0] = brukva.Client(**config.redis)
                 ct[0].connect()
                 ct[1] = time.time()+redis_conn_life
-            return c.async
+            return ct[0].async
         g.redis = redis
     except:
         print "redis connecting failed"
