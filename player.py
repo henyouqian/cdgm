@@ -49,7 +49,6 @@ class Create(tornado.web.RequestHandler):
             # add war lord card
             try:
                 warlord_card = yield card.create(userid, warlord_proto_id, 1)
-                print warlord_card
                 warlord_id = warlord_card["id"]
             except:
                 send_error(self, "err_create_card")
@@ -63,21 +62,21 @@ class Create(tornado.web.RequestHandler):
 
             bands = json.dumps(bands)
 
-
             # init items
-            items = INIT_ITEMS
-            items = json.dumps(items)
+            items = json.dumps(INIT_ITEMS)
 
+            # wagon
+            wagon = json.dumps(INIT_WAGON)
 
             # create player info
             try:
                 row_nums = yield g.whdb.runOperation(
                     """ INSERT INTO playerInfos
-                            (userId, name, warLord, money, isInZone, lastZoneId,
-                                xp, maxXp, ap, maxAp, bands, items)
-                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                    ,(userid, username, warlord_id, INIT_GOLD, 0, INIT_ZONE_ID
-                    , INIT_XP, INIT_XP, INIT_AP, INIT_AP, bands, items)
+                            (userId, name, warLord, money, isInZone, lastZoneId, maxCardNum,
+                                xp, maxXp, ap, maxAp, bands, items, wagonGeneral, wagonTemp, wagonSocial)
+                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                    ,(userid, username, warlord_id, INIT_GOLD, 0, INIT_ZONE_ID, INIT_MAX_CARD
+                    , INIT_XP, INIT_XP, INIT_AP, INIT_AP, bands, items, wagon, wagon, wagon)
                 )
             except:
                 send_error(self, err_db)
@@ -87,14 +86,7 @@ class Create(tornado.web.RequestHandler):
                 send_error(self, err_db)
                 return;
 
-            # response
-            # resp = {"error":no_error, "id":userid}
-            # resp["name"] = username
-            # resp["isInZone"] = False
-            # resp["lastZoneId"] = 0
-            # resp["ap"] = INIT_AP
-            # resp["maxAp"] = INIT_AP
-            # self.write(json.dumps(resp))
+            #reply
             send_ok(self)
         except:
             send_internal_error(self)
@@ -117,7 +109,7 @@ class GetInfo(tornado.web.RequestHandler):
             try:
                 cols = "userId,name,warlord,money,isInZone,lastZoneId," \
                         "xp,maxXp,lastXpTime,ap,maxAp,lastApTime," \
-                        "lastFormation,bands,items"
+                        "lastFormation,bands,items,wagonGeneral,wagonTemp,wagonSocial"
 
                 sql = "SELECT {} FROM playerInfos WHERE userId=%s".format(cols)
                 rows = yield g.whdb.runQuery(

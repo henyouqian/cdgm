@@ -2,6 +2,7 @@ cards = null
 
 $(document).ready(function(){
 	$("#btn_back").click(back)
+	$("#btn_pact").click(pact)
 	$("#btn_add").click(addCard)
 	$("#btn_sell").click(sellCard)
 	$("#btn_evo").click(evolution)
@@ -57,6 +58,19 @@ function updateCards() {
 
 function back() {
 	window.location.href="main.html";
+}
+
+function pact() {
+	pact_id = $("#ipt_pact_id").val()
+	pact_num = $("#ipt_pact_num").val()
+	$.getJSON('/whapi/card/getpact',{"packid":pact_id, "num":pact_num}, function(json){
+		var err = json.error
+		if (err){
+			alert(err)
+		}else{
+			console.log(json.cards)
+		}
+	})
 }
 
 function addCard() {

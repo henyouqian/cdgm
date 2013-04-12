@@ -1,4 +1,4 @@
-﻿from session import *
+from session import *
 from error import *
 import g
 from util import CsvTbl, CsvTblMulKey, lower_bound, upper_bound
@@ -11,6 +11,7 @@ from itertools import repeat, imap
 from random import randint, uniform
 import csv
 
+WAGON_CARD_TYPE = 0
 
 card_tbl = CsvTbl("data/cards.csv", "ID")
 grow_tbl = CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
@@ -76,8 +77,16 @@ def create(owner_id, proto_id, level, callback):
         card.update({"skill1Level":1, "skill2Level":1, "skill2Level":1})
         card.update({"skill1Exp":0, "skill2Exp":0, "skill2Exp":0})
 
+        # fixme: check cards limit and put into wagon
         conn = yield g.whdb.beginTransaction()
         try:
+            rows = yield g.whdb.runQuery(
+                """SELECT COUNT(1) from cardEntities
+                        WHERE ownerId=%s AND inPackage=%s"""
+                , (owner_id, 1), conn
+            )
+
+
             row_nums = yield g.whdb.runOperation(
                 """ INSERT INTO cardEntities
                         ({}) VALUES({})
@@ -97,6 +106,63 @@ def create(owner_id, proto_id, level, callback):
     except Exception as e:
         callback(e)
 
+
+@adisp.async
+@adisp.process
+def create_cards(owner_id, proto_ids, max_card_num, callback):
+    try:
+        level = 1
+        cards = []
+        for proto_id in proto_ids:
+            hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
+            skill_1_id, skill_2_id = card_tbl.gets(proto_id, "skillid1", "skillid2")
+            lvtbl = warlord_level_tbl if is_war_lord(proto_id) else card_level_tbl
+            exp = lvtbl.get(level, "exp")
+            card = {"protoId":proto_id, "ownerId":owner_id, "level":level, "exp":exp}
+            card.update({"hp":hp, "atk":atk, "def":_def, "wis":wis, "agi":agi})
+            card.update({"hpCrystal":0, "atkCrystal":0, "defCrystal":0, "wisCrystal":0, "agiCrystal":0})
+            card.update({"hpExtra":0, "atkExtra":0, "defExtra":0, "wisExtra":0, "agiExtra":0})
+            card.update({"skill1Id":skill_1_id, "skill2Id":skill_2_id, "skill2Id":0})
+            card.update({"skill1Level":1, "skill2Level":1, "skill2Level":1})
+            card.update({"skill1Exp":0, "skill2Exp":0, "skill2Exp":0})
+            card.update({"_newInsert":1})
+            cards.append(card)
+
+        conn = yield g.whdb.beginTransaction()
+        try:
+            rows = yield g.whdb.runQuery(
+                """SELECT COUNT(1) from cardEntities
+                        WHERE ownerId=%s AND inPackage=%s"""
+                , (owner_id, 1), conn
+            )
+            inpack_num = rows[0][0]
+            pack_remain_num = max_card_num - inpack_num
+            goto_pack_num = min(pack_remain_num, len(cards))
+            for idx, card in enumerate(cards):
+                if idx < goto_pack_num:
+                    card["inPackage"] = 1
+                else:
+                    card["inPackage"] = 0
+
+            cols = ",".join(cards[0].keys())
+            yield g.whdb.runOperationMany(
+                """ INSERT INTO cardEntities
+                        ({}) VALUES({})
+                """.format(cols, ",".join(("%s",)*len(cards[0])))
+                , tuple((card.values() for card in cards))
+                , conn
+            )
+            rows = yield g.whdb.runQuery("CALL get_new_cards(%s, %s)", (owner_id, cols), conn)
+        finally:
+            yield g.whdb.commitTransaction(conn)
+
+        reply = []
+        for row in rows:
+            reply.append(dict(zip(cards[0].keys(), row)))
+        callback(reply)
+    except Exception as e:
+        traceback.print_exc()
+        callback(e)
 
 # ====================================================
 class Create(tornado.web.RequestHandler):
@@ -606,6 +672,7 @@ class GetPact(tornado.web.RequestHandler):
             if not session:
                 send_error(self, err_auth)
                 return
+            user_id = session["userid"]
 
             # param
             try:
@@ -619,16 +686,66 @@ class GetPact(tornado.web.RequestHandler):
             try:
                 pact_id, cost_item_id, cost_num, pact_num = pact_cost_tbl.gets(pact_cost_id, 
                     "pactid", "itemid", "costnum", "pactnum")
+                cost_num = int(cost_num)
+                pact_num = int(pact_num)
 
             except:
                 send_error(self, "err_pact_id")
                 return
 
+            # get player info
+            rows = yield g.whdb.runQuery(
+                        """SELECT items, whCoin, maxCardNum, wagonTemp FROM playerInfos
+                                WHERE userId=%s"""
+                        ,(user_id, )
+                    )
+            row = rows[0]
+            items = json.loads(row[0])
+            wh_coin = row[1]
+            max_card_num = row[2]
+            wagon_temp = json.loads(row[3])
+
+            # check and calc payment
+            if pact_num == 1:
+                cost_num *= num
+                pact_num *= num
+
             card_ids = []
             for i in xrange(pact_num):
                 card_ids.append(get_card_from_pact(pact_id))
 
-            # get player info
+            # wh_coin
+            if cost_item_id == 0:
+                if wh_coin < cost_num:
+                    send_error(self, "err_not_enough_whcoin")
+                    return
+                wh_coin -= cost_num
+            # cost items, like bronze or silver coin
+            else:
+                if (cost_item_id not in items) or (items[cost_item_id] < cost_num):
+                    send_error(self, "err_not_enough_item")
+                    return
+                items[cost_item_id] -= cost_num
+
+            # create cards
+            cards = yield create_cards(user_id, card_ids, max_card_num)
+
+            # wagon
+            for card in cards:
+                if not card["inPackage"]:
+                    wagon_temp.append([WAGON_CARD_TYPE, card["id"]])
+
+            # real pay and set wagon
+            yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET whCoin=%s, items=%s, wagonTemp=%s
+                            WHERE userId=%s"""
+                    ,(wh_coin, json.dumps(items), json.dumps(wagon_temp), user_id )
+                )
+
+            # reply
+            reply = {"error": no_error}
+            reply["cards"] = cards
+            print reply
 
         except:
             send_internal_error(self)

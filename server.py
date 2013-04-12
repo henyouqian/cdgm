@@ -14,6 +14,7 @@ from adb import Database
 import logging
 import os
 import random
+import time
 
 redis_pool = []
 
@@ -52,18 +53,22 @@ def main():
 
     # redis
     try:
-        c = brukva.Client(**config.redis)
-        c.connect()
-        for __ in xrange(10):
+        # c = brukva.Client(**config.redis)
+        # c.connect()
+        redis_conn_life = 60*2
+        for __ in xrange(2):
             c = brukva.Client(**config.redis)
-            # c.connect()
-            redis_pool.append(c)
+            c.connect()
+            redis_pool.append([c, time.time()+redis_conn_life])
 
         def redis():
-            c = random.sample(redis_pool, 1)[0]
-            if not c.connection.connected():
+            ct = random.sample(redis_pool, 1)[0]
+            c, t = ct
+            if (not c.connection.connected()) or time.time() > t:
                 print("reconnect redis")
-                c.connection.connect()
+                ct[0] = brukva.Client(**config.redis)
+                ct[0].connect()
+                ct[1] = time.time()+redis_conn_life
             return c.async
         g.redis = redis
     except:
@@ -75,8 +80,8 @@ def main():
     g.whdb = Database(**config.wh_db)
 
     # keep alive thread
-    thr = KeepAliveThread()
-    thr.start()
+    # thr = KeepAliveThread()
+    # thr.start()
     
     # application
     application = web.Application(
@@ -102,7 +107,7 @@ def main():
         print e
     finally:
         print "Server shutting down..."
-        thr.stop();
+        # thr.stop();
         g.authdb.stop()
         g.whdb.stop()
 
