@@ -31,7 +31,7 @@ function updateZoneInfo() {
 }
 
 function getZoneInfo() {
-	if (playerInfo.isInZone) {
+	if (playerInfo.inZoneId) {
 		$.getJSON('/whapi/zone/get', function(json){
 			var err = json.error
 			if (err){
@@ -128,7 +128,7 @@ function move() {
 			updateZoneInfo()
 
 			//send battle result
-			if (true || battle) {
+			if (true || battle) { //fixme: test
 				var members = copyObj(zoneInfo.band.members)
 				members = members.slice(0, members.length/2)
 				for (idx in members) {

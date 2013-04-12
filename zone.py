@@ -1,6 +1,6 @@
 from error import *
 from session import *
-from gamedata import BAND_NUM
+from gamedata import BAND_NUM, XP_ADD_DURATION, AP_ADD_DURATION
 import g
 from util import CsvTbl
 from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
@@ -200,6 +200,7 @@ class Enter(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
             userid = session["userid"]
+
             # param
             try:
                 zoneid = self.get_argument("zoneid")
@@ -209,47 +210,42 @@ class Enter(tornado.web.RequestHandler):
             except:
                 send_error(self, err_param)
                 return
-            # gen
+
+            # get player info
+            rows = yield g.whdb.runQuery(
+                """ SELECT bands, inZoneId FROM playerInfos
+                        WHERE userId=%s"""
+                ,(userid, )
+            )
+            row = rows[0]
+            bands = row[0]
+            bands = json.loads(bands)
+            zone_id = row[1]
+            if zone_id != 0:
+                raise Exception("Allready in zone")
+
+            # gen cache
             try:
                 cache = gen_cache(zoneid)
             except:
-                send_error(self, "err_gen_cache")
-                return
+                raise Exception("Generate zone cache error")
 
             # band
-            try:
-                rows = yield g.whdb.runQuery(
-                    """ SELECT bands FROM playerInfos
-                            WHERE userId=%s"""
-                    ,(userid, )
-                )
-                row = rows[0]
-                bands = row[0]
-                bands = json.loads(bands)
-            except:
-                send_error(self, err_db)
-                return
-
             band = bands[int(bandidx)]
             members = [mem for mem in band["members"] if mem]
 
-            try:
-                sql = """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
-                            WHERE id IN {} AND ownerId=%s"""
-                if len(members) == 1:
-                    sql = sql.format("(%s)"% members[0])
-                else:
-                    sql = sql.format(str(tuple(members)))
-                rows = yield g.whdb.runQuery(
-                    sql, (userid, )
-                )
-            except:
-                send_error(self, err_db)
-                return
+            sql = """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
+                        WHERE id IN {} AND ownerId=%s"""
+            if len(members) == 1:
+                sql = sql.format("(%s)"% members[0])
+            else:
+                sql = sql.format(str(tuple(members)))
+            rows = yield g.whdb.runQuery(
+                sql, (userid, )
+            )
 
             if len(rows) != len(members):
-                send_error(self, "err_member")
-                return
+                raise Exception("Band member error")
             
             hps = [sum(row) for row in rows]
             mem_hp = dict(zip(members, hps))
@@ -263,25 +259,13 @@ class Enter(tornado.web.RequestHandler):
             band["members"] = new_members
             cache["band"] = band
 
-            # # redis store
-            # key = str(session["userid"])+"/zonecache"
-            # yield g.redis().delete(key)
-            # rv = yield g.redis().hmset(key, cache)
-            # if not rv:
-            #     send_error(self, err_redis)
-            #     return
-
             # db store
             cachejs = json.dumps(cache)
-            try:
-                row_nums = yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s, isInZone=1
-                            WHERE userid=%s"""
-                    ,(cachejs, session["userid"])
-                )
-            except:
-                send_error(self, err_db)
-                return
+            row_nums = yield g.whdb.runOperation(
+                """UPDATE playerInfos SET zoneCache=%s, inZoneId=%s
+                        WHERE userid=%s"""
+                ,(cachejs, zoneid, session["userid"])
+            )
 
             # response
             clientCache = trans_cache_to_client(cache)
@@ -305,17 +289,13 @@ class Withdraw(tornado.web.RequestHandler):
                 return
 
             # db store
-            try:
-                row_nums = yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=NULL, isInZone=0
-                            WHERE userid=%s"""
-                    ,(session["userid"],)
-                )
-            except:
-                send_error(self, err_db)
-                return
+            row_nums = yield g.whdb.runOperation(
+                """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0
+                        WHERE userid=%s"""
+                ,(session["userid"],)
+            )
 
-            # response
+            # reply
             send_ok(self)
 
         except:
@@ -335,26 +315,20 @@ class Get(tornado.web.RequestHandler):
                 return
 
             # db get
-            try:
-                rows = yield g.whdb.runQuery(
-                    """SELECT zoneCache FROM playerInfos 
-                            WHERE userid=%s"""
-                    ,(session["userid"],)
-                )
-                cache = rows[0][0]
-            except:
-                send_error(self, err_db)
-                return
+            rows = yield g.whdb.runQuery(
+                """SELECT zoneCache FROM playerInfos 
+                        WHERE userid=%s"""
+                ,(session["userid"],)
+            )
+            cache = rows[0][0]
 
             if not cache:
-                send_error(self, err_not_exist)
-                return
+                raise Exception("Not in zone")
             
             cache = json.loads(cache)
-            clientCache = trans_cache_to_client(cache)
-            clientCache["error"] = no_error
-            rspJs = json.dumps(clientCache)
-            self.write(rspJs)
+            client_cache = trans_cache_to_client(cache)
+            client_cache["error"] = no_error
+            self.write(json.dumps(client_cache))
 
         except:
             send_internal_error(self)
@@ -373,90 +347,72 @@ class Move(tornado.web.RequestHandler):
                 return
 
             # post input
-            path = []
-            try:
-                path = json.loads(self.request.body)
-                last_xy = None
-                for xy in path:
-                    if last_xy and (abs(last_xy[0]-xy[0]) + abs(last_xy[1]-xy[1]) != 3):
-                        raise Exception("dist not 3")
-                    last_xy = xy
-                
-                if len(path) < 2:
-                    raise Exception("path too short")
-
-            except:
-                send_error(self, err_post)
-                return
+            path = json.loads(self.request.body)
+            last_xy = None
+            for xy in path:
+                if last_xy and (abs(last_xy[0]-xy[0]) + abs(last_xy[1]-xy[1]) != 3):
+                    raise Exception("dist not 3")
+                last_xy = xy
+            
+            if len(path) < 2:
+                raise Exception("path too short")
 
             # db get cache
-            try:
-                rows = yield g.whdb.runQuery(
-                    """SELECT zoneCache, xp, maxXp, lastXpTime, UTC_TIMESTAMP(), items, money FROM playerInfos 
-                            WHERE userid=%s"""
-                    ,(session["userid"],)
-                )
-                row = rows[0]
-                cache = row[0]
-                xp = row[1]
-                max_xp = row[2]
-                last_xp_time = row[3]
-                curr_time = row[4]
-                items = row[5]
-                money = row[6]
+            rows = yield g.whdb.runQuery(
+                """SELECT zoneCache, xp, maxXp, lastXpTime, UTC_TIMESTAMP(), items, money FROM playerInfos 
+                        WHERE userid=%s"""
+                ,(session["userid"],)
+            )
+            row = rows[0]
+            cache = row[0]
+            xp = row[1]
+            max_xp = row[2]
+            last_xp_time = row[3]
+            curr_time = row[4]
+            items = row[5]
+            money = row[6]
 
-                if not last_xp_time:
-                    last_xp_time = datetime(2013, 1, 1)
+            if not last_xp_time:
+                last_xp_time = datetime(2013, 1, 1)
 
-                if not items:
-                    items = {}
-                else:
-                    items = json.loads(items)
+            if not items:
+                items = {}
+            else:
+                items = json.loads(items)
 
-                if not cache:
-                    send_error(self, "err_no_cache")
-                    return
-                else:
-                    cache = json.loads(cache)
-
-            except:
-                send_error(self, err_db)
-                return
-
+            if not cache:
+                raise Exception("Not in zone")
+            else:
+                cache = json.loads(cache)
             
 
             # check path
-            try:
-                #check start pos
-                currpos = cache["currPos"]
-                currpos = [currpos["x"], currpos["y"]]
-                if currpos != path[0]:
-                    raise Exception("begin coord not match")
+            #check start pos
+            currpos = cache["currPos"]
+            currpos = [currpos["x"], currpos["y"]]
+            if currpos != path[0]:
+                raise Exception("begin coord not match")
 
-                #update xp
-                dt = curr_time - last_xp_time
-                dt = int(dt.total_seconds())
-                xp_add_duration = 10
-                dxp = dt // xp_add_duration
-                if dxp:
-                    xp = min(max_xp, xp + dxp)
-                if xp == max_xp:
-                    last_xp_time = curr_time
-                else:
-                    last_xp_time = curr_time - timedelta(seconds = dt % xp_add_duration)
+            #update xp
+            dt = curr_time - last_xp_time
+            dt = int(dt.total_seconds())
+            dxp = dt // XP_ADD_DURATION
+            if dxp:
+                xp = min(max_xp, xp + dxp)
+            if xp == max_xp:
+                last_xp_time = curr_time
+            else:
+                last_xp_time = curr_time - timedelta(seconds = dt % XP_ADD_DURATION)
 
-                if xp == 0:
-                    send_error(self, "no_xp")
-                    return
-
-                path = path[1:]
-                if len(path) > xp:
-                    path = path[:xp]
-
-                xp -= len(path)
-            except:
-                send_error(self, err_post)
+            if xp == 0:
+                send_error(self, "no_xp")
                 return
+
+            path = path[1:]
+            if len(path) > xp:
+                path = path[:xp]
+
+            xp -= len(path)
 
             # check and triger event
             currpos = path[-1]
@@ -534,25 +490,21 @@ class Move(tornado.web.RequestHandler):
             # update
             cache["currPos"] = currpos
             cachejs = json.dumps(cache)
-            try:
-                if item_updated:
-                    itemsjs = json.dumps(items)
-                    yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
-                            money=%s, items=%s
-                                WHERE userid=%s"""
-                        ,(cachejs, xp, last_xp_time, money, itemsjs, session["userid"])
-                    )
-                else:
-                    yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
-                            money=%s
-                                WHERE userid=%s"""
-                        ,(cachejs, xp, last_xp_time, money, session["userid"])
-                    )
-            except:
-                send_error(self, err_db)
-                return
+            if item_updated:
+                itemsjs = json.dumps(items)
+                yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
+                        money=%s, items=%s
+                            WHERE userid=%s"""
+                    ,(cachejs, xp, last_xp_time, money, itemsjs, session["userid"])
+                )
+            else:
+                yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
+                        money=%s
+                            WHERE userid=%s"""
+                    ,(cachejs, xp, last_xp_time, money, session["userid"])
+                )
 
             # reply
             reply = {"error":no_error}
@@ -587,19 +539,15 @@ class BattleResult(tornado.web.RequestHandler):
             userid = session["userid"]
 
             # get player info
-            try:
-                rows = yield g.whdb.runQuery(
-                    """ SELECT warlord, zoneCache FROM playerInfos
-                            WHERE userId=%s"""
-                    ,(userid, )
-                )
-                row = rows[0]
-                warlord = row[0]
-                cache = row[1]
-                cache = json.loads(cache)
-            except:
-                send_error(self, err_db)
-                return
+            rows = yield g.whdb.runQuery(
+                """ SELECT warlord, zoneCache FROM playerInfos
+                        WHERE userId=%s"""
+                ,(userid, )
+            )
+            row = rows[0]
+            warlord = row[0]
+            cache = row[1]
+            cache = json.loads(cache)
 
             band = cache["band"]
             members = band["members"]
@@ -609,147 +557,128 @@ class BattleResult(tornado.web.RequestHandler):
 
             win = input["isWin"]
             if not win:
-                try:
-                    yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET isInZone=0, zoneCache=NULL
-                                WHERE userid=%s"""
-                        ,(userid,)
+                yield g.whdb.runOperation(
+                    """UPDATE playerInfos SET inZoneId=0, zoneCache=NULL
+                            WHERE userid=%s"""
+                    ,(userid,)
                 )
-                except:
-                    send_error(self, err_db)
-                    return
                 reply = {"error":no_error}
                 self.write(reply)
                 return
 
             # win
             # check members valid and store new member status
-            try:
-                inmembers = input["members"]
-                if len(inmembers)*2 != len(members):
-                    raise Exception("Error member num")
+            inmembers = input["members"]
+            if len(inmembers)*2 != len(members):
+                raise Exception("Error member num")
 
-                mems_per_row = len(inmembers)
-                for idx, inmem in enumerate(inmembers):
-                    if inmem:
-                        if inmem["id"] == members[idx][0]:
-                            members[idx][1] = inmem["hp"]
-                        elif inmem["id"] == members[idx+mems_per_row][0]:
-                            members[idx+mems_per_row][1] = inmem["hp"]
-                            members[idx], members[idx+mems_per_row] = members[idx+mems_per_row], members[idx]
-                        else:
-                            raise Exception("Error member pos")
-                        if inmem["hp"] > members[idx][1] or inmem["hp"] < 0:
-                            raise Exception("Error member hp")
-                        if inmem["id"] == warlord and inmem["hp"] == 0:
-                            raise Exception("Dead warlord")
-
-            except:
-                send_error(self, "err_member")
-                return
+            mems_per_row = len(inmembers)
+            for idx, inmem in enumerate(inmembers):
+                if inmem:
+                    if inmem["id"] == members[idx][0]:
+                        members[idx][1] = inmem["hp"]
+                    elif inmem["id"] == members[idx+mems_per_row][0]:
+                        members[idx+mems_per_row][1] = inmem["hp"]
+                        members[idx], members[idx+mems_per_row] = members[idx+mems_per_row], members[idx]
+                    else:
+                        raise Exception("Error member pos")
+                    if inmem["hp"] > members[idx][1] or inmem["hp"] < 0:
+                        raise Exception("Error member hp")
+                    if inmem["id"] == warlord and inmem["hp"] == 0:
+                        raise Exception("Dead warlord")
 
             # add exp
-            try:
-                # calc exp
-                mon_grp_id = cache["monGrpId"]
-                if mon_grp_id < 0:
-                    send_error(self, "Not in battle")
-                    return
+            # calc exp
+            mon_grp_id = cache["monGrpId"]
+            if mon_grp_id < 0:
+                raise Exception("Not in battle")
 
-                row = mongrp_tbl.get_row(str(mon_grp_id))
-                cols = ["order%sID"%(i+1) for i in xrange(10)]
-                monsters = []
-                for col in cols:
-                    mon = int(mongrp_tbl.get_value(row, col))
-                    if mon:
-                        monsters.append(mon)
-                
-                exp = 0
-                for mon in monsters:
-                    exp += int(card_tbl.get(mon, "battleExp"))
+            row = mongrp_tbl.get_row(str(mon_grp_id))
+            cols = ["order%sID"%(i+1) for i in xrange(10)]
+            monsters = []
+            for col in cols:
+                mon = int(mongrp_tbl.get_value(row, col))
+                if mon:
+                    monsters.append(mon)
+            
+            exp = 0
+            for mon in monsters:
+                exp += int(card_tbl.get(mon, "battleExp"))
 
+            # get band card entity
+            sql = """SELECT id, level, exp, protoId, hp, atk, def, wis, agi, hpCrystal, hpExtra FROM cardEntities
+                        WHERE ownerId=%s AND id in {}"""
+            inmembers_alive = [m["id"] for m in inmembers if m and m["hp"] != 0]
+            live_num = len(inmembers_alive)
+            if live_num == 1:
+                sql = sql.format("(%s)"% inmembers_alive[0])
+            elif live_num == 0:
+                raise Exception("All dead")
+            else:
+                sql = sql.format(str(tuple(inmembers_alive)))
+            rows = yield g.whdb.runQuery(
+                sql
+                ,(userid, )
+            )
+            cards = [{"id":row[0], "level":row[1], "exp":row[2], "proto":row[3]
+                ,"attrs":[row[4], row[5], row[6], row[7], row[8]]
+                ,"hpCrystal":row[9], "hpExtra":row[10]} for row in rows]
+
+            exp_per_card = int(exp / live_num)
+            levelups = []
+            for card in cards:
+                lvtbl = warlord_level_tbl if card["id"] == warlord else card_level_tbl
+                level = card["level"]
+                max_level = int(card_tbl.get(card["proto"], "maxlevel"))
                 try:
-                    # get band card entity
-                    sql = """SELECT id, level, exp, protoId, hp, atk, def, wis, agi, hpCrystal, hpExtra FROM cardEntities
-                                WHERE ownerId=%s AND id in {}"""
-                    inmembers_alive = [m["id"] for m in inmembers if m and m["hp"] != 0]
-                    live_num = len(inmembers_alive)
-                    if live_num == 1:
-                        sql = sql.format("(%s)"% inmembers_alive[0])
-                    elif live_num == 0:
-                        raise Exception("All dead")
-                    else:
-                        sql = sql.format(str(tuple(inmembers_alive)))
-                    rows = yield g.whdb.runQuery(
-                        sql
-                        ,(userid, )
-                    )
-                    cards = [{"id":row[0], "level":row[1], "exp":row[2], "proto":row[3]
-                        ,"attrs":[row[4], row[5], row[6], row[7], row[8]]
-                        ,"hpCrystal":row[9], "hpExtra":row[10]} for row in rows]
-                    
-                except:
-                    send_error(self, err_db)
-                    return
+                    next_lv_exp = int(lvtbl.get(level+1, "exp"))
+                    card["exp"] += exp_per_card
+                    while card["exp"] >= next_lv_exp:
+                        level += 1
+                        next_lv_exp = int(lvtbl.get(level, "exp"))
 
-                exp_per_card = int(exp / live_num)
-                levelups = []
-                for card in cards:
-                    lvtbl = warlord_level_tbl if card["id"] == warlord else card_level_tbl
-                    level = card["level"]
-                    max_level = int(card_tbl.get(card["proto"], "maxlevel"))
-                    try:
-                        next_lv_exp = int(lvtbl.get(level+1, "exp"))
-                        card["exp"] += exp_per_card
-                        while card["exp"] >= next_lv_exp:
-                            level += 1
-                            next_lv_exp = int(lvtbl.get(level, "exp"))
-
-                        #max level check
-                        if level >= max_level:
-                            level = max_level
-                            card["exp"] = int(lvtbl.get(level, "exp"))
-
-                        #level up
-                        logging.debug((level, card["level"]))
-                        if level != card["level"]:
-                            card["level"] = level
-                            card["attrs"] = calc_card_proto_attr(card["proto"], level)
-                            new_hp = 0
-                            for member in members:
-                                if member and member[0] == card["id"]:
-                                    new_hp = card["attrs"][0]+card["hpCrystal"]+card["hpExtra"]
-                                    member[1] = new_hp
-                                    break
-                            levelup = {}
-                            levelup["id"] = card["id"]
-                            levelup["level"] = level
-                            # levelup.update(dict(zip(["hp", "atk", "def", "wis", "agi"], card["attrs"])))
-                            levelups.append(levelup)
-
-                    except:
+                    #max level check
+                    if level >= max_level:
+                        level = max_level
                         card["exp"] = int(lvtbl.get(level, "exp"))
 
-                # update db
-                # update cardEntities
-                arg_list = [(c["level"], c["exp"], c["attrs"][0], c["attrs"][1]
-                    ,c["attrs"][2], c["attrs"][3], c["attrs"][4], c["id"]) for c in cards]
-                row_nums = yield g.whdb.runOperationMany(
-                    """UPDATE cardEntities SET level=%s, exp=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s
-                            WHERE id=%s"""
-                    ,arg_list
-                )
+                    #level up
+                    logging.debug((level, card["level"]))
+                    if level != card["level"]:
+                        card["level"] = level
+                        card["attrs"] = calc_card_proto_attr(card["proto"], level)
+                        new_hp = 0
+                        for member in members:
+                            if member and member[0] == card["id"]:
+                                new_hp = card["attrs"][0]+card["hpCrystal"]+card["hpExtra"]
+                                member[1] = new_hp
+                                break
+                        levelup = {}
+                        levelup["id"] = card["id"]
+                        levelup["level"] = level
+                        # levelup.update(dict(zip(["hp", "atk", "def", "wis", "agi"], card["attrs"])))
+                        levelups.append(levelup)
 
-                # update band infos in zoneCache
-                yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s
-                            WHERE userId=%s"""
-                    ,(json.dumps(cache), userid)
-                )
+                except:
+                    card["exp"] = int(lvtbl.get(level, "exp"))
 
-            except:
-                send_error(self, "err_add_exp")
-                return
+            # update db
+            # update cardEntities
+            arg_list = [(c["level"], c["exp"], c["attrs"][0], c["attrs"][1]
+                ,c["attrs"][2], c["attrs"][3], c["attrs"][4], c["id"]) for c in cards]
+            row_nums = yield g.whdb.runOperationMany(
+                """UPDATE cardEntities SET level=%s, exp=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s
+                        WHERE id=%s"""
+                ,arg_list
+            )
+
+            # update band infos in zoneCache
+            yield g.whdb.runOperation(
+                """UPDATE playerInfos SET zoneCache=%s
+                        WHERE userId=%s"""
+                ,(json.dumps(cache), userid)
+            )
+
 
             # reply
             reply = {"error":no_error}
@@ -781,38 +710,29 @@ class Complete(tornado.web.RequestHandler):
             userid = session["userid"]
             
             # get player info
-            try:
-                rows = yield g.whdb.runQuery(
-                    """ SELECT zoneCache FROM playerInfos
-                            WHERE userId=%s"""
-                    ,(userid, )
-                )
-                row = rows[0]
-                warlord = row[0]
-                cache = row[1]
-                cache = json.loads(cache)
-            except:
-                send_error(self, err_db)
-                return
+            rows = yield g.whdb.runQuery(
+                """ SELECT zoneCache FROM playerInfos
+                        WHERE userId=%s"""
+                ,(userid, )
+            )
+            row = rows[0]
+            warlord = row[0]
+            cache = row[1]
+            cache = json.loads(cache)
 
             # open cases
 
             # unlock new zone
 
             # db store
-            try:
-                row_nums = yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=NULL, isInZone=0
-                            WHERE userid=%s"""
-                    ,(session["userid"],)
-                )
-            except:
-                send_error(self, err_db)
-                return
+            row_nums = yield g.whdb.runOperation(
+                """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0
+                        WHERE userid=%s"""
+                ,(session["userid"],)
+            )
 
             # response
             send_ok(self)
-
         except:
             send_internal_error(self)
         finally:

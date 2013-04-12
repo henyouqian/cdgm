@@ -8,6 +8,7 @@ redis = {
     #"host": "192.168.0.112",
     "port": 6379,
 }
+redis_conn_life = 60 * 2
 
 # auth_db = {
 #     "driver": "psycopg2",
