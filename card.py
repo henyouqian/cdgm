@@ -2,6 +2,7 @@ from session import *
 from error import *
 import g
 from util import CsvTbl, CsvTblMulKey, lower_bound, upper_bound
+from wagon import Wagon
 
 import tornado.web
 import adisp
@@ -10,8 +11,6 @@ import simplejson as json
 from itertools import repeat, imap
 from random import randint, uniform
 import csv
-
-WAGON_CARD_TYPE = 0
 
 card_tbl = CsvTbl("data/cards.csv", "ID")
 grow_tbl = CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
@@ -61,50 +60,50 @@ def is_war_lord(proto_id):
     return 119 <= proto_id <= 226
 
 
-@adisp.async
-@adisp.process
-def create(owner_id, proto_id, level, callback):
-    try:
-        hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
-        skill_1_id, skill_2_id = card_tbl.gets(proto_id, "skillid1", "skillid2")
-        lvtbl = warlord_level_tbl if is_war_lord(proto_id) else card_level_tbl
-        exp = lvtbl.get(level, "exp")
-        card = {"protoId":proto_id, "ownerId":owner_id, "level":level, "exp":exp}
-        card.update({"hp":hp, "atk":atk, "def":_def, "wis":wis, "agi":agi})
-        card.update({"hpCrystal":0, "atkCrystal":0, "defCrystal":0, "wisCrystal":0, "agiCrystal":0})
-        card.update({"hpExtra":0, "atkExtra":0, "defExtra":0, "wisExtra":0, "agiExtra":0})
-        card.update({"skill1Id":skill_1_id, "skill2Id":skill_2_id, "skill2Id":0})
-        card.update({"skill1Level":1, "skill2Level":1, "skill2Level":1})
-        card.update({"skill1Exp":0, "skill2Exp":0, "skill2Exp":0})
+# @adisp.async
+# @adisp.process
+# def create(owner_id, proto_id, level, callback):
+#     try:
+#         hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
+#         skill_1_id, skill_2_id = card_tbl.gets(proto_id, "skillid1", "skillid2")
+#         lvtbl = warlord_level_tbl if is_war_lord(proto_id) else card_level_tbl
+#         exp = lvtbl.get(level, "exp")
+#         card = {"protoId":proto_id, "ownerId":owner_id, "level":level, "exp":exp}
+#         card.update({"hp":hp, "atk":atk, "def":_def, "wis":wis, "agi":agi})
+#         card.update({"hpCrystal":0, "atkCrystal":0, "defCrystal":0, "wisCrystal":0, "agiCrystal":0})
+#         card.update({"hpExtra":0, "atkExtra":0, "defExtra":0, "wisExtra":0, "agiExtra":0})
+#         card.update({"skill1Id":skill_1_id, "skill2Id":skill_2_id, "skill2Id":0})
+#         card.update({"skill1Level":1, "skill2Level":1, "skill2Level":1})
+#         card.update({"skill1Exp":0, "skill2Exp":0, "skill2Exp":0})
 
-        # fixme: check cards limit and put into wagon
-        conn = yield g.whdb.beginTransaction()
-        try:
-            rows = yield g.whdb.runQuery(
-                """SELECT COUNT(1) from cardEntities
-                        WHERE ownerId=%s AND inPackage=%s"""
-                , (owner_id, 1), conn
-            )
+#         # fixme: check cards limit and put into wagon
+#         conn = yield g.whdb.beginTransaction()
+#         try:
+#             rows = yield g.whdb.runQuery(
+#                 """SELECT COUNT(1) from cardEntities
+#                         WHERE ownerId=%s AND inPackage=%s"""
+#                 , (owner_id, 1), conn
+#             )
 
 
-            row_nums = yield g.whdb.runOperation(
-                """ INSERT INTO cardEntities
-                        ({}) VALUES({})
-                """.format(",".join(card.keys()), ",".join(("%s",)*len(card)))
-                , card.values()
-                , conn
-            )
-            rows = yield g.whdb.runQuery("SELECT LAST_INSERT_ID()", None, conn)
-        finally:
-            yield g.whdb.commitTransaction(conn)
+#             row_nums = yield g.whdb.runOperation(
+#                 """ INSERT INTO cardEntities
+#                         ({}) VALUES({})
+#                 """.format(",".join(card.keys()), ",".join(("%s",)*len(card)))
+#                 , card.values()
+#                 , conn
+#             )
+#             rows = yield g.whdb.runQuery("SELECT LAST_INSERT_ID()", None, conn)
+#         finally:
+#             yield g.whdb.commitTransaction(conn)
 
-        if row_nums != 1:
-            raise Exception("db insert error")
-        card["id"] = rows[0][0]
+#         if row_nums != 1:
+#             raise Exception("db insert error")
+#         card["id"] = rows[0][0]
 
-        callback(card)
-    except Exception as e:
-        callback(e)
+#         callback(card)
+#     except Exception as e:
+#         callback(e)
 
 
 @adisp.async
@@ -164,8 +163,55 @@ def create_cards(owner_id, proto_ids, max_card_num, callback):
         traceback.print_exc()
         callback(e)
 
+class PactTable(object):
+    def __init__(self, file_path):
+        with open(file_path, 'rb') as csvfile:
+            rows = csv.reader(csvfile)
+            row1 = rows.next();
+            head = dict(zip(row1, xrange(len(row1))))
+            pacts = {}
+            for row in rows:
+                pact_id = row[head["pactid"]]
+                result = row[head["result"]]
+                weight = row[head["weight"]]
+                if weight <= 0:
+                    continue
+                if pact_id in pacts:
+                    pacts[pact_id]["results"].append(row[1])
+                    weights = pacts[pact_id]["weights"]
+                    weights.append(float(row[2])+weights[-1])
+                else:
+                    pacts[pact_id] = {"results":[row[1]], "weights":[float(row[2])]}
+
+            self._pacts = pacts
+
+    def random_get(self, pact_id):
+        pact = self._pacts[pact_id]
+        weights = pact["weights"]
+        max_weight = weights[-1]
+        rd = uniform(0.0, max_weight)
+        idx = lower_bound(weights, rd)
+        if idx < 0:
+            idx = -idx - 1;
+        return pact["results"][idx]
+
+pact_tbl = PactTable("data/pacts.csv")
+sub_pact_tbl = PactTable("data/cardpacts.csv")
+pact_cost_tbl = CsvTbl("data/pactcost.csv", "id")
+
+
+def get_card_from_pact(pact_id):
+    sub_pact_id = pact_tbl.random_get(str(pact_id))
+    card_id = sub_pact_tbl.random_get(sub_pact_id)
+    # print sub_pact_id, card_id
+    return card_id
+
+# # test
+# for i in xrange(50):
+#     get_card_from_pact("1")
+
 # ====================================================
-class Create(tornado.web.RequestHandler):
+class GetPact(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -179,52 +225,84 @@ class Create(tornado.web.RequestHandler):
 
             # param
             try:
-                proto = int(self.get_argument("proto"))
-                level = int(self.get_argument("level"))
+                pact_cost_id = int(self.get_argument("packid"))
+                num = int(self.get_argument("num"))
             except:
                 send_error(self, err_param)
                 return
 
+            # pact cost table
             try:
-                card = yield create(user_id, proto, level)
+                pact_id, cost_item_id, cost_num, pact_num = pact_cost_tbl.gets(pact_cost_id, 
+                    "pactid", "itemid", "costnum", "pactnum")
+                cost_num = int(cost_num)
+                pact_num = int(pact_num)
+
             except:
-                send_error(self, "err_card_type_or_level")
-                return
+                raise Exception("get pact cost error: pack_id=%s" % pact_cost_id)
+
+            # get player info
+            rows = yield g.whdb.runQuery(
+                        """SELECT items, whCoin, maxCardNum, wagonTemp FROM playerInfos
+                                WHERE userId=%s"""
+                        ,(user_id, )
+                    )
+            row = rows[0]
+            items = json.loads(row[0])
+            wh_coin = row[1]
+            max_card_num = row[2]
+            wagon_temp = Wagon(json.loads(row[3]))
+
+            # check and calc payment
+            # only item (include bronze coin and silver coin, not wh coin) can mulitply numbers
+            if cost_item_id != 0:
+                cost_num *= num
+                pact_num *= num
+
+            card_ids = []
+            for i in xrange(pact_num):
+                card_ids.append(get_card_from_pact(pact_id))
+
+            # wh_coin
+            if cost_item_id == 0:
+                if wh_coin < cost_num:
+                    raise Exception("not enough whcoin:wh_conin=%s < cost_num%s" % (wh_coin, cost_num))
+                wh_coin -= cost_num
+            # cost items, like bronze or silver coin
+            else:
+                if (cost_item_id not in items) or (items[cost_item_id] < cost_num):
+                    raise Exception("not enough item: cost_item_id=%s, cost_num=%s" % (cost_item_id, cost_num))
+                items[cost_item_id] -= cost_num
+
+            # create cards
+            cards = yield create_cards(user_id, card_ids, max_card_num)
+
+            # wagon
+            for card in cards:
+                if not card["inPackage"]:
+                    wagon_temp.addCard(card["id"])
+
+            # real pay and set wagon
+            yield g.whdb.runOperation(
+                """UPDATE playerInfos SET whCoin=%s, items=%s, wagonTemp=%s
+                        WHERE userId=%s"""
+                ,(wh_coin, json.dumps(items), json.dumps(wagon_temp.data), user_id )
+            )
 
             # reply
-            reply = {"error":no_error}
-            reply["card"] = card
-            self.write(json.dumps(reply))
+            reply = {"error": no_error}
+            reply["cards"] = cards
 
         except:
             send_internal_error(self)
         finally:
             self.finish()
 
-class Random(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @adisp.process
-    def get(self):
-        try:
-            # session
-            session = yield find_session(self)
-            if not session:
-                send_error(self, err_auth)
-                return
-
-            proto = randint(0, 63)
-
-            entity_id = yield create(session["userid"], proto, 1)
-            self.write('{"error"="%s", "protoId"=%s, "entityId"=%s}' % (no_error, proto, entity_id))
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
 
 class Sell(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
-    def get(self):
+    def post(self):
         try:
             # session
             session = yield find_session(self)
@@ -233,53 +311,53 @@ class Sell(tornado.web.RequestHandler):
                 return
             user_id = session["userid"]
 
-            # param
-            try:
-                entity_id = int(self.get_argument("id"))
-            except:
-                send_error(self, err_param)
-                return
+            # post input
+            card_ids = json.loads(self.request.body)
+            for card_id in card_ids:
+                if not isinstance(card_id, int):
+                    raise Exception("card_id must be int")
 
-            # query card info and check owner
+            # query all cards info and check owner
             rows = yield g.whdb.runQuery(
                 """SELECT protoId FROM cardEntities
-                        WHERE id = %s and ownerId = %s"""
-                ,(entity_id, user_id)
+                        WHERE id IN %s AND ownerId = %s"""
+                ,(str(tuple(card_ids)), user_id)
             )
 
-            try:
-                proto_id = rows[0][0]
-            except:
-                send_error(self, err_not_exist)
-                return
+            proto_ids = [row[0] for row in rows]
 
-            if not proto_id or is_war_lord(proto_id):
-                send_error(self, err_permission)
-                return
+            if len(proto_ids) != len(card_ids):
+                raise Exception("card id error")
 
             # query player info
             rows = yield g.whdb.runQuery(
-                        """SELECT money, bands, isInZone FROM playerInfos
+                        """SELECT money, bands, inZoneId, warlord FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
                     )
             row = rows[0]
             money = row[0]
             bands = json.loads(row[1])
-            isInZone = row[2]
-            if isInZone:
-                send_error(self, "err_in_zone")
-                return
+            inZoneId = row[2]
+            if inZoneId > 0:
+                raise Exception("can not sell card when in zone")
+            warlord = row[3]
+
+            if warlord in card_ids:
+                raise Exception("warlord can not be sold")
 
             # add money
-            price = int(card_tbl.get(proto_id, "price"))
-            money += price
+            money_add = 0
+            for proto in proto_ids:
+                money_add += int(card_tbl.get(proto_id, "price"))
+            
+            money += money_add
 
             # delete if in band
             inband = False
             for band in bands:
                 for idx, member in enumerate(band["members"]):
-                    if member == entity_id:
+                    if member in card_ids:
                         band[idx] = None
                         inband = True
                         break
@@ -300,13 +378,14 @@ class Sell(tornado.web.RequestHandler):
 
             # delete card
             yield g.whdb.runOperation(
-                "DELETE FROM cardEntities WHERE id = %s",
-                entity_id
+                "DELETE FROM cardEntities WHERE id IN %s",
+                str(tuple(card_ids))
             )
 
             # reply
             reply = {"error":no_error}
-            reply["id"] = entity_id
+            reply["cardIds"] = card_ids
+            reply["moneyAdd"] = money_add
             reply["money"] = money
             self.write(json.dumps(reply))
         except:
@@ -351,8 +430,7 @@ class Evolution(tornado.web.RequestHandler):
                 ,(card_id1, card_id2, user_id)
             )
             if len(rows) != 2:
-                send_error(self, "err_card_id")
-                return
+                raise Exception("card id error")
             
             cards = [dict(zip(fields, row)) for row in rows]
             # make cards[0] primary
@@ -373,22 +451,19 @@ class Evolution(tornado.web.RequestHandler):
             row = rows[0]
             money = row[0]
             bands = json.loads(row[1])
-            isInZone = row[2]
-            if isInZone:
-                send_error(self, "err_in_zone")
-                return
+            inZoneId = row[2]
+            if inZoneId > 0:
+                raise Exception("error in zone")
 
             if money < cost:
-                send_error(self, "err_not_enough_money")
-                return
+                raise Exception("not enough money")
             money -= cost
 
             # look up evolution table
             try:
                 proto_id = int(evo_tbl.get((str(card1["protoId"]), str(card2["protoId"])), "afterCardId"))
             except:
-                send_error(self, "err_card_type")
-                return
+                raise Exception("card can not do evolution: proto1=%s, proto2=%s" % (card1["protoId"], card2["protoId"]))
 
             # calc new attr for master card
             card2_max_level = int(card_tbl.get(card2["protoId"], "maxlevel"))
@@ -477,17 +552,13 @@ class Sacrifice(tornado.web.RequestHandler):
             user_id = session["userid"]
 
             # post input
-            try:
-                cards = json.loads(self.request.body)
-                card_num = len(cards)
-                if card_num < 2 or card_num > 9:
-                    raise Exception("card_num < 2 or card_num > 9")
-                for card in cards:
-                    if type(card) != int:
-                        raise Exception("id must be int")
-            except:
-                send_error(self, err_post)
-                return
+            cards = json.loads(self.request.body)
+            card_num = len(cards)
+            if card_num < 2 or card_num > 9:
+                raise Exception("card_num < 2 or card_num > 9")
+            for card in cards:
+                if type(card) != int:
+                    raise Exception("id must be int")
 
             # get player info
             rows = yield g.whdb.runQuery(
@@ -507,25 +578,22 @@ class Sacrifice(tornado.web.RequestHandler):
                 ,(user_id, )
             )
             if len(rows) != len(cards):
-                send_error(self, "err_card")
-                return
+                raise Exception("error card id")
 
             # make query result to dict
             master_card = None
             sacrifice_cards = []
             for row in rows:
+                card = dict(zip(fields, row))
+                if warlord == card["id"]:
+                    raise Exception("found warlord")
                 if row[0] == cards[0]:
-                    master_card = dict(zip(fields, row))
+                    master_card = card
                 else:
-                    card = dict(zip(fields, row))
-                    if warlord == card["id"]:
-                        send_error(self, "err_warlord_sacrifice")
-                        return
                     sacrifice_cards.append(card)
 
             if (not master_card) or (not sacrifice_cards):
-                send_error(self, "err_card")
-                return
+                raise Exception("error card id")
 
             # calc add exp
             exp_add = 0
@@ -533,8 +601,7 @@ class Sacrifice(tornado.web.RequestHandler):
                 for card in sacrifice_cards:
                     exp_add += int(card_tbl.get(card["protoId"], "materialexp"))
             except:
-                send_error(self, "err_card")
-                return
+                raise Exception("get add exp error")
 
             # add exp and calc cost
             skills = [{"id":master_card["skill1Id"], "level":master_card["skill1Level"], "exp":master_card["skill1Exp"]},
@@ -574,8 +641,7 @@ class Sacrifice(tornado.web.RequestHandler):
             # check and spend money
             money -= total_cost
             if money < 0:
-                send_error(self, "err_not_enough_money")
-                return
+                raise Exception("not enough money")
 
             yield g.whdb.runOperation(
                 """UPDATE playerInfos SET money=%s
@@ -614,55 +680,8 @@ class Sacrifice(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
-            
-class PactTable(object):
-    def __init__(self, file_path):
-        with open(file_path, 'rb') as csvfile:
-            rows = csv.reader(csvfile)
-            row1 = rows.next();
-            head = dict(zip(row1, xrange(len(row1))))
-            pacts = {}
-            for row in rows:
-                pact_id = row[head["pactid"]]
-                result = row[head["result"]]
-                weight = row[head["weight"]]
-                if weight <= 0:
-                    continue
-                if pact_id in pacts:
-                    pacts[pact_id]["results"].append(row[1])
-                    weights = pacts[pact_id]["weights"]
-                    weights.append(float(row[2])+weights[-1])
-                else:
-                    pacts[pact_id] = {"results":[row[1]], "weights":[float(row[2])]}
 
-            self._pacts = pacts
-
-    def random_get(self, pact_id):
-        pact = self._pacts[pact_id]
-        weights = pact["weights"]
-        max_weight = weights[-1]
-        rd = uniform(0.0, max_weight)
-        idx = lower_bound(weights, rd)
-        if idx < 0:
-            idx = -idx - 1;
-        return pact["results"][idx]
-
-pact_tbl = PactTable("data/pacts.csv")
-sub_pact_tbl = PactTable("data/cardpacts.csv")
-pact_cost_tbl = CsvTbl("data/pactcost.csv", "id")
-
-
-def get_card_from_pact(pact_id):
-    sub_pact_id = pact_tbl.random_get(str(pact_id))
-    card_id = sub_pact_tbl.random_get(sub_pact_id)
-    # print sub_pact_id, card_id
-    return card_id
-
-# # test
-# for i in xrange(50):
-#     get_card_from_pact("1")
-
-class GetPact(tornado.web.RequestHandler):
+class Create(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -676,76 +695,40 @@ class GetPact(tornado.web.RequestHandler):
 
             # param
             try:
-                pact_cost_id = int(self.get_argument("packid"))
-                num = int(self.get_argument("num"))
+                proto = int(self.get_argument("proto"))
+                level = int(self.get_argument("level"))
             except:
                 send_error(self, err_param)
                 return
 
-            # pact cost table
-            try:
-                pact_id, cost_item_id, cost_num, pact_num = pact_cost_tbl.gets(pact_cost_id, 
-                    "pactid", "itemid", "costnum", "pactnum")
-                cost_num = int(cost_num)
-                pact_num = int(pact_num)
-
-            except:
-                send_error(self, "err_pact_id")
-                return
-
-            # get player info
+            # get player's max card number and wagonTemp
             rows = yield g.whdb.runQuery(
-                        """SELECT items, whCoin, maxCardNum, wagonTemp FROM playerInfos
+                        """SELECT maxCardNum, wagonTemp FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
                     )
             row = rows[0]
-            items = json.loads(row[0])
-            wh_coin = row[1]
-            max_card_num = row[2]
-            wagon_temp = json.loads(row[3])
+            max_card_num = row[0]
+            wagon_temp = Wagon(json.loads(row[1]))
 
-            # check and calc payment
-            if pact_num == 1:
-                cost_num *= num
-                pact_num *= num
-
-            card_ids = []
-            for i in xrange(pact_num):
-                card_ids.append(get_card_from_pact(pact_id))
-
-            # wh_coin
-            if cost_item_id == 0:
-                if wh_coin < cost_num:
-                    send_error(self, "err_not_enough_whcoin")
-                    return
-                wh_coin -= cost_num
-            # cost items, like bronze or silver coin
-            else:
-                if (cost_item_id not in items) or (items[cost_item_id] < cost_num):
-                    send_error(self, "err_not_enough_item")
-                    return
-                items[cost_item_id] -= cost_num
-
-            # create cards
-            cards = yield create_cards(user_id, card_ids, max_card_num)
+            cards = yield create_cards(user_id, [proto], max_card_num)
 
             # wagon
             for card in cards:
                 if not card["inPackage"]:
-                    wagon_temp.append([WAGON_CARD_TYPE, card["id"]])
+                    wagon_temp.addCard(card["id"])
 
             # real pay and set wagon
             yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET whCoin=%s, items=%s, wagonTemp=%s
-                            WHERE userId=%s"""
-                    ,(wh_coin, json.dumps(items), json.dumps(wagon_temp), user_id )
-                )
+                """UPDATE playerInfos SET wagonTemp=%s
+                        WHERE userId=%s"""
+                ,(json.dumps(wagon_temp.data), user_id)
+            )
 
             # reply
-            reply = {"error": no_error}
-            reply["cards"] = cards
-            print reply
+            reply = {"error":no_error}
+            reply["card"] = cards[0]
+            self.write(json.dumps(reply))
 
         except:
             send_internal_error(self)
@@ -753,12 +736,12 @@ class GetPact(tornado.web.RequestHandler):
             self.finish()
 
 handlers = [
-    (r"/whapi/card/create", Create),
-    (r"/whapi/card/random", Random),
+    (r"/whapi/card/getpact", GetPact),
     (r"/whapi/card/sell", Sell),
     (r"/whapi/card/evolution", Evolution),
     (r"/whapi/card/sacrifice", Sacrifice),
-    (r"/whapi/card/getpact", GetPact),
+
+    (r"/whapi/card/create", Create),
 ]
 
 # test

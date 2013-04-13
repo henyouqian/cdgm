@@ -45,7 +45,8 @@ class Create(tornado.web.RequestHandler):
 
             # add war lord card
             try:
-                warlord_card = yield card.create(userid, warlord_proto_id, 1)
+                cards = yield card.create_cards(userid, [warlord_proto_id], INIT_MAX_CARD)
+                warlord_card = cards[0]
                 warlord_id = warlord_card["id"]
             except:
                 send_error(self, "err_create_warlord")

@@ -121,14 +121,14 @@ function move() {
 			}
 
 			if (json.complete) {
-				str += "Zone compelete"
+				
 			}
 
 			alert(str)
 			updateZoneInfo()
 
 			//send battle result
-			if (true || battle) { //fixme: test
+			if (battle) {
 				var members = copyObj(zoneInfo.band.members)
 				members = members.slice(0, members.length/2)
 				for (idx in members) {

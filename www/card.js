@@ -90,12 +90,12 @@ function addCard() {
 
 function sellCard() {
 	id = $("#ipt_sell_id").val()
-	$.getJSON('/whapi/card/sell',{"id":id}, function(json){
+	$.getJSON('/whapi/card/sell',{"cardid":id}, function(json){
 		var err = json.error
 		if (err){
 			alert(err)
 		}else{
-			cards = cards.filter(function(v){return v.id != json.id})
+			cards = cards.filter(function(v){return v.id != json.cardid})
 			updateCards()
 			saveLocalStorage()
 		}
