@@ -15,6 +15,7 @@ $(document).ready(function(){
 })
 
 function saveLocalStorage() {
+	playerInfo.cards = cards
 	window.localStorage.playerInfo = JSON.stringify(playerInfo)
 }
 
@@ -68,7 +69,9 @@ function pact() {
 		if (err){
 			alert(err)
 		}else{
-			console.log(json.cards)
+			cards = cards.concat(json.cards)
+			updateCards()
+			saveLocalStorage()
 		}
 	})
 }
@@ -89,17 +92,18 @@ function addCard() {
 }
 
 function sellCard() {
-	id = $("#ipt_sell_id").val()
-	$.getJSON('/whapi/card/sell',{"cardid":id}, function(json){
+	ids = $("#ipt_sell_id").val()
+	ids = "[" + ids + "]"
+	$.post('/whapi/card/sell', ids, function(json){
 		var err = json.error
 		if (err){
 			alert(err)
 		}else{
-			cards = cards.filter(function(v){return v.id != json.cardid})
+			cards = cards.filter(function(v){return json.cardIds.indexOf(v.id) == -1})
 			updateCards()
 			saveLocalStorage()
 		}
-	})
+	}, "json")
 }
 
 function evolution() {

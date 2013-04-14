@@ -4,3 +4,4 @@
 * setband要验证必须有主角存在
 * 注意在地图中的角色，也就是zoneCache中band里面的角色，不能evolution 吃卡之类的
 * band的数量不是固定的3组
+* cards.csv 分成了cards.csv和monsterCards.csv两部分，怪物的数据要从csv和monsterCards.csv读

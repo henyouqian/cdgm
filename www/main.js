@@ -22,14 +22,34 @@ function getPlayerInfo(){
 			$("#info").text(playerInfoStr);
 			
 			window.localStorage.playerInfo = playerInfoStr
-			if (json.isInMap)
-				$("#adv").text("resume");
+			if (playerInfo.inZoneId == 0) {
+				$("#adv").text("Adventure")
+				$("#ipt_band_idx").removeAttr("disabled")
+				$("#ipt_zone_id").removeAttr("disabled")
+			} else {
+				$("#adv").text("Resume")
+				$("#ipt_band_idx").attr("disabled", "disabled")
+				$("#ipt_zone_id").attr("disabled", "disabled")
+			}
+
+			$("#ipt_band_idx").val(json.currentBand)
+			$("#ipt_zone_id").val(json.inZoneId)
 		}
 	});
 }
 
 function clickZone(){
-	window.location.href="zone.html";
+	var currentBand = parseInt($("#ipt_band_idx").val())
+	var zoneId = parseInt($("#ipt_zone_id").val())
+	if (currentBand && zoneId) {
+		var tmp = {}
+		tmp.currentBand = currentBand
+		tmp.zoneId = zoneId
+		window.localStorage.tmp = JSON.stringify(tmp)
+		window.location.href="zone.html";
+	} else {
+		alert("Band index or zone id error")
+	}
 }
 
 function clickCard(){

@@ -42,7 +42,8 @@ function getZoneInfo() {
 			}
 		})
 	} else {
-		$.getJSON('/whapi/zone/enter', {"zoneid":zoneId, "bandidx":0}, function(json){
+		tmp = JSON.parse(window.localStorage.tmp)
+		$.getJSON('/whapi/zone/enter', {"zoneid":tmp.zoneId, "bandidx":tmp.currentBand}, function(json){
 			var err = json.error
 			if (err){
 				alert(err)

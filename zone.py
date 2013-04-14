@@ -262,9 +262,9 @@ class Enter(tornado.web.RequestHandler):
             # db store
             cachejs = json.dumps(cache)
             row_nums = yield g.whdb.runOperation(
-                """UPDATE playerInfos SET zoneCache=%s, inZoneId=%s
+                """UPDATE playerInfos SET zoneCache=%s, inZoneId=%s, currentBand=%s
                         WHERE userid=%s"""
-                ,(cachejs, zoneid, session["userid"])
+                ,(cachejs, zoneid, bandidx, session["userid"])
             )
 
             # response

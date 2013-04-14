@@ -151,13 +151,17 @@ def create_cards(owner_id, proto_ids, max_card_num, callback):
                 , tuple((card.values() for card in cards))
                 , conn
             )
+            # append key "id" to fetch
+            cols += ",id"
             rows = yield g.whdb.runQuery("CALL get_new_cards(%s, %s)", (owner_id, cols), conn)
         finally:
             yield g.whdb.commitTransaction(conn)
 
         reply = []
+        keys = cards[0].keys()
+        keys.append("id")
         for row in rows:
-            reply.append(dict(zip(cards[0].keys(), row)))
+            reply.append(dict(zip(keys, row)))
         callback(reply)
     except Exception as e:
         traceback.print_exc()
@@ -251,7 +255,7 @@ class GetPact(tornado.web.RequestHandler):
             items = json.loads(row[0])
             wh_coin = row[1]
             max_card_num = row[2]
-            wagon_temp = Wagon(json.loads(row[3]))
+            wagon_temp = Wagon(row[3])
 
             # check and calc payment
             # only item (include bronze coin and silver coin, not wh coin) can mulitply numbers
@@ -292,6 +296,7 @@ class GetPact(tornado.web.RequestHandler):
             # reply
             reply = {"error": no_error}
             reply["cards"] = cards
+            self.write(json.dumps(reply))
 
         except:
             send_internal_error(self)
@@ -320,8 +325,8 @@ class Sell(tornado.web.RequestHandler):
             # query all cards info and check owner
             rows = yield g.whdb.runQuery(
                 """SELECT protoId FROM cardEntities
-                        WHERE id IN %s AND ownerId = %s"""
-                ,(str(tuple(card_ids)), user_id)
+                        WHERE id IN ({}) AND ownerId = %s""".format(",".join(("%s",)*len(card_ids)))
+                ,tuple(card_ids+[user_id])
             )
 
             proto_ids = [row[0] for row in rows]
@@ -348,7 +353,7 @@ class Sell(tornado.web.RequestHandler):
 
             # add money
             money_add = 0
-            for proto in proto_ids:
+            for proto_id in proto_ids:
                 money_add += int(card_tbl.get(proto_id, "price"))
             
             money += money_add
@@ -378,8 +383,8 @@ class Sell(tornado.web.RequestHandler):
 
             # delete card
             yield g.whdb.runOperation(
-                "DELETE FROM cardEntities WHERE id IN %s",
-                str(tuple(card_ids))
+                "DELETE FROM cardEntities WHERE id IN ({}) AND ownerId = %s".format(",".join(("%s",)*len(card_ids)))
+                ,tuple(card_ids+[user_id])
             )
 
             # reply
@@ -673,8 +678,9 @@ class Sacrifice(tornado.web.RequestHandler):
 
             # reply
             reply = {"error": no_error}
-            reply["sacrificers"] = [card["id"] for card in sacrifice_cards]
             reply["master"] = master_card
+            reply["sacrificers"] = [card["id"] for card in sacrifice_cards]
+            reply["money"] = money
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
@@ -709,7 +715,7 @@ class Create(tornado.web.RequestHandler):
                     )
             row = rows[0]
             max_card_num = row[0]
-            wagon_temp = Wagon(json.loads(row[1]))
+            wagon_temp = Wagon(row[1])
 
             cards = yield create_cards(user_id, [proto], max_card_num)
 
