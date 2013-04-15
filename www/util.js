@@ -107,3 +107,12 @@ function getUrlParam(name) {
 function copyObj(obj) {
     return JSON.parse(JSON.stringify(obj))
 }
+
+function saveObj(key, obj) {
+    window.localStorage[key] = JSON.stringify(obj)
+}
+
+function loadObj(key) {
+    JSON.parse(window.localStorage[key])
+}
+

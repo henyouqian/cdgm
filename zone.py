@@ -225,10 +225,7 @@ class Enter(tornado.web.RequestHandler):
                 raise Exception("Allready in zone")
 
             # gen cache
-            try:
-                cache = gen_cache(zoneid)
-            except:
-                raise Exception("Generate zone cache error")
+            cache = gen_cache(zoneid)
 
             # band
             band = bands[int(bandidx)]
