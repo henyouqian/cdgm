@@ -30,7 +30,10 @@ function updateCards() {
 		wis = card.wis + card.wisCrystal + card.wisExtra
 		agi = card.agi + card.agiCrystal + card.agiExtra
 
-		str = "id:" + card.id
+		str = ""
+		if (!card.inPackage)
+			str += "(wagon)"
+		str += " id:" + card.id
 		str += " type:" + card.protoId
 		str += " level:" + card.level
 		str += " exp:" + card.exp
@@ -101,6 +104,9 @@ function sellCard() {
 		}else{
 			cards = cards.filter(function(v){return json.cardIds.indexOf(v.id) == -1})
 			updateCards()
+
+			playerInfo.money += json.moneyAdd
+			alert("money add:+" + json.moneyAdd + "->" + playerInfo.money)
 			saveLocalStorage()
 		}
 	}, "json")

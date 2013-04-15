@@ -1,4 +1,5 @@
-﻿import time
+﻿import g
+import time
 import csv
 import __builtin__
 
@@ -148,3 +149,37 @@ def upper_bound(haystack, needle, lo = 0, hi = None, cmp = None, key = None):
     elif val == 0: return lo
     elif lo > 0 and cmp(key(haystack[lo - 1]), needle) == 0: return lo
     else: return -1 - lo
+
+
+import datetime
+
+_local_server_delta_time = None
+def sync_time():
+    import MySQLdb
+    import config
+    conn = MySQLdb.connect(db=config.wh_db["database"],
+                           user=config.wh_db["user"],
+                           passwd=config.wh_db["password"],
+                           host=config.wh_db["host"],
+                           port=3306)
+    cursor = conn.cursor()
+    cursor.execute("SELECT UTC_TIMESTAMP()", None)
+    rows = cursor.fetchall()
+    conn.commit()
+    cursor.close()
+    conn.close()
+    
+    server_datetime = rows[0][0]
+    local_datetime = datetime.datetime.utcnow()
+    global _local_server_delta_time
+    _local_server_delta_time = server_datetime - local_datetime
+
+def utc_now():
+    local_datetime = datetime.datetime.utcnow()
+    return local_datetime + _local_server_delta_time
+
+def datetime_to_str(dt):
+    return datetime.datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
+
+def parse_datetime(str_datetime):
+    return datetime.datetime.strptime(str_datetime, "%Y-%m-%d %H:%M:%S")

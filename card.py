@@ -709,10 +709,10 @@ class Create(tornado.web.RequestHandler):
 
             # get player's max card number and wagonTemp
             rows = yield g.whdb.runQuery(
-                        """SELECT maxCardNum, wagonTemp FROM playerInfos
-                                WHERE userId=%s"""
-                        ,(user_id, )
-                    )
+                """SELECT maxCardNum, wagonTemp FROM playerInfos
+                        WHERE userId=%s"""
+                ,(user_id, )
+                )
             row = rows[0]
             max_card_num = row[0]
             wagon_temp = Wagon(row[1])

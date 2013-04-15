@@ -2,6 +2,7 @@
 import config
 import threading
 
+import util
 import auth
 import player
 import zone
@@ -82,29 +83,30 @@ def main():
     # keep alive thread
     # thr = KeepAliveThread()
     # thr.start()
-    
-    # application
-    application = web.Application(
-        handlers,
-        debug = config.debug,
-        cookie_secret=config.cookie_secret
-    )
-    application.listen(params.port)
-    if (config.debug):
-        logging.getLogger().setLevel(logging.DEBUG)
-        # options.enable_pretty_logging()
-        print "Server running in debug mode"
-    else:
-        logging.disable(logging.WARNING)
-        print "Server running"
 
-    # server loop
     try:
+        #sync time from sql server
+        util.sync_time()
+        
+        # application
+        application = web.Application(
+            handlers,
+            debug = config.debug,
+            cookie_secret=config.cookie_secret
+        )
+        application.listen(params.port)
+        if (config.debug):
+            logging.getLogger().setLevel(logging.DEBUG)
+            # options.enable_pretty_logging()
+            print "Server running in debug mode"
+        else:
+            logging.disable(logging.WARNING)
+            print "Server running"
+
+        # server loop
         ioloop.IOLoop.instance().start()
     except KeyboardInterrupt as e:
         print "KeyboardInterrupt."
-    except Exception:
-        print e
     finally:
         print "Server shutting down..."
         # thr.stop();

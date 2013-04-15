@@ -116,7 +116,7 @@ class GetInfo(tornado.web.RequestHandler):
             del infos["UTC_TIMESTAMP()"]
 
             # query cards
-            fields_str = """id, protoId, level, exp, 
+            fields_str = """id, protoId, level, exp, inPackage, 
                             skill1Id, skill1Level, skill1Exp, 
                             skill2Id, skill2Level, skill2Exp, 
                             skill3Id, skill3Level, skill3Exp, 
@@ -212,51 +212,47 @@ class SetBand(tornado.web.RequestHandler):
             member_set = set()
 
             # input
-            try:
-                bands = json.loads(self.request.body)
-                for band in bands:
-                    index = band["index"]
-                    formation = int(band["formation"])
-                    members = band["members"]
+            bands = json.loads(self.request.body)
+            for band in bands:
+                index = band["index"]
+                formation = int(band["formation"])
+                members = band["members"]
 
-                    # check band index
-                    if index not in [0, 1, 2]:
-                        raise Exception("Band index error:%s" % index)
+                # check band index
+                if index not in [0, 1, 2]:
+                    raise Exception("Band index error:%s" % index)
 
-                    # check warlord exist
-                    if warlord not in members:
-                        raise Exception("Warlord must in band:%s" % warlord)
+                # check warlord exist
+                if warlord not in members:
+                    raise Exception("Warlord must in band:%s" % warlord)
 
-                    # check formation
-                    max_num = int(fmt_tbl.get(str(formation), "maxNum"))
-                    if max_num != last_max_num:
-                        raise Exception("Invalid formation member number: max_num=%s, last_max_num=%s" % (max_num, last_max_num))
-                    if formation > last_formation:
-                        raise Exception("Formation not available now: formation=%s, last_formation=%s" % (formation, last_formation))
+                # check formation
+                last_max_num = int(fmt_tbl.get(str(last_formation), "maxNum"))
+                max_num = int(fmt_tbl.get(str(formation), "maxNum"))
+                if max_num != last_max_num:
+                    raise Exception("Invalid formation member number: max_num=%s, last_max_num=%s" % (max_num, last_max_num))
+                if formation > last_formation:
+                    raise Exception("Formation not available now: formation=%s, last_formation=%s" % (formation, last_formation))
 
-                    # check and collect members
-                    if len(members) != max_num * 2:
-                        raise Exception("member_num error")
-                    mems_not_none = [int(mem) for mem in members if mem]
-                    ms = set(members)
-                    ms.discard(None)
-                    if len(ms) != len(mems_not_none):
-                        raise Exception("card entity id repeated")
-                    member_set |= ms
+                # check and collect members
+                if len(members) != max_num * 2:
+                    raise Exception("member_num error")
+                mems_not_none = [int(mem) for mem in members if mem]
+                ms = set(members)
+                ms.discard(None)
+                if len(ms) != len(mems_not_none):
+                    raise Exception("card entity id repeated")
+                member_set |= ms
 
-                    db_bands[index] = {"formation":formation, "members":members}
-
-            except:
-                send_error(self, "err_post")
-                return
+                db_bands[index] = {"formation":formation, "members":members}
 
             # check member
             mem_proto_num = len(member_set)
             if mem_proto_num:
                 rows = yield g.whdb.runQuery(
                     """ SELECT COUNT(1) FROM cardEntities
-                            WHERE ownerId = %s AND id in %s"""
-                    ,(userid, tuple(member_set))
+                            WHERE ownerId = %s AND id IN ({})""".format(",".join(("%s",)*len(member_set)))
+                    ,(userid,) + tuple(member_set)
                 )
                 count = rows[0][0]
 
