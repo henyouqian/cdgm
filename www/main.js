@@ -11,6 +11,9 @@ $(document).ready(function()
 	$("#btn_set_band").click(function(){
 		setBand()
 	})
+	$("#btn_wagon").click(function(){
+		clickWagon()
+	})
 });
 
 function getPlayerInfo()
@@ -91,7 +94,15 @@ function setBand()
 			alert(err)
 			console.log(json.traceback)
 		}else{
+			alert("Set band succeed.")
 			console.log(json)
+			playerInfo.bands = JSON.parse(post)
+			window.localStorage.playerInfo = JSON.stringify(playerInfo)
 		}
 	}, "json")
+}
+
+function clickWagon()
+{
+	window.location.href="wagon.html";
 }
