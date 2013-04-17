@@ -300,8 +300,7 @@ class UseItem(tornado.web.RequestHandler):
                 rows = yield g.whdb.runQuery(
                     """ SELECT items FROM playerInfos
                             WHERE userId=%s"""
-                    ,(userid, )
-                    , conn
+                    ,(userid, ), conn
                 )
                 row = rows[0]
                 items = row[0]

@@ -284,7 +284,7 @@ class GetPact(tornado.web.RequestHandler):
             # wagon
             for card in cards:
                 if not card["inPackage"]:
-                    wagon_temp.addCard(card["id"])
+                    wagon_temp.addCard(card["protoId"], 1, card["id"])
 
             # real pay and set wagon
             yield g.whdb.runOperation(

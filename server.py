@@ -8,6 +8,7 @@ import player
 import zone
 import redistest
 import card
+import wagon
 
 from tornado import web, httpserver, ioloop, options
 import brukva
@@ -37,7 +38,7 @@ class KeepAliveThread(threading.Thread):
                 break
 
 
-handlers = auth.handlers + player.handlers + zone.handlers + redistest.handlers + card.handlers
+handlers = auth.handlers + player.handlers + zone.handlers + redistest.handlers + card.handlers + wagon.handlers
 
 if config.debug:
     import cheat

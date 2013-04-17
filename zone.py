@@ -713,9 +713,7 @@ class Complete(tornado.web.RequestHandler):
                 ,(userid, )
             )
             row = rows[0]
-            warlord = row[0]
-            cache = row[1]
-            cache = json.loads(cache)
+            cache = json.loads(row[0])
 
             # open cases
 
