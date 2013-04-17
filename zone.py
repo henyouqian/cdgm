@@ -457,35 +457,9 @@ class Move(tornado.web.RequestHandler):
 
                 if money_add:
                     money += money_add
-
-            # check zone complete
-            currpos = {"x":currpos[0], "y":currpos[1]}
-            complete = (currpos == cache["goalPos"])
-            if complete:
-                # red case
-                for x in xrange(cache["redCase"]):
-                    item_updated = True
-                    caseid = map_tbl.get_value(maprow, "treasureprobabilityID")
-                    itemid = case_tbl.get_item(caseid)
-                    if itemid in items:
-                        items[itemid] += 1
-                    else:
-                        items[itemid] = 1
-                    items_add.append({"id":itemid, "num":1})
-
-                # gold case
-                for x in xrange(cache["goldCase"]):
-                    item_updated = True
-                    caseid = map_tbl.get_value(maprow, "chestprobabilityID")
-                    itemid = case_tbl.get_item(caseid)
-                    if itemid in items:
-                        items[itemid] += 1
-                    else:
-                        items[itemid] = 1
-                    items_add.append({"id":itemid, "num":1})
             
             # update
-            cache["currPos"] = currpos
+            cache["currPos"] = {"x":currpos[0], "y":currpos[1]}
             cachejs = json.dumps(cache)
             if item_updated:
                 itemsjs = json.dumps(items)
@@ -514,7 +488,6 @@ class Move(tornado.web.RequestHandler):
             reply["items"] = items_add
             reply["monGrpId"] = monGrpId
             reply["eventId"] = None
-            reply["complete"] = complete
 
             self.write(json.dumps(reply))
 
@@ -708,26 +681,62 @@ class Complete(tornado.web.RequestHandler):
             
             # get player info
             rows = yield g.whdb.runQuery(
-                """ SELECT zoneCache FROM playerInfos
+                """ SELECT zoneCache, items FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
             row = rows[0]
             cache = json.loads(row[0])
+            items = json.loads(row[1])
+
+            if cache["currPos"] != cache["goalPos"]:
+                raise Exception("palyer not at goal pos")
 
             # open cases
+            zoneid = cache["zoneId"]
+            maprow = map_tbl.get_row(zoneid)
+            
+            red_case_items = []
+            gold_case_items = []
 
-            # unlock new zone
+            # red case
+            for x in xrange(cache["redCase"]):
+                caseid = map_tbl.get_value(maprow, "treasureprobabilityID")
+                itemid = case_tbl.get_item(caseid)
+                if itemid in items:
+                    items[itemid] += 1
+                else:
+                    items[itemid] = 1
+                red_case_items.append({"id":int(itemid), "num":1})
+
+            # gold case
+            for x in xrange(cache["goldCase"]):
+                caseid = map_tbl.get_value(maprow, "chestprobabilityID")
+                itemid = case_tbl.get_item(caseid)
+                if itemid in items:
+                    items[itemid] += 1
+                else:
+                    items[itemid] = 1
+                gold_case_items.append({"id":int(itemid), "num":1})
+
+            # find new zone id
+            next_zone_id = zone_tbl.get(zoneid, "nextZoneId")
+            if next_zone_id == 0:
+                next_zone_id = zoneid
 
             # db store
-            row_nums = yield g.whdb.runOperation(
-                """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0
+            yield g.whdb.runOperation(
+                """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0, items=%s, lastZoneId=%s
                         WHERE userid=%s"""
-                ,(session["userid"],)
+                ,(json.dumps(items), next_zone_id, session["userid"])
             )
 
             # response
-            send_ok(self)
+            reply = {"error": no_error}
+            reply["redCase"] = red_case_items
+            reply["goldCase"] = gold_case_items
+            reply["lastZoneId"] = next_zone_id
+            self.write(json.dumps(reply))
         except:
             send_internal_error(self)
         finally:
@@ -746,6 +755,7 @@ map_tbl = CsvTbl("data/maps.csv", "zoneID")
 plc_tbl = PlacementTbl()
 mongrp_tbl = CsvTbl("data/monsters.csv", "ID")
 case_tbl = CaseTbl()
+zone_tbl = CsvTbl("data/zones.csv", "id")
 
 
 # =============================================

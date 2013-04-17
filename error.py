@@ -3,6 +3,7 @@ import simplejson as json
 import traceback
 import config
 import logging
+import sys
 
 err_internal = "err_internal"
 err_param = "err_param"
@@ -41,7 +42,8 @@ def send_ok(hdl):
 
 if config.debug:
     def send_internal_error(hdl):
-        reply = {"error":"err_internal", "traceback":"%s" % traceback.format_exc()}
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        reply = {"error":"err_internal:%s,%s"%(exc_type, exc_value), "traceback":"%s" % traceback.format_exc()}
         hdl.write(json.dumps(reply))
         traceback.print_exc()
 else:

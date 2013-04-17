@@ -237,10 +237,10 @@ class SetBand(tornado.web.RequestHandler):
                 # check and collect members
                 if len(members) != max_num * 2:
                     raise Exception("member_num error")
-                mems_not_none = [int(mem) for mem in members if isinstance(mem, int)]
+                mems_not_none = [int(mem) for mem in members if mem or mem==0]
+                print members
                 ms = set(members)
                 ms.discard(None)
-                print mems_not_none, ms
                 if len(ms) != len(mems_not_none):
                     raise Exception("card entity id repeated")
                 member_set |= ms
