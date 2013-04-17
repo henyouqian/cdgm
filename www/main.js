@@ -60,7 +60,7 @@ function clickZone()
 {
 	var currentBand = parseInt($("#ipt_band_idx").val())
 	var zoneId = parseInt($("#ipt_zone_id").val())
-	if (currentBand && zoneId) {
+	if (currentBand != NaN && zoneId != NaN) {
 		var tmp = {}
 		tmp.currentBand = currentBand
 		tmp.zoneId = zoneId
