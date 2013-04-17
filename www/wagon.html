@@ -9,6 +9,22 @@
   <body>
     <div class="container">
       <h1>Wagon</h1>
+      <button id="btn_back" class="btn btn-primary">Back</button>
+      <br><br>
+      <div class="tabbable"> <!-- Only required for left/right tabs -->
+        <ul class="nav nav-tabs">
+          <li class="active"><a id="tab_general" href="javascript:void(0)" data-toggle="tab">General</a></li>
+          <li><a id="tab_temp" href="javascript:void(0)" data-toggle="tab">Temp</a></li>
+          <li><a id="tab_social" href="javascript:void(0)" data-toggle="tab">Social</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <ul id="wagon_items">
+        </ul>
+        <input id="ipt_accept" type="text" pattern="[0-9]*" style="width:50px;margin-bottom:0px" placeholder="index" value="0"></input>
+        <button id="btn_accept" class="btn btn-primary">Accept</button>
+      </div>
 
     </div> <!-- /container -->
 

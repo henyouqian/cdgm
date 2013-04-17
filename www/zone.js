@@ -7,6 +7,7 @@ $(document).ready(function(){
 	$("#btn_back").click(back)
 	$("#btn_withdraw").click(withdraw)
 	$("#btn_move").click(move)
+	$("#btn_complete").click(complete)
 	getZoneInfo()
 })
 
@@ -28,6 +29,12 @@ function updateZoneInfo() {
 	ul.append("<li> xp:"+JSON.stringify(player.xp)+"</li>")
 	ul.append("<li> money:"+JSON.stringify(player.money)+"</li>")
 	ul.append("<li> objs:"+JSON.stringify(zone.objs.sort())+"</li>")
+
+	if ((zone.currPos.x == zone.goalPos.x) && (zone.currPos.y == zone.goalPos.y)) {
+		$("#btn_complete").removeAttr("disabled")
+	} else {
+		$("#btn_complete").attr("disabled", 1)
+	}
 }
 
 function getZoneInfo() {
@@ -153,4 +160,16 @@ function move() {
 			}
 		}
 	}, "json")
+}
+
+function complete() {
+	$.getJSON('/whapi/zone/complete', function(json){
+		var err = json.error
+		if (err){
+			alert(err)
+		}else{
+			alert(JSON.stringify(json))
+		}
+		window.location.href="main.html"
+	})
 }

@@ -48,10 +48,9 @@ class List(tornado.web.RequestHandler):
 
             # params
             try:
-                types = list(set([int(s) for s in self.get_argument("type").split(",")]))
-                for t in types:
-                    if t not in xrange(3):
-                        print t
+                wagon_idxs = list(set([int(s) for s in self.get_argument("wagonidx").split(",")]))
+                for idx in wagon_idxs:
+                    if idx not in xrange(3):
                         raise Exception("invalid wagon_type")
             except:
                 send_error(self, err_param)
@@ -59,7 +58,7 @@ class List(tornado.web.RequestHandler):
 
             # query wagon data
             field_strs = ["wagonGeneral", "wagonTemp", "wagonSocial"]
-            fields = [field_strs[t] for t in types]
+            fields = [field_strs[idx] for idx in wagon_idxs]
 
             rows = yield g.whdb.runQuery(
                 """SELECT {} FROM playerInfos
@@ -69,11 +68,11 @@ class List(tornado.web.RequestHandler):
 
             wagons = rows[0]
             out_wagons = []
-            for wagon_idx, wagon in enumerate(wagons):
+            for i, wagon in enumerate(wagons):
                 wagon = json.loads(wagon)
 
                 out_wagon = {}
-                out_wagon["type"] = types[wagon_idx]
+                out_wagon["wagonIdx"] = wagon_idxs[i]
                 
                 out_items = []
                 for item_idx, item in enumerate(wagon):
@@ -112,8 +111,8 @@ class Accept(tornado.web.RequestHandler):
 
             # params
             try:
-                wagon_type = int(self.get_argument("type"))
-                item_index = int(self.get_argument("index"))
+                wagon_idx = int(self.get_argument("wagonidx"))
+                item_idx = int(self.get_argument("itemidx"))
             except:
                 send_error(self, err_param)
                 return
@@ -122,7 +121,7 @@ class Accept(tornado.web.RequestHandler):
             field_strs = ["wagonGeneral", "wagonTemp", "wagonSocial"]
             rows = yield g.whdb.runQuery(
                 """SELECT {}, items, maxCardNum FROM playerInfos
-                        WHERE userId=%s""".format(field_strs[wagon_type])
+                        WHERE userId=%s""".format(field_strs[wagon_idx])
                 ,(user_id,)
             )
 
@@ -132,21 +131,21 @@ class Accept(tornado.web.RequestHandler):
             max_card_num = rows[0][2]
 
             # accept
-            wagon_item = wagon_items[item_index]
+            wagon_item = wagon_items[item_idx]
             wagon_item_id = wagon_item[0]
             wagon_item_num = wagon_item[1]
             wagon_item_time = util.parse_datetime(wagon_item[2])
 
             # check expired
-            if wagon_type == WAGON_TYPE_TEMP:
+            if wagon_idx == WAGON_TYPE_TEMP:
                 time_delta = datetime.timedelta(seconds=WAGON_TEMP_DURATION)
 
                 if util.utc_now() > wagon_item_time + time_delta:
                     # del from playerInfo's wagon
-                    del wagon_items[item_index]
+                    del wagon_items[item_idx]
                     yield g.whdb.runOperation(
                         """UPDATE playerInfos SET {}=%s
-                                WHERE userId=%s""".format(field_strs[wagon_type])
+                                WHERE userId=%s""".format(field_strs[wagon_idx])
                         ,(json.dumps(wagon_items), user_id)
                     )
                     if wagon_item_id < 0:
@@ -158,7 +157,7 @@ class Accept(tornado.web.RequestHandler):
                         )
 
                     reply = {"error":"err_expired"}
-                    reply["index"] = item_index
+                    reply["index"] = item_idx
                     self.write(json.dumps(reply))
                     return
 
@@ -182,10 +181,10 @@ class Accept(tornado.web.RequestHandler):
                     send_error(self, "err_card_full")
                     return
 
-                del wagon_items[item_index]
+                del wagon_items[item_idx]
                 yield g.whdb.runOperation(
                     """UPDATE playerInfos SET {}=%s
-                            WHERE userId=%s""".format(field_strs[wagon_type])
+                            WHERE userId=%s""".format(field_strs[wagon_idx])
                     ,(json.dumps(wagon_items), user_id)
                 )
                 # update card info
@@ -196,8 +195,19 @@ class Accept(tornado.web.RequestHandler):
                             hp, atk, def, wis, agi,
                             hpCrystal, atkCrystal, defCrystal, wisCrystal, agiCrystal,
                             hpExtra, atkExtra, defExtra, wisExtra, agiExtra"""
-                rows = yield g.whdb.runQuery("CALL pick_cards_from_wagon(%s, %s, %s)", (user_id, cols, card_entity_id))
+                # rows = yield g.whdb.runQuery("CALL pick_cards_from_wagon(%s, %s, %s)", (user_id, cols, card_entity_id))
+                rows = yield g.whdb.runQuery(
+                    """SELECT {} FROM cardEntities 
+                            WHERE id=%s AND ownerId=%s AND inPackage=0""".format(cols)
+                    ,(card_entity_id, user_id)
+                )
                 out_card = rows[0][0]
+
+                yield g.whdb.runOperation(
+                    """UPDATE cardEntities SET inPackage = 1
+                            WHERE id=%s AND ownerId=%s"""
+                    ,(card_entity_id, user_id)
+                )
                 
             # add item
             else:
@@ -206,17 +216,18 @@ class Accept(tornado.web.RequestHandler):
                 else:
                     items[wagon_item_id] = wagon_item_num
 
-                del wagon_items[item_index]
+                del wagon_items[item_idx]
                 yield g.whdb.runOperation(
                     """UPDATE playerInfos SET items=%s, {}=%s
-                            WHERE userId=%s""".format(field_strs[wagon_type])
+                            WHERE userId=%s""".format(field_strs[wagon_idx])
                     ,(json.dumps(items), json.dumps(wagon_items), user_id)
                 )
                 out_item = {"id":wagon_item_id, "num":wagon_item_num}
 
             # reply
             reply = {"error":no_error}
-            reply["index"] = item_index
+            reply["wagonIdx"] = wagon_idx
+            reply["itemIdx"] = item_idx
             reply["item"] = out_item
             reply["card"] = out_card
             self.write(json.dumps(reply))

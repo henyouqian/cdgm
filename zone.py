@@ -686,6 +686,8 @@ class Complete(tornado.web.RequestHandler):
                 ,(userid, )
             )
             row = rows[0]
+            if not row[0]:
+                raise Exception("not in zone")
             cache = json.loads(row[0])
             items = json.loads(row[1])
 
