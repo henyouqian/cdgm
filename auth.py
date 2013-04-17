@@ -103,7 +103,7 @@ class Login(tornado.web.RequestHandler):
             try:
                 player_exist = bool(rows[0][0])
             except:
-                player_exist = false
+                player_exist = False
 
             # reply
             reply = {"error":no_error, "token":usertoken, "playerExist":player_exist}
