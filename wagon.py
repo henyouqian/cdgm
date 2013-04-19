@@ -195,7 +195,6 @@ class Accept(tornado.web.RequestHandler):
                             hp, atk, def, wis, agi,
                             hpCrystal, atkCrystal, defCrystal, wisCrystal, agiCrystal,
                             hpExtra, atkExtra, defExtra, wisExtra, agiExtra"""
-                # rows = yield g.whdb.runQuery("CALL pick_cards_from_wagon(%s, %s, %s)", (user_id, cols, card_entity_id))
                 rows = yield g.whdb.runQuery(
                     """SELECT {} FROM cardEntities 
                             WHERE id=%s AND ownerId=%s AND inPackage=0""".format(cols)

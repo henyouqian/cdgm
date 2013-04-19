@@ -9,6 +9,7 @@ import zone
 import redistest
 import card
 import wagon
+import pvp
 
 from tornado import web, httpserver, ioloop, options
 import brukva
@@ -38,7 +39,7 @@ class KeepAliveThread(threading.Thread):
                 break
 
 
-handlers = auth.handlers + player.handlers + zone.handlers + redistest.handlers + card.handlers + wagon.handlers
+handlers = auth.handlers + player.handlers + zone.handlers + redistest.handlers + card.handlers + wagon.handlers + pvp.handlers
 
 if config.debug:
     import cheat
@@ -57,25 +58,24 @@ def main():
     try:
         # c = brukva.Client(**config.redis)
         # c.connect()
-        redis_conn_life = 0
+        # redis_conn_life = 0
         for __ in xrange(2):
             c = brukva.Client(**config.redis)
             c.connect()
-            redis_pool.append([c, time.time()+redis_conn_life])
+            redis_pool.append([c, time.time()+config.redis_conn_life])
 
         def redis():
-            ct = random.sample(redis_pool, 1)[0]
+            ct = random.choice(redis_pool)
             if (not ct[0].connection.connected()) or time.time() > ct[1]:
-                print("reconnect redis")
                 # ct[0].disconnect()
                 ct[0] = brukva.Client(**config.redis)
                 ct[0].connect()
-                ct[1] = time.time()+redis_conn_life
+                ct[1] = time.time() + config.redis_conn_life
             return ct[0].async
         g.redis = redis
     except:
         print "redis connecting failed"
-        return
+        raise
 
     # database
     g.authdb = Database(**config.auth_db)
@@ -113,6 +113,7 @@ def main():
         # thr.stop();
         g.authdb.stop()
         g.whdb.stop()
+        exit(0)
 
 if __name__ == "__main__":
     main()
