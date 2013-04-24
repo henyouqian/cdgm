@@ -1,8 +1,7 @@
 ﻿from error import *
-import g
+import util
 from gamedata import *
 from session import *
-from util import CsvTbl
 
 import tornado.web
 import adisp
@@ -35,7 +34,7 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # check exist
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT 1 FROM playerInfos WHERE userId=%s"""
                 ,(userid, )
             )
@@ -67,7 +66,7 @@ class Create(tornado.web.RequestHandler):
             wagon = json.dumps(INIT_WAGON)
 
             # create player info
-            row_nums = yield g.whdb.runOperation(
+            row_nums = yield util.whdb.runOperation(
                 """ INSERT INTO playerInfos
                         (userId, name, warLord, money, inZoneId, lastZoneId, maxCardNum, currentBand, 
                             xp, maxXp, ap, maxAp, bands, items, wagonGeneral, wagonTemp, wagonSocial)
@@ -101,7 +100,7 @@ class GetInfo(tornado.web.RequestHandler):
                     "lastFormation,bands,items,wagonGeneral,wagonTemp,wagonSocial,UTC_TIMESTAMP()"
 
             sql = "SELECT {} FROM playerInfos WHERE userId=%s".format(cols)
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 sql,
                 (userid, )
             )
@@ -125,7 +124,7 @@ class GetInfo(tornado.web.RequestHandler):
                             hpExtra, atkExtra, defExtra, wisExtra, agiExtra"""
             fields = fields_str.translate(None, "\n ").split(",")
             try:
-                rows = yield g.whdb.runQuery(
+                rows = yield util.whdb.runQuery(
                     """SELECT {} FROM cardEntities WHERE ownerId=%s""".format(fields_str)
                     ,(userid, )
                 )
@@ -199,7 +198,7 @@ class SetBand(tornado.web.RequestHandler):
             userid = session["userid"]
 
             # query player info
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """ SELECT lastFormation, bands, warLord FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
@@ -250,7 +249,7 @@ class SetBand(tornado.web.RequestHandler):
             # check member
             mem_proto_num = len(member_set)
             if mem_proto_num:
-                rows = yield g.whdb.runQuery(
+                rows = yield util.whdb.runQuery(
                     """ SELECT COUNT(1) FROM cardEntities
                             WHERE ownerId = %s AND id IN ({})""".format(",".join(("%s",)*len(member_set)))
                     ,(userid,) + tuple(member_set)
@@ -261,7 +260,7 @@ class SetBand(tornado.web.RequestHandler):
                     raise Exception("May be one or some cards is not yours")
 
             # store db
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                 """UPDATE playerInfos SET bands=%s
                         WHERE userid=%s"""
                 ,(json.dumps(db_bands), userid)
@@ -295,9 +294,9 @@ class UseItem(tornado.web.RequestHandler):
                 return;
 
             # query items info
-            conn = yield g.whdb.beginTransaction()
+            conn = yield util.whdb.beginTransaction()
             try:
-                rows = yield g.whdb.runQuery(
+                rows = yield util.whdb.runQuery(
                     """ SELECT items FROM playerInfos
                             WHERE userId=%s"""
                     ,(userid, ), conn
@@ -314,14 +313,14 @@ class UseItem(tornado.web.RequestHandler):
                 # update item count
                 item_num -= 1
                 items[item_id] = item_num
-                row_nums = yield g.whdb.runOperation(
+                row_nums = yield util.whdb.runOperation(
                     """ UPDATE playerInfos SET items=%s
                             WHERE userId=%s"""
                     ,(json.dumps(items), userid)
                     ,conn
                 )
             finally:
-                yield g.whdb.commitTransaction(conn)
+                yield util.whdb.commitTransaction(conn)
 
 
             # use item(fixme)
@@ -344,4 +343,4 @@ handlers = [
     (r"/whapi/player/useitem", UseItem),
 ]
 
-fmt_tbl = CsvTbl("data/formations.csv", "id")
+fmt_tbl = util.CsvTbl("data/formations.csv", "id")

@@ -1,144 +1,152 @@
 id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFuncArg2,skillFuncArg3,skillFuncArg4,skillRange,casterEffectId,targetEffectId,casterSe,targetSe,targetPlayerSe,baseProbability,maxProbability,skillSpecial
-1,2,1,Õ½¸è,Ôö¼Ó×Ô¼º¼°×óÓÒ¶ÓÔ±·ÀÓù¡£,1,0,0.5,1,2,0,3,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-2,2,1,ÅØÏø,Ôö¼Ó×Ô¼º¼°×óÓÒ¶ÓÔ±¹¥»÷¡£,1,0,0.5,1,0,0,3,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-3,2,1,¼áÈÍ,Ôö¼Ó×Ô¼º¼°×óÓÒ¶ÓÔ±·ÀÓù¡£,1,0,0.5,2,0,0,3,7,10,magic_midium,increase_quard,increase_quard,13,70,0
-4,2,1,î£ÖÇ,Ôö¼Ó×Ô¼º¼°×óÓÒ¶ÓÔ±ÖÇÁ¦¡£,1,0,0.5,3,0,0,3,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
-5,2,1,¼²·ç,Ôö¼Ó×Ô¼º¼°×óÓÒ¶ÓÔ±Ãô½İ¡£,1,0,0.5,4,0,0,3,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
-6,2,1,ĞéÈõ,½µµÍµĞ·½µĞ·½3Ãû¶ÓÔ±¹¥»÷¡£,2,0,0.5,1,0,0,7,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
-7,2,1,ÆÆ·À,½µµÍµĞ·½µĞ·½3Ãû¶ÓÔ±·ÀÓù¡£,2,0,0.5,2,0,0,7,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
-8,2,1,×çÖä,½µµÍµĞ·½µĞ·½3Ãû¶ÓÔ±ÖÇÁ¦¡£,2,0,0.5,3,0,0,7,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
-9,2,1,»ºËÙ,½µµÍµĞ·½3Ãû¶ÓÔ±Ãô½İ¡£,2,0,0.5,4,0,0,7,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
-10,3,2,¼²·çÑ¸Ó°,¶ÔµĞ·½È«Ìå¶ÓÔ±Ôì³É»ùÓÚÃô½İµÄÉËº¦¡£,3,3,1,0,0,0,8,40,22,skill_large,damage_wind,damage_wind,11,30,0
-11,4,2,»ğÑ×Ö®éä,¶ÔµĞ·½È«Ìå¶ÓÔ±Ôì³É´óÁ¿»ğÏµÉËº¦¡£,4,2,2,0,0,0,8,17,20,magic_fire,damage_fire,damage_fire,11,30,3
-12,3,2,±ùËªÖ®éä,¶ÔµĞ·½ËùÓĞ¶ÓÔ±Ôì³É±ùÏµÉËº¦£¬ÇÒÒ»¶¨¼¸ÂÊ±ù¶³¡£,4,2,1,3,0.3,0,8,18,21,magic_brrizard,damage_ice,damage_ice,11,30,3
-13,3,2,¾ç¶¾Ö®éä,¶ÔµĞ·½È«Ìå¶ÓÔ±Ôì³ÉÒ»´Î¶¾ÉËº¦¡£,4,2,1,1,1,0,8,19,23,magic_poison,damage_poison,damage_poison,11,30,3
-14,3,2,ÈıÎ»Ò»Ìå,ÁªºÏ×óÓÒ¶ÓÔ±Ò»Æğ¹¥»÷¡£,5,1,1,1,0,0,2,40,4,skill_large,hit_midium,damage_middle,11,30,0
+1,2,1,æˆ°æ­Œ,å¢åŠ è‡ªå·±åŠå·¦å³éšŠå“¡é˜²å¾¡ã€‚,1,0,0.5,1,2,0,3,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+2,2,1,å’†å“®,å¢åŠ è‡ªå·±åŠå·¦å³éšŠå“¡æ”»æ“Šã€‚,1,0,0.5,1,0,0,3,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+3,2,1,å …éŸŒ,å¢åŠ è‡ªå·±åŠå·¦å³éšŠå“¡é˜²å¾¡ã€‚,1,0,0.5,2,0,0,3,7,10,magic_midium,increase_quard,increase_quard,13,70,0
+4,2,1,ç¿æ™º,å¢åŠ è‡ªå·±åŠå·¦å³éšŠå“¡æ™ºåŠ›ã€‚,1,0,0.5,3,0,0,3,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
+5,2,1,ç–¾é¢¨,å¢åŠ è‡ªå·±åŠå·¦å³éšŠå“¡æ•æ·ã€‚,1,0,0.5,4,0,0,3,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
+6,2,1,è™›å¼±,é™ä½æ•µæ–¹æ•µæ–¹3åéšŠå“¡æ”»æ“Šã€‚,2,0,0.5,1,0,0,7,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
+7,2,1,ç ´é˜²,é™ä½æ•µæ–¹æ•µæ–¹3åéšŠå“¡é˜²å¾¡ã€‚,2,0,0.5,2,0,0,7,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
+8,2,1,è©›å’’,é™ä½æ•µæ–¹æ•µæ–¹3åéšŠå“¡æ™ºåŠ›ã€‚,2,0,0.5,3,0,0,7,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
+9,2,1,ç·©é€Ÿ,é™ä½æ•µæ–¹3åéšŠå“¡æ•æ·ã€‚,2,0,0.5,4,0,0,7,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
+10,3,2,ç–¾é¢¨è¿…å½±,å°æ•µæ–¹å…¨é«”éšŠå“¡é€ æˆåŸºæ–¼æ•æ·çš„å‚·å®³ã€‚,3,3,1,0,0,0,8,40,22,skill_large,damage_wind,damage_wind,11,30,0
+11,4,2,ç«ç‚ä¹‹æ®¤,å°æ•µæ–¹å…¨é«”éšŠå“¡é€ æˆå¤§é‡ç«ç³»å‚·å®³ã€‚,4,2,2,0,0,0,8,17,20,magic_fire,damage_fire,damage_fire,11,30,3
+12,3,2,å†°éœœä¹‹æ®¤,å°æ•µæ–¹æ‰€æœ‰éšŠå“¡é€ æˆå†°ç³»å‚·å®³ï¼Œä¸”ä¸€å®šå‡ ç‡å†°å‡ã€‚,4,2,1,3,0.3,0,8,18,21,magic_brrizard,damage_ice,damage_ice,11,30,3
+13,3,2,åŠ‡æ¯’ä¹‹æ®¤,å°æ•µæ–¹å…¨é«”éšŠå“¡é€ æˆä¸€æ¬¡æ¯’å‚·å®³ã€‚,4,2,1,1,1,0,8,19,23,magic_poison,damage_poison,damage_poison,11,30,3
+14,3,2,ä¸‰ä½ä¸€é«”,è¯åˆå·¦å³éšŠå“¡ä¸€èµ·æ”»æ“Šã€‚,5,1,1,1,0,0,2,40,4,skill_large,hit_midium,damage_middle,11,30,0
 15,4,2,Copycat,Copy the action of the previous familiar.,0,0,1,0,0,0,0,40,4,skill_large,hit_midium,damage_middle,11,30,0
-16,4,2,ÖØÉú,¸´»îÏàÁÚ¶ÓÔ±£¬»Ø¸´´óÁ¿HP¡£,6,4,1,0,0,0,2,8,28,magic_large,skill_revive,skill_revive,11,30,0
-17,4,2,ÖÕ¼«±©×ß,¶ÔËæ»ú6ÃûµĞÈËÔì³ÉÉËº¦¡£,3,1,0.8,0,0,0,17,40,3,skill_large,hit_small,damage_small,11,30,0
-18,3,2,Ë²ÓüÉ±,¶ÔËæ»ú6ÃûµĞÈËÔì³É»ùÓÚÃô½İµÄÉËº¦¡£,3,3,0.7,0,0,0,17,40,22,skill_large,damage_wind,damage_wind,11,30,0
-19,4,2,ÇıÉ¢,Ïû³ı¶Ô·½ËùÓĞÔöÒæ×´Ì¬¡£,16,0,0,0,0,0,8,8,29,magic_large,skill_cure,skill_cure,13,70,0
-20,2,2,¸´»î,¸´»î1ÃûÏàÁÚ¶ÓÔ±£¬»Ø¸´ÉÙÁ¿HP¡£,6,4,0.1,0,0,0,1,7,28,magic_midium,skill_revive,skill_revive,11,30,0
-21,3,2,ÔÙÉú,¸´»î1ÃûÏàÁÚ¶ÓÔ±£¬»Ø¸´´óÁ¿HP¡£,6,4,1,0,0,0,1,7,28,skill_midium,skill_revive,skill_revive,11,30,0
+16,4,2,é‡ç”Ÿ,å¾©æ´»ç›¸é„°éšŠå“¡ï¼Œå›å¾©å¤§é‡HPã€‚,6,4,1,0,0,0,2,8,28,magic_large,skill_revive,skill_revive,11,30,0
+17,4,2,çµ‚æ¥µæš´èµ°,å°éš¨æ©Ÿ6åæ•µäººé€ æˆå‚·å®³ã€‚,3,1,0.8,0,0,0,17,40,3,skill_large,hit_small,damage_small,11,30,0
+18,3,2,ç¬ç„æ®º,å°éš¨æ©Ÿ6åæ•µäººé€ æˆåŸºæ–¼æ•æ·çš„å‚·å®³ã€‚,3,3,0.7,0,0,0,17,40,22,skill_large,damage_wind,damage_wind,11,30,0
+19,4,2,é©…æ•£,æ¶ˆé™¤å°æ–¹æ‰€æœ‰å¢ç›Šç‹€æ…‹ã€‚,16,0,0,0,0,0,8,8,29,magic_large,skill_cure,skill_cure,13,70,0
+20,2,2,å¾©æ´»,å¾©æ´»1åç›¸é„°éšŠå“¡ï¼Œå›å¾©å°‘é‡HPã€‚,6,4,0.1,0,0,0,1,7,28,magic_midium,skill_revive,skill_revive,11,30,0
+21,3,2,å†ç”Ÿ,å¾©æ´»1åç›¸é„°éšŠå“¡ï¼Œå›å¾©å¤§é‡HPã€‚,6,4,1,0,0,0,1,7,28,skill_midium,skill_revive,skill_revive,11,30,0
 22,3,2,Cleanse,Cure the afflictions of one familiar.,0,0,1,0,0,0,0,38,4,skill_small,hit_midium,damage_middle,11,30,0
-23,3,2,»ğÑ×ÍÂÏ¢,¶Ô2ÃûµĞÈËÔì³É´óÁ¿»ğÏµÉËº¦¡£,4,2,2.5,0,0,0,7,17,20,magic_fire,damage_fire,damage_fire,11,30,3
-24,4,2,±ùËªÍÂÏ¢,¶ÔµĞ·½ËùÓĞ¶ÓÔ±Ôì³É´óÁ¿±ùÏµÉËº¦£¬ÇÒÒ»¶¨¼¸ÂÊ±ù¶³¡£,4,2,2,3,0.3,0,7,18,21,magic_brrizard,damage_ice,damage_ice,11,30,3
-25,2,2,¾ç¶¾ÍÂÏ¢,¶Ô3ÃûµĞÈËÔì³É¶¾ÏµÍÂÏ¢ÉËº¦¡£,4,2,1,1,1,0,7,19,23,magic_poison,damage_poison,damage_poison,11,30,3
-26,2,2,ÖÎÓúÊõ,»Ø¸´×óÓÒ¶ÓÓÑÉÙÁ¿HP¡£,18,4,0.5,0,0,0,2,7,27,magic_midium,skill_recover,skill_recover,11,30,0
-27,3,2,¸ß¼¶ÖÎÓúÊõ,»Ø¸´×óÓÒ¶ÓÓÑ´óÁ¿HP¡£,18,4,1,0,0,0,2,7,27,magic_midium,skill_recover,skill_recover,11,30,0
-28,1,2,¶¾ÑÀ,¶Ô1ÃûµĞÈËÔì³É¶¾ÉËº¦¡£,4,2,1,1,1,0,5,6,23,magic_small,damage_poison,damage_poison,11,30,0
-29,1,2,²øÈÆ,¶Ô1ÃûµĞÈËÔì³ÉÉËº¦£¬ÇÒÒ»¶¨¼¸ÂÊÊø¸¿¡£,4,2,1,2,0.3,0,5,6,26,magic_small,status_stun,status_stun,11,30,0
-30,3,2,¼´ËÀ,¶ÔµĞ·½1ÃûµĞÈËÔì³ÉÉËº¦£¬ÇÒÒ»¶¨¼¸ÂÊÃëÉ±¡£,7,1,1,0.3,0,0,5,39,30,skill_midium,skill_critical_hit,skill_critical_hit,11,30,0
-31,2,2,ÁªºÏ¹¥»÷,ÁªºÏ1ÃûÏàÁÚ¶ÓÔ±Ò»Æğ¹¥»÷¡£,5,1,1,1,0,0,1,39,4,skill_midium,hit_midium,damage_middle,11,30,0
-32,3,2,Ì°À·,ÇÔÈ¡µĞ·½½ğÇ®ºÍµÀ¾ß¡£,8,0,2,0,0,0,5,38,33,skill_small,skill_gem,skill_gem,11,30,0
-33,4,2,·çÖ®°§º¿,¶ÔËæ»ú3ÃûµĞÈËÔì³É´óÁ¿»ùÓÚÃô½İµÄÉËº¦¡£,3,3,2.5,0,0,0,16,40,22,skill_large,damage_wind,damage_wind,11,30,0
-34,3,2,¹Â×¢Ò»ÖÀ,¶Ô1ÃûµĞÈËÔì³É¼«ÏŞÉËº¦¡£,3,1,4,0,0,0,5,39,5,skill_midium,hit_large,damage_large,11,30,0
-35,2,2,¾«×¼´ò»÷¡¤Ç°,¶ÔÇ°ÅÅµĞÈËÔì³ÉÉËº¦¡£,3,1,1,0,0,0,12,38,4,skill_small,hit_midium,damage_middle,11,30,0
-36,2,2,¾«×¼´ò»÷¡¤ÖĞ,¶ÔÖĞÅÅµĞÈËÔì³ÉÉËº¦¡£,3,1,1,0,0,0,13,38,4,skill_small,hit_midium,damage_middle,11,30,0
-37,2,2,¾«×¼´ò»÷¡¤ºó,¶ÔºóÅÅµĞÈËÔì³ÉÉËº¦¡£,3,1,1,0,0,0,14,38,4,skill_small,hit_midium,damage_middle,11,30,0
-38,1,2,»Ø¸´Êõ,»Ø¸´1ÃûÏàÁÚ¶ÓÓÑÉÙÁ¿HP¡£,18,4,0.5,0,0,0,1,7,27,skill_small,skill_recover,skill_recover,11,30,0
-39,2,2,¸ß¼¶»Ø¸´Êõ,»Ø¸´1ÃûÏàÁÚ¶ÓÓÑ´óÁ¿HP¡£,18,4,1,0,0,0,1,7,27,skill_small,skill_recover,skill_recover,11,30,0
-40,2,2,»ğÑ×´ò»÷,¶Ô1ÃûµĞÈËÔì³É´óÁ¿»ğÏµÉËº¦¡£,4,2,3,0,0,0,5,6,20,magic_small,damage_fire,damage_fire,11,30,0
-41,2,2,±ù¶³Êõ,¶Ô3ÃûµĞÈËÔì³ÉÉËº¦£¬ÇÒÒ»¶¨¼¸ÂÊ±ù¶³¡£,4,2,1,3,0.3,0,7,6,21,magic_brrizard,damage_ice,damage_ice,11,30,0
-42,3,2,À×±©Êõ,¶ÔµĞ·½ËùÓĞ¶ÓÔ±Ôì³ÉÒ»´ÎÀ×ÏµÉËº¦¡£,4,2,0.7,0,0,0,8,7,44,magic_small,hit_small,damage_small,11,30,0
-43,2,2,Ë²ÉÁÉ±,¶ÔµĞ·½3Ãû¶ÓÔ±Ôì³É»ùÓÚÃô½İµÄÉËº¦¡£,3,3,1,0,0,0,16,38,22,skill_small,damage_wind,damage_wind,11,30,0
-44,2,2,¿Ë¼º,ĞİÏ¢Ò»»áºÏ£¬ÏÂ»ØºÏ¶Ô2ÃûµĞÈËÔì³É¼«ÏŞÉËº¦¡£,9,1,4,0,0,0,5,31,4,skill_power,hit_midium,damage_middle,11,30,0
-45,2,2,³¬ÖØ»÷,¶Ô1ÃûµĞÈËÔì³É¾Ş´óÉËº¦¡£,3,1,3,0,0,0,5,38,4,skill_small,hit_midium,damage_middle,11,30,0
-46,2,2,ÈıÁ¬»÷,¹¥»÷3ÃûµĞ·½¶ÓÔ±¡£,3,1,1,0,0,0,16,38,3,skill_small,hit_small,damage_small,11,30,0
-47,2,2,Õæ¿Õ²¨,¶ÔµĞ·½Ç°ÅÅ¶ÓÔ±Ôì³É´óÁ¿ÉËº¦¡£,4,2,2,0,0,0,12,7,20,magic_midium,damage_fire,damage_fire,11,30,0
-48,2,2,±ÀËú,¶Ô2ÃûµĞÈËÔì³ÉÉËº¦£¬ÎŞÊÓËùÔÚÎ»ÖÃ¡£,4,1,1,0,0,0,6,38,3,skill_small,hit_small,damage_small,11,30,0
-49,2,2,ÔªÆøµ¯,¶ÔºóÅÅ3ÃûµĞÈËÔì³ÉÒ»´Î¹¥»÷¡£,4,1,1,0,0,0,18,38,3,skill_small,hit_small,damage_small,11,30,0
-50,1,2,ÖØ»÷,¶Ô1ÃûµĞÈËÔì³É´óÁ¿ÉËº¦¡£,3,1,2,0,0,0,5,38,4,skill_small,hit_midium,damage_middle,11,30,0
-51,1,2,¶şÁ¬»÷,¹¥»÷2ÃûµĞ·½¶ÓÔ±¡£,3,1,1,0,0,0,6,38,3,skill_small,hit_small,damage_small,11,30,0
-52,1,2,·âºí,¶Ô1ÃûµĞÈËÔì³É»ùÓÚÃô½İµÄÉËº¦¡£,3,3,2,0,0,0,5,38,22,skill_small,damage_wind,damage_wind,11,30,0
-53,1,2,¾ÛÆø,ĞİÏ¢Ò»»áºÏ£¬ÏÂ»ØºÏ¶Ô1ÃûµĞÈËÔì³É¾Ş´óÉËº¦¡£,9,1,3,0,0,0,5,38,4,skill_small,hit_midium,damage_middle,11,30,0
-54,1,2,¶¾ÈĞ,ÖÂ1ÃûµĞÈËÖĞ¶¾¡£,3,1,1,1,1,0,5,38,23,skill_small,damage_poison,damage_poison,11,30,0
-55,1,2,ÖÂ²Ğ,¶ÔµĞ·½Ôì³ÉÉËº¦µÄÍ¬Ê±ÖÂÆä²Ğ·Ï£¬Í£Ö¹Ò»»ØºÏĞĞ¶¯¡£,3,1,0.5,4,1,0,5,38,42,skill_small,hit_small,damage_small,11,30,0
-56,1,2,ÍµÇÔ,ÇÔÈ¡µĞ·½½ğÇ®¡£,8,0,1,0,0,0,5,38,32,skill_small,skill_coin,skill_coin,11,30,0
-57,1,2,¿ÕÏ®,¶ÔºóÅÅ1ÃûµĞÈËÔì³ÉÒ»´Î¹¥»÷¡£,4,1,1,0,0,0,11,38,34,skill_small,skill_arrow,skill_arrow,11,30,0
-58,1,2,³Í½ä,¶Ô1ÃûµĞÈËÔì³ÉÉËº¦£¬ÎŞÊÓËùÔÚÎ»ÖÃ¡£,4,2,1,0,0,0,5,38,35,skill_small,skill_spear,skill_spear,11,30,0
-59,1,2,×Ô±¬,ÎşÉü×Ô¼º¶ÔµĞ·½Ç°ÅÅºÍÖĞÅÅÔì³ÉÖÕ¼«ÉËº¦¡£,17,1,5,0,0,0,15,36,20,skill_explosion,damage_fire,damage_fire,11,30,0
-60,3,3,¾ÈÃü,µ±ÏàÁÚ1Ãû¶ÓÔ±ÊÜµ½ÉËº¦ºó£¬¶ÔÆä½øĞĞ»Ø¸´¡£,11,1,1,0,0,0,1,40,27,skill_large,skill_recover,skill_recover,12,50,0
-61,3,5,¸´³ğ,ÎªÏàÁÚ¶ÓÔ±µÖµ²ÉËº¦²¢ÇÒ·´»÷¡£,14,1,1,0,0,0,2,40,4,skill_large,hit_midium,damage_middle,12,50,0
-62,2,5,ÎşÉü,ÎªÏàÁÚ¶ÓÔ±µÖµ²ÉËº¦¡£,12,1,1,0,0,0,2,39,0,skill_midium,0,0,12,50,0
-63,3,5,°ÔÌå,ÎªËùÓĞ¶ÓÔ±µÖµ²ÉËº¦¡£,12,0,0,0,0,0,4,38,0,skill_small,0,0,12,50,0
-64,2,3,·´»÷,µ±ÊÜµ½¹¥»÷Ê±Ò»¶¨¼¸ÂÊ·´»÷¡£,13,1,1,0,0,0,1,38,4,skill_small,hit_midium,damage_middle,12,50,0
-65,4,4,±¦ÎïÁÔÈË,ÍÆÍ¼Ê±Ò»¶¨¼¸ÂÊ¼ñµ½½ğÇ®¡£,15,0,0,0,0,0,0,40,0,skill_large,0,0,11,30,0
-66,2,4,ÑøÉñ,Ôö¼ÓÍÆÍ¼Ê±ºó±¸¶ÓÔ±HP»Ø¸´Á¿¡£,0,0,0,0,0,0,0,0,0,0,0,0,11,30,0
-67,1,2,½ğÇ®¹¥»÷,ÈÓÇ®¶ÔµĞ·½Ôì³ÉÉËº¦£¬Ò»¶¨¼¸ÂÊÂé±Ô¡£,4,1,0.5,2,0.1,0,8,38,32,skill_small,skill_coin,skill_coin,12,50,0
-68,1,2,±¦Ê¯¹¥»÷,ÈÓ±¦Ê¯¶ÔµĞ·½Ôì³ÉÉËº¦£¬Ò»¶¨¼¸ÂÊÂé±Ô¡£,4,1,0.5,2,0.1,0,8,38,33,skill_small,skill_gem,skill_gem,12,50,0
-69,2,2,À×»÷,¶Ô1ÃûµĞÈËÔì³É´óÁ¿À×ÏµÉËº¦¡£,4,2,3,0,0,0,5,6,44,magic_small,hit_midium,damage_middle,11,30,0
-70,2,2,Áú¾í·ç,¶Ô1ÃûµĞÈËÔì³É´óÁ¿·çÏµÉËº¦¡£,4,2,3,0,0,0,5,6,22,magic_small,hit_small,damage_small,11,30,0
-71,2,2,º®±ùÊõ,¶Ô1ÃûµĞÈËÔì³É´óÁ¿±ùÏµÉËº¦¡£,4,2,3,0,0,0,5,6,21,magic_brrizard,damage_ice,damage_ice,11,30,0
-72,1,1,Õ½¸è1,Ôö¼ÓÈ«Ìå¶ÓÔ±·ÀÓù¡£,1,0,0.1,1,2,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-73,1,1,ÅØÏø1,Ôö¼ÓÈ«Ìå¶ÓÔ±¹¥»÷¡£,1,0,0.1,1,0,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-74,1,1,¼áÈÍ1,Ôö¼ÓÈ«Ìå¶ÓÔ±·ÀÓù¡£,1,0,0.1,2,0,0,4,7,10,magic_midium,increase_quard,increase_quard,13,70,0
-75,1,1,î£ÖÇ1,Ôö¼ÓÈ«Ìå¶ÓÔ±ÖÇÁ¦¡£,1,0,0.1,3,0,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
-76,1,1,¼²·ç1,Ôö¼ÓÈ«Ìå¶ÓÔ±Ãô½İ¡£,1,0,0.1,4,0,0,4,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
-77,1,1,ĞéÈõ1,½µµÍµĞ·½È«Ìå¶ÓÔ±¹¥»÷¡£,2,0,0.1,1,0,0,8,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
-78,1,1,ÆÆ·À1,½µµÍµĞ·½È«Ìå¶ÓÔ±·ÀÓù¡£,2,0,0.1,2,0,0,8,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
-79,1,1,×çÖä1,½µµÍµĞ·½È«Ìå¶ÓÔ±ÖÇÁ¦¡£,2,0,0.1,3,0,0,8,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
-80,1,1,»ºËÙ1,½µµÍµĞ·½È«Ìå¶ÓÔ±Ãô½İ¡£,2,0,0.1,4,0,0,8,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
-81,2,1,Õ½¸è2,Ôö¼ÓÈ«Ìå¶ÓÔ±·ÀÓù¡£,1,0,0.2,1,2,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-82,2,1,ÅØÏø2,Ôö¼ÓÈ«Ìå¶ÓÔ±¹¥»÷¡£,1,0,0.2,1,0,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-83,2,1,¼áÈÍ2,Ôö¼ÓÈ«Ìå¶ÓÔ±·ÀÓù¡£,1,0,0.2,2,0,0,4,7,10,magic_midium,increase_quard,increase_quard,13,70,0
-84,2,1,î£ÖÇ2,Ôö¼ÓÈ«Ìå¶ÓÔ±ÖÇÁ¦¡£,1,0,0.2,3,0,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
-85,2,1,¼²·ç2,Ôö¼ÓÈ«Ìå¶ÓÔ±Ãô½İ¡£,1,0,0.2,4,0,0,4,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
-86,2,1,ĞéÈõ2,½µµÍµĞ·½È«Ìå¶ÓÔ±¹¥»÷¡£,2,0,0.2,1,0,0,8,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
-87,2,1,ÆÆ·À2,½µµÍµĞ·½È«Ìå¶ÓÔ±·ÀÓù¡£,2,0,0.2,2,0,0,8,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
-88,2,1,×çÖä2,½µµÍµĞ·½È«Ìå¶ÓÔ±ÖÇÁ¦¡£,2,0,0.2,3,0,0,8,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
-89,2,1,»ºËÙ2,½µµÍµĞ·½È«Ìå¶ÓÔ±Ãô½İ¡£,2,0,0.2,4,0,0,8,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
-90,3,1,Õ½¸è3,Ôö¼ÓÈ«Ìå¶ÓÔ±·ÀÓù¡£,1,0,0.3,1,2,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-91,3,1,ÅØÏø3,Ôö¼ÓÈ«Ìå¶ÓÔ±¹¥»÷¡£,1,0,0.3,1,0,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-92,3,1,¼áÈÍ3,Ôö¼ÓÈ«Ìå¶ÓÔ±·ÀÓù¡£,1,0,0.3,2,0,0,4,7,10,magic_midium,increase_quard,increase_quard,13,70,0
-93,3,1,î£ÖÇ3,Ôö¼ÓÈ«Ìå¶ÓÔ±ÖÇÁ¦¡£,1,0,0.3,3,0,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
-94,3,1,¼²·ç3,Ôö¼ÓÈ«Ìå¶ÓÔ±Ãô½İ¡£,1,0,0.3,4,0,0,4,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
-95,3,1,ĞéÈõ3,½µµÍµĞ·½È«Ìå¶ÓÔ±¹¥»÷¡£,2,0,0.3,1,0,0,8,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
-96,3,1,ÆÆ·À3,½µµÍµĞ·½È«Ìå¶ÓÔ±·ÀÓù¡£,2,0,0.3,2,0,0,8,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
-97,3,1,×çÖä3,½µµÍµĞ·½È«Ìå¶ÓÔ±ÖÇÁ¦¡£,2,0,0.3,3,0,0,8,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
-98,3,1,»ºËÙ3,½µµÍµĞ·½È«Ìå¶ÓÔ±Ãô½İ¡£,2,0,0.3,4,0,0,8,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
-99,4,1,Õ½¸è4,Ôö¼ÓÈ«Ìå¶ÓÔ±·ÀÓù¡£,1,0,0.4,1,2,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-100,4,1,ÅØÏø4,Ôö¼ÓÈ«Ìå¶ÓÔ±¹¥»÷¡£,1,0,0.4,1,0,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-101,4,1,¼áÈÍ4,Ôö¼ÓÈ«Ìå¶ÓÔ±·ÀÓù¡£,1,0,0.4,2,0,0,4,7,10,magic_midium,increase_quard,increase_quard,13,70,0
-102,4,1,î£ÖÇ4,Ôö¼ÓÈ«Ìå¶ÓÔ±ÖÇÁ¦¡£,1,0,0.4,3,0,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
-103,4,1,¼²·ç4,Ôö¼ÓÈ«Ìå¶ÓÔ±Ãô½İ¡£,1,0,0.4,4,0,0,4,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
-104,4,1,ĞéÈõ4,½µµÍµĞ·½È«Ìå¶ÓÔ±¹¥»÷¡£,2,0,0.4,1,0,0,8,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
-105,4,1,ÆÆ·À4,½µµÍµĞ·½È«Ìå¶ÓÔ±·ÀÓù¡£,2,0,0.4,2,0,0,8,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
-106,4,1,×çÖä4,½µµÍµĞ·½È«Ìå¶ÓÔ±ÖÇÁ¦¡£,2,0,0.4,3,0,0,8,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
-107,4,1,»ºËÙ4,½µµÍµĞ·½È«Ìå¶ÓÔ±Ãô½İ¡£,2,0,0.4,4,0,0,8,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
-108,4,2,±ù·ç±©,¶ÔµĞ·½ËùÓĞ¶ÓÔ±Ôì³É´óÁ¿±ùÏµÉËº¦¡£,4,2,2,0,0,0,8,18,21,magic_large,damage_ice,damage_ice,11,30,2
-109,4,2,Ê®Íò·üÌØ,¶ÔµĞ·½ËùÓĞ¶ÓÔ±Ôì³É´óÁ¿À×ÏµÉËº¦,4,2,2,0,0,0,8,8,44,magic_large,hit_midium,damage_middle,11,30,0
-110,4,2,Ë²Ó°É±,¶ÔµĞ·½È«Ìå¶ÓÔ±Ôì³É»ùÓÚÃô½İµÄ´óÁ¿ÉËº¦¡£,4,3,2,0,0,0,8,40,22,skill_large,damage_wind,damage_wind,11,30,0
-111,2,2,Ø¬ÃÎ,¶Ô3ÃûµĞÈËÔì³É»ùÓÚÖÇÁ¦µÄÉËº¦¡£,4,2,1,0,0,0,16,6,22,magic_small,damage_wind,damage_wind,11,30,0
-112,2,2,Ò°Âù´ò»÷,¶ÔµĞ·½ÈıÃû¶ÓÔ±Ôì³ÉÒ»´Î»ùÓÚ¹¥»÷µÄÉËº¦¡£,3,1,1,0,0,0,16,38,22,skill_small,damage_wind,damage_wind,11,30,0
-113,2,2,À×ÁéÊõ,¶Ô3ÃûµĞÈËÔì³ÉÉËº¦£¬ÇÒÒ»¶¨¼¸ÂÊÂé±Ô¡£,4,2,1,2,0.3,0,7,6,44,magic_small,status_stun,status_stun,11,30,0
-114,4,2,´Å±©,¶Ô3ÃûµĞÈËÔì³É´óÁ¿À×ÏµÉËº¦¡£,4,2,2.5,0,0,0,7,8,44,magic_large,hit_midium,damage_middle,11,30,0
-115,3,2,¾ç¶¾ÇÖÏ®,¶Ô3ÃûµĞÈËÔì³É¶¾ÉËº¦¡£,3,1,1.5,1,1,0,16,39,23,skill_midium,damage_poison,damage_poison,11,30,0
-116,4,2,ÈºÌå»Ø¸´Êõ,»Ø¸´ËùÓĞ¶ÓÔ±ÉÙÁ¿HP¡£,18,4,0.7,0,0,0,4,8,27,magic_large,skill_recover,skill_recover,11,30,0
-117,3,2,»ğÇòÊõ,ÕÙ»½»ğÇò¶ÔµĞ·½ËùÓĞ¶ÓÔ±Ôì³ÉÉËº¦¡£,4,2,1,0,0,0,8,8,20,magic_large,damage_fire,damage_fire,11,30,2
-118,3,2,ºáÉ¨Ç§¾ü,¶ÔµĞ·½È«Ìå¶ÓÔ±Ôì³ÉÒ»´Î»ùÓÚ¹¥»÷µÄÉËº¦¡£,3,1,1,0,0,0,8,39,4,skill_midium,hit_midium,damage_middle,11,30,0
-119,4,2,ÉÁµç·ç±©,ÕÙ»½ÉÁµç¶ÔËæ»ú6ÃûµĞÈËÔì³ÉÉËº¦¡£,4,2,0.9,0,0,0,17,8,44,magic_large,hit_midium,damage_middle,11,30,0
-120,4,1,Ê¥ÓÓ2,Ôö¼ÓÈ«Ìå¶ÓÔ±ÖÇÁ¦ºÍ·ÀÓù¡£,1,0,0.2,3,2,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
-121,3,2,Í»Ï®,¶Ô3ÃûµĞÈËÔì³É»ùÓÚ¹¥»÷µÄÉËº¦£¬ÇÒÎŞÊÓÎ»ÖÃ¡£,4,1,1.2,0,0,0,16,38,4,skill_small,hit_small,damage_small,11,30,0
-122,3,2,¼ùÌ¤,¶ÔÇ°ÅÅµĞÈËÔì³É´óÁ¿ÉËº¦¡£,3,1,1.5,0,0,0,12,39,4,skill_midium,hit_midium,damage_middle,11,30,0
-123,4,2,»ğÈ­,¶ÔËæ»ú3ÃûµĞÈËÔì³É´óÁ¿»ğÑæÉËº¦¡£,3,1,1.7,0,0,0,16,38,20,skill_small,damage_fire,damage_fire,11,30,0
-124,4,2,±ùÈ­,¶ÔËæ»ú3ÃûµĞÈËÔì³É´óÁ¿±ùÏµÉËº¦¡£,3,1,1.7,0,0,0,16,38,21,skill_small,damage_ice,damage_ice,11,30,0
-125,4,5,°ÔÌå·´»÷,ÎªËùÓĞ¶ÓÔ±µÖµ²ÉËº¦²¢ÇÒ·´»÷¡£,14,1,1,0,0,0,4,40,4,skill_large,hit_midium,damage_middle,12,50,0
-126,3,2,¼ıÓê,¶ÔºóÅÅËæ»ú3ÃûµĞÈËÔì³ÉÉËº¦¡£,4,1,1.5,0,0,0,18,39,34,skill_midium,skill_arrow,skill_arrow,11,30,0
-127,2,2,¶¾´Ì,¶ÔËæ»ú3ÃûµĞÈËÔì³É¶¾ÉËº¦¡£,4,2,1,1,0.3,0,16,6,23,magic_small,damage_poison,damage_poison,11,30,0
-128,4,2,±©·çÑ©,¶Ô3ÃûµĞÈËÔì³É´óÁ¿ÉËº¦£¬ÇÒÒ»¶¨¼¸ÂÊ±ù¶³¡£,4,2,2.3,3,0.3,0,7,8,21,magic_brrizard,damage_ice,damage_ice,11,30,0
-129,2,2,×ÆÉÕ,¶Ô3ÃûµĞÈËÔì³ÉÉËº¦¡£,4,2,1,0,0,0,16,6,20,magic_small,damage_fire,damage_fire,11,30,0
-130,3,2,À×ÁúÉÁ,¶Ô1ÃûµĞÈËÔì³É¼«ÏŞÀ×ÏµÉËº¦¡£,4,1,4,0,0,0,11,39,5,skill_midium,hit_large,damage_large,11,30,0
-131,3,2,Ç¿Ï®,¶ÔµĞ·½È«Ìå¶ÓÔ±Ôì³É»ùÓÚ¹¥»÷µÄÉËº¦£¬ÇÒÎŞÊÓÎ»ÖÃ¡£,4,1,1,0,0,0,8,39,35,skill_midium,hit_midium,damage_middle,11,30,0
-132,4,1,±©Å­2,Ôö¼ÓÈ«Ìå¶ÓÔ±µÄ¹¥»÷ºÍÃô½İ¡£,1,0,0.2,1,4,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
-133,3,1,ÎïÀí¶Ü2,¼õÉÙÈ«Ìå¶ÓÔ±ÎïÀíÉËº¦¡£,1,0,0.4,5,0,0,4,7,49,magic_midium,increase_quard,increase_quard,13,70,0
-134,3,1,Ä§·¨¶Ü2,¼õÉÙÈ«Ìå¶ÓÔ±Ä§·¨ÉËº¦¡£,1,0,0.4,6,0,0,4,7,52,magic_midium,increase_inteligence,increase_inteligence,13,70,0
-135,3,1,ÍÂÏ¢¶Ü2,¼õÉÙÈ«Ìå¶ÓÔ±ÍÂÏ¢ÉËº¦¡£,1,0,0.4,7,0,0,4,7,53,magic_midium,increase_inteligence,increase_inteligence,13,70,0
-136,3,1,ÍÂÏ¢¶Ü,¼õÉÙ×Ô¼º¼°×óÓÒ¶ÓÔ±ÍÂÏ¢ÉËº¦¡£,1,0,0.7,7,0,0,3,7,53,magic_midium,increase_inteligence,increase_inteligence,13,70,0
-137,3,2,·âÓ¡Õ¶,¶ÔËæ»ú4ÃûµĞÈËÔì³ÉÎïÀíÉËº¦£¬²¢ÇÒÒ»¶¨¼¸ÂÊ³ÁÄ¬¶Ô·½¡£,3,1,1,5,0.3,3,19,39,46,skill_midium,hit_midium,damage_middle,11,30,0
-138,4,2,ì«·çÕ¶,¶ÔËæ»ú2ÃûµĞÈËÔì³É´óÁ¿ÎïÀíÉËº¦¡£,3,1,3,0,0,0,23,39,4,skill_midium,hit_midium,damage_middle,11,30,1
-139,3,2,¿ñ·çÕ¶,¶ÔËæ»ú2ÃûµĞÈËÔì³ÉÎïÀíÉËº¦¡£,3,1,2,0,0,0,23,38,3,skill_small,hit_small,damage_small,11,30,1
-140,2,2,µçÈ­,¹¥»÷Ê±ÓĞ½Ï¸ß¼¸ÂÊÔì³ÉµĞ·½Âé±Ô¡£,3,1,1,2,0.7,0,5,6,26,magic_small,status_stun,status_stun,13,70,0
-141,4,2,ÁÒÑæ·ç±©,¶ÔËæ»ú6ÃûµĞÈËÔì³É»ğÏµÉËº¦¡£,4,2,0.9,0,0,0,17,8,20,magic_large,damage_fire,damage_fire,11,30,0
-142,4,2,±¬ÁÑÕ¶,¶ÔËæ»ú5ÃûµĞÈËÔì³ÉÎïÀíÉËº¦¡£,3,1,0.9,0,0,0,20,40,3,skill_large,hit_small,damage_small,11,30,1
-143,4,2,ËÀÍöÊ¢Ñç,¶ÔµĞ·½ËùÓĞ¶ÓÔ±Ôì³ÉÉËº¦£¬ÇÒÒ»¶¨¼¸ÂÊÃëÉ±¡£,7,1,1,0.1,0,0,8,39,30,skill_midium,skill_critical_hit,skill_critical_hit,11,30,0
+23,3,2,ç«ç‚åæ¯,å°2åæ•µäººé€ æˆå¤§é‡ç«ç³»å‚·å®³ã€‚,4,2,2.5,0,0,0,7,17,20,magic_fire,damage_fire,damage_fire,11,30,3
+24,4,2,å†°éœœåæ¯,å°æ•µæ–¹æ‰€æœ‰éšŠå“¡é€ æˆå¤§é‡å†°ç³»å‚·å®³ï¼Œä¸”ä¸€å®šå‡ ç‡å†°å‡ã€‚,4,2,2,3,0.3,0,7,18,21,magic_brrizard,damage_ice,damage_ice,11,30,3
+25,2,2,åŠ‡æ¯’åæ¯,å°3åæ•µäººé€ æˆæ¯’ç³»åæ¯å‚·å®³ã€‚,4,2,1,1,1,0,7,19,23,magic_poison,damage_poison,damage_poison,11,30,3
+26,2,2,æ²»æ„ˆæœ®,å›å¾©å·¦å³éšŠå‹å°‘é‡HPã€‚,18,4,0.5,0,0,0,2,7,27,magic_midium,skill_recover,skill_recover,11,30,0
+27,3,2,é«˜ç´šæ²»æ„ˆæœ®,å›å¾©å·¦å³éšŠå‹å¤§é‡HPã€‚,18,4,1,0,0,0,2,7,27,magic_midium,skill_recover,skill_recover,11,30,0
+28,1,2,æ¯’ç‰™,å°1åæ•µäººé€ æˆæ¯’å‚·å®³ã€‚,4,2,1,1,1,0,5,6,23,magic_small,damage_poison,damage_poison,11,30,0
+29,1,2,çºç¹,å°1åæ•µäººé€ æˆå‚·å®³ï¼Œä¸”ä¸€å®šå‡ ç‡æŸç¸›ã€‚,4,2,1,2,0.3,0,5,6,26,magic_small,status_stun,status_stun,11,30,0
+30,3,2,å³æ­»,å°æ•µæ–¹1åæ•µäººé€ æˆå‚·å®³ï¼Œä¸”ä¸€å®šå‡ ç‡ç§’æ®ºã€‚,7,1,1,0.3,0,0,5,39,30,skill_midium,skill_critical_hit,skill_critical_hit,11,30,0
+31,2,2,è¯åˆæ”»æ“Š,è¯åˆ1åç›¸é„°éšŠå“¡ä¸€èµ·æ”»æ“Šã€‚,5,1,1,1,0,0,1,39,4,skill_midium,hit_midium,damage_middle,11,30,0
+32,3,2,è²ªå©ª,ç«Šå–æ•µæ–¹é‡‘éŒ¢å’Œé“å…·ã€‚,8,0,2,0,0,0,5,38,33,skill_small,skill_gem,skill_gem,11,30,0
+33,4,2,é¢¨ä¹‹å“€åš,å°éš¨æ©Ÿ3åæ•µäººé€ æˆå¤§é‡åŸºæ–¼æ•æ·çš„å‚·å®³ã€‚,3,3,2.5,0,0,0,16,40,22,skill_large,damage_wind,damage_wind,11,30,0
+34,3,2,å­¤æ³¨ä¸€æ“²,å°1åæ•µäººé€ æˆæ¥µé™å‚·å®³ã€‚,3,1,4,0,0,0,5,39,5,skill_midium,hit_large,damage_large,11,30,0
+35,2,2,ç²¾å‡†æ‰“æ“ŠÂ·å‰,å°å‰æ’æ•µäººé€ æˆå‚·å®³ã€‚,3,1,1,0,0,0,12,38,4,skill_small,hit_midium,damage_middle,11,30,0
+36,2,2,ç²¾å‡†æ‰“æ“ŠÂ·ä¸­,å°ä¸­æ’æ•µäººé€ æˆå‚·å®³ã€‚,3,1,1,0,0,0,13,38,4,skill_small,hit_midium,damage_middle,11,30,0
+37,2,2,ç²¾å‡†æ‰“æ“ŠÂ·å,å°åæ’æ•µäººé€ æˆå‚·å®³ã€‚,3,1,1,0,0,0,14,38,4,skill_small,hit_midium,damage_middle,11,30,0
+38,1,2,å›å¾©æœ®,å›å¾©1åç›¸é„°éšŠå‹å°‘é‡HPã€‚,18,4,0.5,0,0,0,1,7,27,skill_small,skill_recover,skill_recover,11,30,0
+39,2,2,é«˜ç´šå›å¾©æœ®,å›å¾©1åç›¸é„°éšŠå‹å¤§é‡HPã€‚,18,4,1,0,0,0,1,7,27,skill_small,skill_recover,skill_recover,11,30,0
+40,2,2,ç«ç‚æ‰“æ“Š,å°1åæ•µäººé€ æˆå¤§é‡ç«ç³»å‚·å®³ã€‚,4,2,3,0,0,0,5,6,20,magic_small,damage_fire,damage_fire,11,30,0
+41,2,2,å†°å‡æœ®,å°3åæ•µäººé€ æˆå‚·å®³ï¼Œä¸”ä¸€å®šå‡ ç‡å†°å‡ã€‚,4,2,1,3,0.3,0,7,6,21,magic_brrizard,damage_ice,damage_ice,11,30,0
+42,3,2,é›·æš´æœ®,å°æ•µæ–¹æ‰€æœ‰éšŠå“¡é€ æˆä¸€æ¬¡é›·ç³»å‚·å®³ã€‚,4,2,0.7,0,0,0,8,7,44,magic_small,hit_small,damage_small,11,30,0
+43,2,2,ç¬é–ƒæ®º,å°æ•µæ–¹3åéšŠå“¡é€ æˆåŸºæ–¼æ•æ·çš„å‚·å®³ã€‚,3,3,1,0,0,0,16,38,22,skill_small,damage_wind,damage_wind,11,30,0
+44,2,2,å…‹å·±,ä¼‘æ¯ä¸€æœƒåˆï¼Œä¸‹å›åˆå°2åæ•µäººé€ æˆæ¥µé™å‚·å®³ã€‚,9,1,4,0,0,0,5,31,4,skill_power,hit_midium,damage_middle,11,30,0
+45,2,2,è¶…é‡æ“Š,å°1åæ•µäººé€ æˆå·¨å¤§å‚·å®³ã€‚,3,1,3,0,0,0,5,38,4,skill_small,hit_midium,damage_middle,11,30,0
+46,2,2,ä¸‰é€£æ“Š,æ”»æ“Š3åæ•µæ–¹éšŠå“¡ã€‚,3,1,1,0,0,0,16,38,3,skill_small,hit_small,damage_small,11,30,0
+47,2,2,çœŸç©ºæ³¢,å°æ•µæ–¹å‰æ’éšŠå“¡é€ æˆå¤§é‡å‚·å®³ã€‚,4,2,2,0,0,0,12,7,20,magic_midium,damage_fire,damage_fire,11,30,0
+48,2,2,å´©å¡Œ,å°2åæ•µäººé€ æˆå‚·å®³ï¼Œç„¡è¦–æ‰€åœ¨ä½ç½®ã€‚,4,1,1,0,0,0,6,38,3,skill_small,hit_small,damage_small,11,30,0
+49,2,2,å…ƒæ°£å½ˆ,å°åæ’3åæ•µäººé€ æˆä¸€æ¬¡æ”»æ“Šã€‚,4,1,1,0,0,0,18,38,3,skill_small,hit_small,damage_small,11,30,0
+50,1,2,é‡æ“Š,å°1åæ•µäººé€ æˆå¤§é‡å‚·å®³ã€‚,3,1,2,0,0,0,5,38,4,skill_small,hit_midium,damage_middle,11,30,0
+51,1,2,äºŒé€£æ“Š,æ”»æ“Š2åæ•µæ–¹éšŠå“¡ã€‚,3,1,1,0,0,0,6,38,3,skill_small,hit_small,damage_small,11,30,0
+52,1,2,å°å–‰,å°1åæ•µäººé€ æˆåŸºæ–¼æ•æ·çš„å‚·å®³ã€‚,3,3,2,0,0,0,5,38,22,skill_small,damage_wind,damage_wind,11,30,0
+53,1,2,èšæ°£,ä¼‘æ¯ä¸€æœƒåˆï¼Œä¸‹å›åˆå°1åæ•µäººé€ æˆå·¨å¤§å‚·å®³ã€‚,9,1,3,0,0,0,5,38,4,skill_small,hit_midium,damage_middle,11,30,0
+54,1,2,æ¯’åˆƒ,è‡´1åæ•µäººä¸­æ¯’ã€‚,3,1,1,1,1,0,5,38,23,skill_small,damage_poison,damage_poison,11,30,0
+55,1,2,è‡´æ®˜,å°æ•µæ–¹é€ æˆå‚·å®³çš„åŒæ™‚è‡´å…¶æ®˜å»¢ï¼Œåœæ­¢ä¸€å›åˆè¡Œå‹•ã€‚,3,1,0.5,4,1,0,5,38,42,skill_small,hit_small,damage_small,11,30,0
+56,1,2,å·ç«Š,ç«Šå–æ•µæ–¹é‡‘éŒ¢ã€‚,8,0,1,0,0,0,5,38,32,skill_small,skill_coin,skill_coin,11,30,0
+57,1,2,ç©ºè¥²,å°åæ’1åæ•µäººé€ æˆä¸€æ¬¡æ”»æ“Šã€‚,4,1,1,0,0,0,11,38,34,skill_small,skill_arrow,skill_arrow,11,30,0
+58,1,2,æ‡²æˆ’,å°1åæ•µäººé€ æˆå‚·å®³ï¼Œç„¡è¦–æ‰€åœ¨ä½ç½®ã€‚,4,2,1,0,0,0,5,38,35,skill_small,skill_spear,skill_spear,11,30,0
+59,1,2,è‡ªçˆ†,çŠ§ç‰²è‡ªå·±å°æ•µæ–¹å‰æ’å’Œä¸­æ’é€ æˆçµ‚æ¥µå‚·å®³ã€‚,17,1,5,0,0,0,15,36,20,skill_explosion,damage_fire,damage_fire,11,30,0
+60,3,3,æ•‘å‘½,ç•¶ç›¸é„°1åéšŠå“¡å—åˆ°å‚·å®³åï¼Œå°å…¶é€²è¡Œå›å¾©ã€‚,11,1,1,0,0,0,1,40,27,skill_large,skill_recover,skill_recover,12,50,0
+61,3,5,å¾©ä»‡,ç‚ºç›¸é„°éšŠå“¡æŠµæ“‹å‚·å®³å¹¶ä¸”åæ“Šã€‚,14,1,1,0,0,0,2,40,4,skill_large,hit_midium,damage_middle,12,50,0
+62,2,5,çŠ§ç‰²,ç‚ºç›¸é„°éšŠå“¡æŠµæ“‹å‚·å®³ã€‚,12,1,1,0,0,0,2,39,0,skill_midium,0,0,12,50,0
+63,3,5,éœ¸é«”,ç‚ºæ‰€æœ‰éšŠå“¡æŠµæ“‹å‚·å®³ã€‚,12,0,0,0,0,0,4,38,0,skill_small,0,0,12,50,0
+64,2,3,åæ“Š,ç•¶å—åˆ°æ”»æ“Šæ™‚ä¸€å®šå‡ ç‡åæ“Šã€‚,13,1,1,0,0,0,1,38,4,skill_small,hit_midium,damage_middle,12,50,0
+65,4,4,å¯¶ç‰©çµäºº,æ¨åœ–æ™‚ä¸€å®šå‡ ç‡æ’¿åˆ°é‡‘éŒ¢ã€‚,15,0,0,0,0,0,0,40,0,skill_large,0,0,11,30,0
+66,2,4,é¤Šç¥,å¢åŠ æ¨åœ–æ™‚åå‚™éšŠå“¡HPå›å¾©é‡ã€‚,0,0,0,0,0,0,0,0,0,0,0,0,11,30,0
+67,1,2,é‡‘éŒ¢æ”»æ“Š,æ‰”éŒ¢å°æ•µæ–¹é€ æˆå‚·å®³ï¼Œä¸€å®šå‡ ç‡éº»ç—ºã€‚,4,1,0.5,2,0.1,0,8,38,32,skill_small,skill_coin,skill_coin,12,50,0
+68,1,2,å¯¶çŸ³æ”»æ“Š,æ‰”å¯¶çŸ³å°æ•µæ–¹é€ æˆå‚·å®³ï¼Œä¸€å®šå‡ ç‡éº»ç—ºã€‚,4,1,0.5,2,0.1,0,8,38,33,skill_small,skill_gem,skill_gem,12,50,0
+69,2,2,é›·æ“Š,å°1åæ•µäººé€ æˆå¤§é‡é›·ç³»å‚·å®³ã€‚,4,2,3,0,0,0,5,6,44,magic_small,hit_midium,damage_middle,11,30,0
+70,2,2,é¾å·é¢¨,å°1åæ•µäººé€ æˆå¤§é‡é¢¨ç³»å‚·å®³ã€‚,4,2,3,0,0,0,5,6,22,magic_small,hit_small,damage_small,11,30,0
+71,2,2,å¯’å†°æœ®,å°1åæ•µäººé€ æˆå¤§é‡å†°ç³»å‚·å®³ã€‚,4,2,3,0,0,0,5,6,21,magic_brrizard,damage_ice,damage_ice,11,30,0
+72,1,1,æˆ°æ­Œ1,å¢åŠ å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,1,0,0.1,1,2,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+73,1,1,å’†å“®1,å¢åŠ å…¨é«”éšŠå“¡æ”»æ“Šã€‚,1,0,0.1,1,0,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+74,1,1,å …éŸŒ1,å¢åŠ å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,1,0,0.1,2,0,0,4,7,10,magic_midium,increase_quard,increase_quard,13,70,0
+75,1,1,ç¿æ™º1,å¢åŠ å…¨é«”éšŠå“¡æ™ºåŠ›ã€‚,1,0,0.1,3,0,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
+76,1,1,ç–¾é¢¨1,å¢åŠ å…¨é«”éšŠå“¡æ•æ·ã€‚,1,0,0.1,4,0,0,4,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
+77,1,1,è™›å¼±1,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ”»æ“Šã€‚,2,0,0.1,1,0,0,8,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
+78,1,1,ç ´é˜²1,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,2,0,0.1,2,0,0,8,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
+79,1,1,è©›å’’1,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ™ºåŠ›ã€‚,2,0,0.1,3,0,0,8,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
+80,1,1,ç·©é€Ÿ1,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ•æ·ã€‚,2,0,0.1,4,0,0,8,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
+81,2,1,æˆ°æ­Œ2,å¢åŠ å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,1,0,0.2,1,2,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+82,2,1,å’†å“®2,å¢åŠ å…¨é«”éšŠå“¡æ”»æ“Šã€‚,1,0,0.2,1,0,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+83,2,1,å …éŸŒ2,å¢åŠ å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,1,0,0.2,2,0,0,4,7,10,magic_midium,increase_quard,increase_quard,13,70,0
+84,2,1,ç¿æ™º2,å¢åŠ å…¨é«”éšŠå“¡æ™ºåŠ›ã€‚,1,0,0.2,3,0,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
+85,2,1,ç–¾é¢¨2,å¢åŠ å…¨é«”éšŠå“¡æ•æ·ã€‚,1,0,0.2,4,0,0,4,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
+86,2,1,è™›å¼±2,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ”»æ“Šã€‚,2,0,0.2,1,0,0,8,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
+87,2,1,ç ´é˜²2,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,2,0,0.2,2,0,0,8,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
+88,2,1,è©›å’’2,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ™ºåŠ›ã€‚,2,0,0.2,3,0,0,8,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
+89,2,1,ç·©é€Ÿ2,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ•æ·ã€‚,2,0,0.2,4,0,0,8,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
+90,3,1,æˆ°æ­Œ3,å¢åŠ å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,1,0,0.3,1,2,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+91,3,1,å’†å“®3,å¢åŠ å…¨é«”éšŠå“¡æ”»æ“Šã€‚,1,0,0.3,1,0,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+92,3,1,å …éŸŒ3,å¢åŠ å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,1,0,0.3,2,0,0,4,7,10,magic_midium,increase_quard,increase_quard,13,70,0
+93,3,1,ç¿æ™º3,å¢åŠ å…¨é«”éšŠå“¡æ™ºåŠ›ã€‚,1,0,0.3,3,0,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
+94,3,1,ç–¾é¢¨3,å¢åŠ å…¨é«”éšŠå“¡æ•æ·ã€‚,1,0,0.3,4,0,0,4,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
+95,3,1,è™›å¼±3,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ”»æ“Šã€‚,2,0,0.3,1,0,0,8,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
+96,3,1,ç ´é˜²3,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,2,0,0.3,2,0,0,8,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
+97,3,1,è©›å’’3,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ™ºåŠ›ã€‚,2,0,0.3,3,0,0,8,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
+98,3,1,ç·©é€Ÿ3,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ•æ·ã€‚,2,0,0.3,4,0,0,8,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
+99,4,1,æˆ°æ­Œ4,å¢åŠ å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,1,0,0.4,1,2,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+100,4,1,å’†å“®4,å¢åŠ å…¨é«”éšŠå“¡æ”»æ“Šã€‚,1,0,0.4,1,0,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+101,4,1,å …éŸŒ4,å¢åŠ å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,1,0,0.4,2,0,0,4,7,10,magic_midium,increase_quard,increase_quard,13,70,0
+102,4,1,ç¿æ™º4,å¢åŠ å…¨é«”éšŠå“¡æ™ºåŠ›ã€‚,1,0,0.4,3,0,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
+103,4,1,ç–¾é¢¨4,å¢åŠ å…¨é«”éšŠå“¡æ•æ·ã€‚,1,0,0.4,4,0,0,4,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
+104,4,1,è™›å¼±4,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ”»æ“Šã€‚,2,0,0.4,1,0,0,8,7,13,magic_midium,decrease_attack,decrease_attack,13,70,0
+105,4,1,ç ´é˜²4,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡é˜²å¾¡ã€‚,2,0,0.4,2,0,0,8,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
+106,4,1,è©›å’’4,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ™ºåŠ›ã€‚,2,0,0.4,3,0,0,8,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
+107,4,1,ç·©é€Ÿ4,é™ä½æ•µæ–¹å…¨é«”éšŠå“¡æ•æ·ã€‚,2,0,0.4,4,0,0,8,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
+108,4,2,å†°é¢¨æš´,å°æ•µæ–¹æ‰€æœ‰éšŠå“¡é€ æˆå¤§é‡å†°ç³»å‚·å®³ã€‚,4,2,2,0,0,0,8,18,21,magic_large,damage_ice,damage_ice,11,30,2
+109,4,2,åè¬ä¼ç‰¹,å°æ•µæ–¹æ‰€æœ‰éšŠå“¡é€ æˆå¤§é‡é›·ç³»å‚·å®³,4,2,2,0,0,0,8,8,44,magic_large,hit_midium,damage_middle,11,30,0
+110,4,2,ç¬å½±æ®º,å°æ•µæ–¹å…¨é«”éšŠå“¡é€ æˆåŸºæ–¼æ•æ·çš„å¤§é‡å‚·å®³ã€‚,4,3,2,0,0,0,8,40,22,skill_large,damage_wind,damage_wind,11,30,0
+111,2,2,å™©å¤¢,å°3åæ•µäººé€ æˆåŸºæ–¼æ™ºåŠ›çš„å‚·å®³ã€‚,4,2,1,0,0,0,16,6,22,magic_small,damage_wind,damage_wind,11,30,0
+112,2,2,é‡è »æ‰“æ“Š,å°æ•µæ–¹ä¸‰åéšŠå“¡é€ æˆä¸€æ¬¡åŸºæ–¼æ”»æ“Šçš„å‚·å®³ã€‚,3,1,1,0,0,0,16,38,22,skill_small,damage_wind,damage_wind,11,30,0
+113,2,2,é›·éˆæœ®,å°3åæ•µäººé€ æˆå‚·å®³ï¼Œä¸”ä¸€å®šå‡ ç‡éº»ç—ºã€‚,4,2,1,2,0.3,0,7,6,44,magic_small,status_stun,status_stun,11,30,0
+114,4,2,ç£æš´,å°3åæ•µäººé€ æˆå¤§é‡é›·ç³»å‚·å®³ã€‚,4,2,2.5,0,0,0,7,8,44,magic_large,hit_midium,damage_middle,11,30,0
+115,3,2,åŠ‡æ¯’ä¾µè¥²,å°3åæ•µäººé€ æˆæ¯’å‚·å®³ã€‚,3,1,1.5,1,1,0,16,39,23,skill_midium,damage_poison,damage_poison,11,30,0
+116,4,2,ç¾¤é«”å›å¾©æœ®,å›å¾©æ‰€æœ‰éšŠå“¡å°‘é‡HPã€‚,18,4,0.7,0,0,0,4,8,27,magic_large,skill_recover,skill_recover,11,30,0
+117,3,2,ç«çƒæœ®,å¬å–šç«çƒå°æ•µæ–¹æ‰€æœ‰éšŠå“¡é€ æˆå‚·å®³ã€‚,4,2,1,0,0,0,8,8,20,magic_large,damage_fire,damage_fire,11,30,2
+118,3,2,æ©«æƒåƒè»,å°æ•µæ–¹å…¨é«”éšŠå“¡é€ æˆä¸€æ¬¡åŸºæ–¼æ”»æ“Šçš„å‚·å®³ã€‚,3,1,1,0,0,0,8,39,4,skill_midium,hit_midium,damage_middle,11,30,0
+119,4,2,é–ƒé›»é¢¨æš´,å¬å–šé–ƒé›»å°éš¨æ©Ÿ6åæ•µäººé€ æˆå‚·å®³ã€‚,4,2,0.9,0,0,0,17,8,44,magic_large,hit_midium,damage_middle,11,30,0
+120,4,1,è–ä½‘2,å¢åŠ å…¨é«”éšŠå“¡æ™ºåŠ›å’Œé˜²å¾¡ã€‚,1,0,0.2,3,2,0,4,7,12,magic_midium,increase_inteligence,increase_inteligence,13,70,0
+121,3,2,çªè¥²,å°3åæ•µäººé€ æˆåŸºæ–¼æ”»æ“Šçš„å‚·å®³ï¼Œä¸”ç„¡è¦–ä½ç½®ã€‚,4,1,1.2,0,0,0,16,38,4,skill_small,hit_small,damage_small,11,30,0
+122,3,2,è¸è¸,å°å‰æ’æ•µäººé€ æˆå¤§é‡å‚·å®³ã€‚,3,1,1.5,0,0,0,12,39,4,skill_midium,hit_midium,damage_middle,11,30,0
+123,4,2,ç«æ‹³,å°éš¨æ©Ÿ3åæ•µäººé€ æˆå¤§é‡ç«ç„°å‚·å®³ã€‚,3,1,1.7,0,0,0,16,38,20,skill_small,damage_fire,damage_fire,11,30,0
+124,4,2,å†°æ‹³,å°éš¨æ©Ÿ3åæ•µäººé€ æˆå¤§é‡å†°ç³»å‚·å®³ã€‚,3,1,1.7,0,0,0,16,38,21,skill_small,damage_ice,damage_ice,11,30,0
+125,4,5,éœ¸é«”åæ“Š,ç‚ºæ‰€æœ‰éšŠå“¡æŠµæ“‹å‚·å®³å¹¶ä¸”åæ“Šã€‚,14,1,1,0,0,0,4,40,4,skill_large,hit_midium,damage_middle,12,50,0
+126,3,2,ç®­é›¨,å°åæ’éš¨æ©Ÿ3åæ•µäººé€ æˆå‚·å®³ã€‚,4,1,1.5,0,0,0,18,39,34,skill_midium,skill_arrow,skill_arrow,11,30,0
+127,2,2,æ¯’åˆº,å°éš¨æ©Ÿ3åæ•µäººé€ æˆæ¯’å‚·å®³ã€‚,4,2,1,1,0.3,0,16,6,23,magic_small,damage_poison,damage_poison,11,30,0
+128,4,2,æš´é¢¨é›ª,å°3åæ•µäººé€ æˆå¤§é‡å‚·å®³ï¼Œä¸”ä¸€å®šå‡ ç‡å†°å‡ã€‚,4,2,2.3,3,0.3,0,7,8,21,magic_brrizard,damage_ice,damage_ice,11,30,0
+129,2,2,ç¼ç‡’,å°3åæ•µäººé€ æˆå‚·å®³ã€‚,4,2,1,0,0,0,16,6,20,magic_small,damage_fire,damage_fire,11,30,0
+130,3,2,é›·é¾é–ƒ,å°1åæ•µäººé€ æˆæ¥µé™é›·ç³»å‚·å®³ã€‚,4,1,4,0,0,0,11,39,5,skill_midium,hit_large,damage_large,11,30,0
+131,3,2,å¼·è¥²,å°æ•µæ–¹å…¨é«”éšŠå“¡é€ æˆåŸºæ–¼æ”»æ“Šçš„å‚·å®³ï¼Œä¸”ç„¡è¦–ä½ç½®ã€‚,4,1,1,0,0,0,8,39,35,skill_midium,hit_midium,damage_middle,11,30,0
+132,4,1,æš´æ€’2,å¢åŠ å…¨é«”éšŠå“¡çš„æ”»æ“Šå’Œæ•æ·ã€‚,1,0,0.2,1,4,0,4,7,9,magic_midium,increase_attack,increase_attack,13,70,0
+133,3,1,ç‰©ç†ç›¾2,æ¸›å°‘å…¨é«”éšŠå“¡ç‰©ç†å‚·å®³ã€‚,1,0,0.4,5,0,0,4,7,49,magic_midium,increase_quard,increase_quard,13,70,0
+134,3,1,é­”æ³•ç›¾2,æ¸›å°‘å…¨é«”éšŠå“¡é­”æ³•å‚·å®³ã€‚,1,0,0.4,6,0,0,4,7,52,magic_midium,increase_inteligence,increase_inteligence,13,70,0
+135,3,1,åæ¯ç›¾2,æ¸›å°‘å…¨é«”éšŠå“¡åæ¯å‚·å®³ã€‚,1,0,0.4,7,0,0,4,7,53,magic_midium,increase_inteligence,increase_inteligence,13,70,0
+136,3,1,åæ¯ç›¾,æ¸›å°‘è‡ªå·±åŠå·¦å³éšŠå“¡åæ¯å‚·å®³ã€‚,1,0,0.7,7,0,0,3,7,53,magic_midium,increase_inteligence,increase_inteligence,13,70,0
+137,3,2,å°å°æ–¬,å°éš¨æ©Ÿ4åæ•µäººé€ æˆç‰©ç†å‚·å®³ï¼Œå¹¶ä¸”ä¸€å®šå‡ ç‡æ²‰é»˜å°æ–¹ã€‚,3,1,1,5,0.3,3,19,39,46,skill_midium,hit_midium,damage_middle,11,30,0
+138,4,2,é¢¶é¢¨æ–¬,å°éš¨æ©Ÿ2åæ•µäººé€ æˆå¤§é‡ç‰©ç†å‚·å®³ã€‚,3,1,3,0,0,0,23,39,4,skill_midium,hit_midium,damage_middle,11,30,1
+139,3,2,ç‹‚é¢¨æ–¬,å°éš¨æ©Ÿ2åæ•µäººé€ æˆç‰©ç†å‚·å®³ã€‚,3,1,2,0,0,0,23,38,3,skill_small,hit_small,damage_small,11,30,1
+140,2,2,é›»æ‹³,æ”»æ“Šæ™‚æœ‰è¼ƒé«˜å‡ ç‡é€ æˆæ•µæ–¹éº»ç—ºã€‚,3,1,1,2,0.7,0,5,6,26,magic_small,status_stun,status_stun,13,70,0
+141,4,2,çƒˆç„°é¢¨æš´,å°éš¨æ©Ÿ6åæ•µäººé€ æˆç«ç³»å‚·å®³ã€‚,4,2,0.9,0,0,0,17,8,20,magic_large,damage_fire,damage_fire,11,30,0
+142,4,2,çˆ†è£‚æ–¬,å°éš¨æ©Ÿ5åæ•µäººé€ æˆç‰©ç†å‚·å®³ã€‚,3,1,0.9,0,0,0,20,40,3,skill_large,hit_small,damage_small,11,30,1
+143,4,2,æ­»äº¡ç››å®´,å°æ•µæ–¹æ‰€æœ‰éšŠå“¡é€ æˆå‚·å®³ï¼Œä¸”ä¸€å®šå‡ ç‡ç§’æ®ºã€‚,7,1,1,0.1,0,0,8,39,30,skill_midium,skill_critical_hit,skill_critical_hit,11,30,0
+144,3,2,çƒˆé¢¨æ–¬,å°4åæ•µäººé€ æˆå·¨å¤§å‚·å®³ã€‚,4,2,1,0,0,0,19,7,22,magic_midium,damage_wind,damage_wind,11,30,
+145,4,2,ç¾¤é«”å›å¾©æœ®2,å›å¾©æ‰€æœ‰éšŠå“¡å¤§é‡HPã€‚,18,4,2,0,0,0,4,8,27,magic_large,skill_recover,skill_recover,11,30,
+146,3,1,æ­»äº¡å¯©åˆ¤,ä¸€å®šå‡ ç‡åœ¨æˆ°æ–—é–‹å§‹å‰æ²‰é»˜æ•µäººã€‚,19,0,0,5,0.3,3,8,7,46,magic_midium,decrease_inteligence,decrease_inteligence,13,70,
+147,3,2,å¥ªå‘½æ–¬,å°éš¨æ©Ÿ3åæ•µäººé€ æˆå‚·å®³ä¸”ä¸€å®šå‡ ç‡è‡³å…¶æ®˜å»¢ã€‚,4,2,1,4,0.3,0,16,6,42,skill_small,hit_small,damage_small,11,30,
+148,3,2,ç·©é€Ÿæ–¬,å°éš¨æ©Ÿ3åæ•µäººé€ æˆå‚·å®³ä¸”ä¸€å®šå‡ ç‡é™ä½å°æ–¹æ•æ·ã€‚,22,2,1.5,4,0.3,0.2,16,7,22,magic_midium,damage_wind,damage_wind,11,30,
+149,3,2,ç ´é˜²æ–¬,å°éš¨æ©Ÿ3åæ•µäººé€ æˆå‚·å®³ä¸”ä¸€å®šå‡ ç‡é™ä½å°æ–¹é˜²å¾¡ã€‚,21,1,1,2,0.3,0.2,8,38,4,skill_midium,hit_midium,damage_middle,11,30,
+150,3,3,ä¸å±ˆ,åœ¨è¡€é‡å¤§æ–¼50%æ™‚ä¸æœƒè¢«ç§’æ®ºã€‚,20,0,0.5,0,0,0,21,58,58,skill_power,skill_power,skill_power,13,70,
+151,3,2,é ç¨‹çˆ†ç ´,å°åæ’éš¨æ©Ÿ3åæ•µäººé€ æˆå‚·å®³ã€‚,4,1,1.5,0,0,0,18,39,4,skill_midium,hit_midium,damage_middle,11,30,

@@ -1,8 +1,7 @@
 from error import *
 from session import *
 from gamedata import BAND_NUM, XP_ADD_DURATION, AP_ADD_DURATION
-import g
-from util import CsvTbl
+import util
 from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
 
 import tornado.web
@@ -66,7 +65,7 @@ class PlacementTbl(object):
 
 class CaseTbl(object):
     def __init__(self):
-        cvs_case = CsvTbl("data/cases.csv", "ID")
+        cvs_case = util.CsvTbl("data/cases.csv", "ID")
         self._t = {}
         for k, v in cvs_case.body.iteritems():
             row = v[1:]
@@ -212,7 +211,7 @@ class Enter(tornado.web.RequestHandler):
                 return
 
             # get player info
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """ SELECT bands, inZoneId FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
@@ -237,7 +236,7 @@ class Enter(tornado.web.RequestHandler):
                 sql = sql.format("(%s)"% members[0])
             else:
                 sql = sql.format(str(tuple(members)))
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 sql, (userid, )
             )
 
@@ -258,7 +257,7 @@ class Enter(tornado.web.RequestHandler):
 
             # db store
             cachejs = json.dumps(cache)
-            row_nums = yield g.whdb.runOperation(
+            row_nums = yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=%s, inZoneId=%s, currentBand=%s
                         WHERE userid=%s"""
                 ,(cachejs, zoneid, bandidx, session["userid"])
@@ -286,7 +285,7 @@ class Withdraw(tornado.web.RequestHandler):
                 return
 
             # db store
-            row_nums = yield g.whdb.runOperation(
+            row_nums = yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0
                         WHERE userid=%s"""
                 ,(session["userid"],)
@@ -312,7 +311,7 @@ class Get(tornado.web.RequestHandler):
                 return
 
             # db get
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT zoneCache FROM playerInfos 
                         WHERE userid=%s"""
                 ,(session["userid"],)
@@ -355,7 +354,7 @@ class Move(tornado.web.RequestHandler):
                 raise Exception("path too short")
 
             # db get cache
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT zoneCache, xp, maxXp, lastXpTime, UTC_TIMESTAMP(), items, money FROM playerInfos 
                         WHERE userid=%s"""
                 ,(session["userid"],)
@@ -400,6 +399,8 @@ class Move(tornado.web.RequestHandler):
                 last_xp_time = curr_time
             else:
                 last_xp_time = curr_time - timedelta(seconds = dt % XP_ADD_DURATION)
+            dt = curr_time - last_xp_time
+            nextAddXpTime = int(dt.total_seconds())
 
             if xp == 0:
                 send_error(self, "no_xp")
@@ -463,14 +464,14 @@ class Move(tornado.web.RequestHandler):
             cachejs = json.dumps(cache)
             if item_updated:
                 itemsjs = json.dumps(items)
-                yield g.whdb.runOperation(
+                yield util.whdb.runOperation(
                     """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
                         money=%s, items=%s
                             WHERE userid=%s"""
                     ,(cachejs, xp, last_xp_time, money, itemsjs, session["userid"])
                 )
             else:
-                yield g.whdb.runOperation(
+                yield util.whdb.runOperation(
                     """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
                         money=%s
                             WHERE userid=%s"""
@@ -481,7 +482,7 @@ class Move(tornado.web.RequestHandler):
             reply = {"error":no_error}
             reply["currPos"] = cache["currPos"]
             reply["xp"] = xp
-            reply["lastXpTime"] = str(last_xp_time)
+            reply["nextAddXpTime"] = nextAddXpTime
             reply["moneyAdd"] = money_add
             reply["redCaseAdd"] = red_case_add
             reply["goldCaseAdd"] = gold_case_add
@@ -509,7 +510,7 @@ class BattleResult(tornado.web.RequestHandler):
             userid = session["userid"]
 
             # get player info
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """ SELECT warlord, zoneCache FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
@@ -527,7 +528,7 @@ class BattleResult(tornado.web.RequestHandler):
 
             win = input["isWin"]
             if not win:
-                yield g.whdb.runOperation(
+                yield util.whdb.runOperation(
                     """UPDATE playerInfos SET inZoneId=0, zoneCache=NULL
                             WHERE userid=%s"""
                     ,(userid,)
@@ -586,7 +587,7 @@ class BattleResult(tornado.web.RequestHandler):
                 raise Exception("All dead")
             else:
                 sql = sql.format(str(tuple(inmembers_alive)))
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 sql
                 ,(userid, )
             )
@@ -636,14 +637,14 @@ class BattleResult(tornado.web.RequestHandler):
             # update cardEntities
             arg_list = [(c["level"], c["exp"], c["attrs"][0], c["attrs"][1]
                 ,c["attrs"][2], c["attrs"][3], c["attrs"][4], c["id"]) for c in cards]
-            row_nums = yield g.whdb.runOperationMany(
+            row_nums = yield util.whdb.runOperationMany(
                 """UPDATE cardEntities SET level=%s, exp=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s
                         WHERE id=%s"""
                 ,arg_list
             )
 
             # update band infos in zoneCache
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=%s
                         WHERE userId=%s"""
                 ,(json.dumps(cache), userid)
@@ -680,7 +681,7 @@ class Complete(tornado.web.RequestHandler):
             userid = session["userid"]
             
             # get player info
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """ SELECT zoneCache, items FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
@@ -727,7 +728,7 @@ class Complete(tornado.web.RequestHandler):
                 next_zone_id = zoneid
 
             # db store
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0, items=%s, lastZoneId=%s
                         WHERE userid=%s"""
                 ,(json.dumps(items), next_zone_id, session["userid"])
@@ -753,11 +754,11 @@ handlers = [
     (r"/whapi/zone/complete", Complete),
 ]
 
-map_tbl = CsvTbl("data/maps.csv", "zoneID")
+map_tbl = util.CsvTbl("data/maps.csv", "zoneID")
 plc_tbl = PlacementTbl()
-mongrp_tbl = CsvTbl("data/monsters.csv", "ID")
+mongrp_tbl = util.CsvTbl("data/monsters.csv", "ID")
 case_tbl = CaseTbl()
-zone_tbl = CsvTbl("data/zones.csv", "id")
+zone_tbl = util.CsvTbl("data/zones.csv", "id")
 
 
 # =============================================

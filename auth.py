@@ -1,5 +1,5 @@
 ﻿from error import *
-import g
+import util
 from session import *
 import config
 import tornado.web
@@ -27,7 +27,7 @@ class Register(tornado.web.RequestHandler):
 
             #insert to db
             try:
-                row_nums = yield g.authdb.runOperation(
+                row_nums = yield util.authdb.runOperation(
                     "INSERT INTO user_account (username, password) VALUES(%s, %s)"
                     ,(username, password)
                 )
@@ -36,7 +36,7 @@ class Register(tornado.web.RequestHandler):
                 return;
 
             #qurey db
-            rows = yield g.authdb.runQuery(
+            rows = yield util.authdb.runQuery(
                 """SELECT id FROM user_account 
                         WHERE username=%s"""
                 ,(username,)
@@ -77,7 +77,7 @@ class Login(tornado.web.RequestHandler):
             password = hashlib.sha1(password).hexdigest()
 
             #qurey db
-            rows = yield g.authdb.runQuery(
+            rows = yield util.authdb.runQuery(
                 """SELECT id FROM user_account 
                         WHERE username=%s AND password=%s"""
                 ,(username, password)
@@ -96,7 +96,7 @@ class Login(tornado.web.RequestHandler):
 
             # check player exist
             player_exist = False
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT 1 FROM playerInfos WHERE userId=%s"""
                 ,(userid, )
             )

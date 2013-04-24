@@ -1,5 +1,5 @@
 ﻿from error import *
-import g
+import util
 from session import *
 import tornado.web
 import adisp

@@ -1,6 +1,4 @@
-﻿import g
-import config
-import threading
+﻿import config
 
 import util
 import auth
@@ -12,31 +10,8 @@ import wagon
 import pvp
 
 from tornado import web, httpserver, ioloop, options
-import brukva
-from adb import Database
 import logging
-import os
 import random
-import time
-
-redis_pool = []
-
-class KeepAliveThread(threading.Thread):
-    def __init__(self):
-        super(KeepAliveThread, self).__init__()
-        self._stop = threading.Event()
-
-    def stop(self):
-        self._stop.set()
-
-    def run(self):
-        while True:
-            for c in redis_pool:
-                c.exists("a")
-
-            self._stop.wait(60)
-            if self._stop.is_set():
-                break
 
 
 handlers = auth.handlers + player.handlers + zone.handlers + redistest.handlers + card.handlers + wagon.handlers + pvp.handlers
@@ -54,38 +29,13 @@ def main():
     options.parse_command_line()
     params = options.options
 
-    # redis
     try:
-        # c = brukva.Client(**config.redis)
-        # c.connect()
-        # redis_conn_life = 0
-        for __ in xrange(2):
-            c = brukva.Client(**config.redis)
-            c.connect()
-            redis_pool.append([c, time.time()+config.redis_conn_life])
+        # redis
+        util.init_redis()
 
-        def redis():
-            ct = random.choice(redis_pool)
-            if (not ct[0].connection.connected()) or time.time() > ct[1]:
-                # ct[0].disconnect()
-                ct[0] = brukva.Client(**config.redis)
-                ct[0].connect()
-                ct[1] = time.time() + config.redis_conn_life
-            return ct[0].async
-        g.redis = redis
-    except:
-        print "redis connecting failed"
-        raise
-
-    # database
-    g.authdb = Database(**config.auth_db)
-    g.whdb = Database(**config.wh_db)
-
-    # keep alive thread
-    # thr = KeepAliveThread()
-    # thr.start()
-
-    try:
+        # database
+        util.init_db()
+    
         #sync time from sql server
         util.sync_time()
         
@@ -110,9 +60,7 @@ def main():
         print "KeyboardInterrupt."
     finally:
         print "Server shutting down..."
-        # thr.stop();
-        g.authdb.stop()
-        g.whdb.stop()
+        util.stop_db()
         exit(0)
 
 if __name__ == "__main__":

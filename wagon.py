@@ -1,6 +1,5 @@
 ﻿from session import *
 from error import *
-import g
 from gamedata import WAGON_TYPE_TEMP, WAGON_TEMP_DURATION
 import util
 
@@ -12,26 +11,32 @@ import datetime
 
 class Wagon(object):
     """
-    [type, num, time]
-        if type > 0: It is item, type is item's id
-        if type < 0: It is card, value is card proto id
-        num is the number of items or cards
-        time is when put into the wagon, the type is string of datetime
+    [key, itemId, itemNum, time]
+    [key, cardEntity, cardProto, time]
     """
     def __init__(self, json_str):
         self.data = json.loads(json_str)
 
-    def addItem(self, itemId, itemNum):
-        self.data.append([itemId, itemNum, util.datetime_to_str(util.utc_now())])
+    def addItem(self, item_id, item_num):
+        # self.data.append([itemId, itemNum, util.datetime_to_str(util.utc_now())])
+        self.data.append(["item:%d,%d"%(item_id, item_num), item_id, item_num, util.datetime_to_str(util.utc_now())])
 
-    def addCard(self, cardId, cardNum, cardEntityId):
-        self.data.append([-cardId, cardNum, util.datetime_to_str(util.utc_now()), cardEntityId])
+    def addCard(self, proto_id, card_entityId):
+        # self.data.append([-protoId, cardNum, util.datetime_to_str(util.utc_now()), cardEntityId])
+        self.data.append(["card:%d"%card_entityId, card_entityId, proto_id, util.datetime_to_str(util.utc_now())])
 
-    def getItem(self, obj):
-        return {"id":obj[0], "num":obj[1], "time":util.parse_datetime(obj[2])}
+    @staticmethod
+    def transToDict(obj):
+        if obj[0].startswith("item"):
+            return {"key":obj[0], "itemId":obj[1], "itemNum":obj[2], "time":obj[3]}
+        elif obj[0].startswith("card"):
+            return {"key":obj[0], "cardEntity":obj[1], "cardProto":obj[2], "time":obj[3]}
+        else:
+            raise Exception("key error")
 
-    def getCard(self, obj):
-        return {"id":obj[1], "num":obj[1], "time":util.parse_datetime(obj[2]), "cardEntityId":obj[3]}
+    @staticmethod
+    def isCard(obj):
+        return "cardEntity" in obj
 
 
 class List(tornado.web.RequestHandler):
@@ -60,7 +65,7 @@ class List(tornado.web.RequestHandler):
             field_strs = ["wagonGeneral", "wagonTemp", "wagonSocial"]
             fields = [field_strs[idx] for idx in wagon_idxs]
 
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT {} FROM playerInfos
                         WHERE userId=%s""".format(",".join(fields))
                 ,(user_id,)
@@ -76,12 +81,7 @@ class List(tornado.web.RequestHandler):
                 
                 out_items = []
                 for item_idx, item in enumerate(wagon):
-                    out_item = {}
-                    out_item["id"] = item[0]
-                    out_item["num"] = item[1]
-                    out_item["time"] = item[2]
-                    if len(item) == 4:
-                        out_item["cardEntityId"] = item[3]
+                    out_item = Wagon.transToDict(item)
                     out_items.append(out_item)
 
                 out_wagon["items"] = out_items
@@ -96,6 +96,7 @@ class List(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
+
 
 class Accept(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -112,123 +113,134 @@ class Accept(tornado.web.RequestHandler):
             # params
             try:
                 wagon_idx = int(self.get_argument("wagonidx"))
-                item_idx = int(self.get_argument("itemidx"))
+                key = self.get_argument("key", None)
             except:
                 send_error(self, err_param)
                 return
 
             # query
             field_strs = ["wagonGeneral", "wagonTemp", "wagonSocial"]
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT {}, items, maxCardNum FROM playerInfos
                         WHERE userId=%s""".format(field_strs[wagon_idx])
                 ,(user_id,)
             )
+            row = rows[0]
+            wagon_items = json.loads(row[0])
+            items = json.loads(row[1])
+            max_card_num = row[2]
 
-            wagon_items = json.loads(rows[0][0])
-            items = json.loads(rows[0][1])
-            items = {(k,v) for k, v in items.iteritems()}
-            max_card_num = rows[0][2]
+            # 
+            del_objs = []
+            add_items = []
+            add_cards = []
 
-            # accept
-            wagon_item = wagon_items[item_idx]
-            wagon_item_id = wagon_item[0]
-            wagon_item_num = wagon_item[1]
-            wagon_item_time = util.parse_datetime(wagon_item[2])
+            card_accept_remain = None
+            find_key = False
+            for raw_item in wagon_items:
+                wagon_item = Wagon.transToDict(raw_item)
+                wagon_item_time = util.parse_datetime(wagon_item["time"])
 
-            # check expired
-            if wagon_idx == WAGON_TYPE_TEMP:
-                time_delta = datetime.timedelta(seconds=WAGON_TEMP_DURATION)
+                # if key specified
+                if key:
+                    if key != wagon_item["key"]:
+                        continue
+                    else:
+                        find_key = True
 
-                if util.utc_now() > wagon_item_time + time_delta:
-                    # del from playerInfo's wagon
-                    del wagon_items[item_idx]
-                    yield g.whdb.runOperation(
-                        """UPDATE playerInfos SET {}=%s
-                                WHERE userId=%s""".format(field_strs[wagon_idx])
-                        ,(json.dumps(wagon_items), user_id)
-                    )
-                    if wagon_item_id < 0:
-                        # del from cardEntities
-                        yield g.whdb.runOperation(
-                            """DELETE FROM cardEntities
-                                    WHERE id=%s AND ownerId=%s"""
-                            ,(wagon_item[3], user_id)
+                # check expired
+                if wagon_idx == WAGON_TYPE_TEMP:
+                    time_delta = datetime.timedelta(seconds=WAGON_TEMP_DURATION)
+                    if util.utc_now() > wagon_item_time + time_delta:
+                        del_objs.append(wagon_item)
+                        continue
+
+                # card
+                if Wagon.isCard(wagon_item):
+                    if card_accept_remain == None:
+                        rows = yield util.whdb.runQuery(
+                            """SELECT COUNT(1) FROM cardEntities
+                                    WHERE ownerId=%s AND inPackage=1"""
+                            ,(user_id,)
                         )
+                        card_num = rows[0][0]
+                        card_accept_remain = max_card_num - card_num
 
-                    reply = {"error":"err_expired"}
-                    reply["index"] = item_idx
-                    self.write(json.dumps(reply))
-                    return
+                    # check if full
+                    if card_accept_remain <= 0:
+                        continue
+                    else:
+                        card_accept_remain -= 1
 
-            # add item
-            out_item = None
-            out_card = None
-
-            # add card
-            if wagon_item_id < 0:
-                card_proto_id = -wagon_item_id
-                card_entity_id = wagon_item[3]
-
-                # check whether card is full
-                rows = yield g.whdb.runQuery(
-                    """SELECT COUNT(1) FROM cardEntities
-                            WHERE ownerId=%s AND inPackage=1"""
-                    ,(user_id,)
-                )
-                card_num = rows[0][0]
-                if card_num >= max_card_num:
-                    send_error(self, "err_card_full")
-                    return
-
-                del wagon_items[item_idx]
-                yield g.whdb.runOperation(
-                    """UPDATE playerInfos SET {}=%s
-                            WHERE userId=%s""".format(field_strs[wagon_idx])
-                    ,(json.dumps(wagon_items), user_id)
-                )
-                # update card info
-                cols = """id, protoId, level, exp, inPackage, 
-                            skill1Id, skill1Level, skill1Exp, 
-                            skill2Id, skill2Level, skill2Exp, 
-                            skill3Id, skill3Level, skill3Exp, 
-                            hp, atk, def, wis, agi,
-                            hpCrystal, atkCrystal, defCrystal, wisCrystal, agiCrystal,
-                            hpExtra, atkExtra, defExtra, wisExtra, agiExtra"""
-                rows = yield g.whdb.runQuery(
-                    """SELECT {} FROM cardEntities 
-                            WHERE id=%s AND ownerId=%s AND inPackage=0""".format(cols)
-                    ,(card_entity_id, user_id)
-                )
-                out_card = rows[0][0]
-
-                yield g.whdb.runOperation(
-                    """UPDATE cardEntities SET inPackage = 1
-                            WHERE id=%s AND ownerId=%s"""
-                    ,(card_entity_id, user_id)
-                )
-                
-            # add item
-            else:
-                if wagon_item_id in items:
-                    items[wagon_item_id] += wagon_item_num
+                    del_objs.append(raw_item)
+                    add_cards.append(wagon_item)
+                    
+                # item
                 else:
-                    items[wagon_item_id] = wagon_item_num
+                    del_objs.append(raw_item)
+                    add_items.append(wagon_item)
 
-                del wagon_items[item_idx]
-                yield g.whdb.runOperation(
+                if find_key:
+                    break
+
+            # del from wagon
+            if del_objs:
+                wagon_items = [item for item in wagon_items if item not in del_objs]
+
+            # add items
+            out_items = []
+            if add_items:
+                for wagon_item in add_items:
+                    wagon_item_id = wagon_item["itemId"]
+                    wagon_item_num = wagon_item["itemNum"]
+                    if wagon_item_id in items:
+                        items[wagon_item_id] += wagon_item_num
+                    else:
+                        items[wagon_item_id] = wagon_item_num
+                    out_items.append({"id": wagon_item_id, "num": wagon_item_num})
+
+            # update player info
+            if add_items or del_objs:
+                yield util.whdb.runOperation(
                     """UPDATE playerInfos SET items=%s, {}=%s
                             WHERE userId=%s""".format(field_strs[wagon_idx])
                     ,(json.dumps(items), json.dumps(wagon_items), user_id)
                 )
-                out_item = {"id":wagon_item_id, "num":wagon_item_num}
+
+            # add cards
+            out_cards = []
+            if add_cards:
+                ids = ",".join([str(card["cardEntity"]) for card in add_cards])
+                fields = ["id", "protoId", "level", "exp", "inPackage", 
+                            "skill1Id", "skill1Level", "skill1Exp", 
+                            "skill2Id", "skill2Level", "skill2Exp", 
+                            "skill3Id", "skill3Level", "skill3Exp", 
+                            "hp", "atk", "def", "wis", "agi",
+                            "hpCrystal", "atkCrystal", "defCrystal", "wisCrystal", "agiCrystal",
+                            "hpExtra", "atkExtra", "defExtra", "wisExtra", "agiExtra"]
+
+                rows = yield util.whdb.runQuery(
+                    """SELECT {} FROM cardEntities 
+                            WHERE id IN ({}) AND ownerId=%s AND inPackage=0""".format(",".join(fields), ids)
+                    ,(user_id,)
+                )
+                
+                for row in rows:
+                    card = dict(zip(fields, row))
+                    out_cards.append(card)
+
+                yield util.whdb.runOperation(
+                    """UPDATE cardEntities SET inPackage = 1
+                            WHERE id IN ({}) AND ownerId=%s""".format(ids)
+                    ,(user_id,)
+                )
 
             # reply
             reply = {"error":no_error}
             reply["wagonIdx"] = wagon_idx
-            reply["itemIdx"] = item_idx
-            reply["item"] = out_item
-            reply["card"] = out_card
+            reply["keys"] = [obj[0] for obj in del_objs]
+            reply["items"] = out_items
+            reply["cards"] = out_cards
             self.write(json.dumps(reply))
 
         except:

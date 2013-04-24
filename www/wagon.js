@@ -6,6 +6,7 @@ $(document).ready(function(){
 
 	$("#btn_back").click(back)
 	$("#btn_accept").click(accept)
+	$("#btn_acceptall").click(acceptAll)
 })
 
 function listWagon(wagonIdx)
@@ -22,9 +23,8 @@ function listWagon(wagonIdx)
 			console.log(json)
 			for (var i in items) {
 				var item = items[i]
-				$("#wagon_items").append("<li>" + i + ". " + JSON.stringify(item) +"</li>")
+				$("#wagon_items").append("<li>" + item.key + "  " + JSON.stringify(item) +"</li>")
 			}
-			
 		}
 	})
 }
@@ -36,19 +36,25 @@ function back()
 
 function accept()
 {
-	var itemIdx = $("#ipt_accept").val()
-	if (parseInt(itemIdx) == NaN) {
-		alert("index must be int")
-		return
-	}
-	$.getJSON('/whapi/wagon/accept', {"wagonidx":gWagonIdx, "itemidx":itemIdx}, function(json){
+	var key = $("#ipt_accept").val()
+	$.getJSON('/whapi/wagon/accept', {"wagonidx":gWagonIdx, "key":key}, function(json){
 		var err = json.error
 		if (err){
 			alert(err)
 		}else{
-			if (gWagonIdx != json.wagonIdx) {
-				return
-			}
+			alert(JSON.stringify(json))
+			listWagon(gWagonIdx)
+		}
+	})
+}
+
+function acceptAll()
+{
+	$.getJSON('/whapi/wagon/accept', {"wagonidx":gWagonIdx}, function(json){
+		var err = json.error
+		if (err){
+			alert(err)
+		}else{
 			alert(JSON.stringify(json))
 			listWagon(gWagonIdx)
 		}

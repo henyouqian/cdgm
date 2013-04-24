@@ -1,5 +1,5 @@
 import uuid
-import g
+import util
 import brukva
 import adisp
 import simplejson as json
@@ -13,16 +13,16 @@ SESSION_TTL = 60*60*24*7
 def new_session(userid, username, appid, callback):
     try:
         uidtokenkey = "{}/tokenkey".format(userid)
-        usertoken = yield g.redis().get(uidtokenkey)
+        usertoken = yield util.redis().get(uidtokenkey)
         if usertoken:
-            a = yield g.redis().delete(usertoken)
+            a = yield util.redis().delete(usertoken)
 
         usertoken = uuid.uuid4().hex
         userinfo = {"userid":userid, "username":username, "appid":appid}  #set userinfo
 
-        rv = yield g.redis().setex(usertoken, SESSION_TTL, json.dumps(userinfo))
+        rv = yield util.redis().setex(usertoken, SESSION_TTL, json.dumps(userinfo))
         if rv:
-            yield g.redis().setex(uidtokenkey, SESSION_TTL, usertoken)
+            yield util.redis().setex(uidtokenkey, SESSION_TTL, usertoken)
             callback(usertoken)
         else:
             callback(None)
@@ -43,7 +43,7 @@ def find_session(rqHandler, callback):
     try:
         usertoken = rqHandler.get_argument("token", None)
         if usertoken:
-            session = yield g.redis().get(usertoken)
+            session = yield util.redis().get(usertoken)
             if session:
                 callback(json.loads(session))
             else:
@@ -53,7 +53,7 @@ def find_session(rqHandler, callback):
             if not usertoken:
                 try_auto_auth()
                 return;
-            session = yield g.redis().get(usertoken)
+            session = yield util.redis().get(usertoken)
             if session:
                 callback(json.loads(session))
             else:

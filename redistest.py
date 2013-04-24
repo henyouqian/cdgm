@@ -1,6 +1,6 @@
 from error import *
 from session import *
-import g
+import util
 import tornado.web
 import adisp
 import brukva
@@ -21,13 +21,13 @@ class Redis(tornado.web.RequestHandler):
             # redis store
             # key = "redistest"
             # out = {"35,19": 1, "14,28": -2, "14,25": -1, "14,22": -2, "32,28": -2, "41,16": -2, "35,22": -2, "35,25": -2, "26,25": -2, "23,37": -1, "26,22": 1, "26,28": -2, "14,19": 4, "35,28": -2, "14,31": 10000, "38,16": -1, "35,16": -2, "17,37": 5, "17,19": -2, "26,31": -2, "26,34": 4, "26,37": -2}
-            # rv = yield g.redis().set(key, "b"*10)
+            # rv = yield util.redis().set(key, "b"*10)
             # if not rv:
             #     send_error(self, err_redis)
             #     return;
            
-            rv = yield g.redis().hget('redistest', "a")
-            # rv = yield g.redis().randomkey()
+            rv = yield util.redis().hget('redistest', "a")
+            # rv = yield util.redis().randomkey()
             self.write(rv)
 
         except:
@@ -43,13 +43,13 @@ class RedisSet(tornado.web.RequestHandler):
             # redis store
             key = "redistest"
             out = {"35,19": 1, "14,28": -2, "14,25": -1, "14,22": -2, "32,28": -2, "41,16": -2, "35,22": -2, "35,25": -2, "26,25": -2, "23,37": -1, "26,22": 1, "26,28": -2, "14,19": 4, "35,28": -2, "14,31": 10000, "38,16": -1, "35,16": -2, "17,37": 5, "17,19": -2, "26,31": -2, "26,34": 4, "26,37": -2}
-            rv = yield g.redis().hset(key, "a", "b"*100000)
+            rv = yield util.redis().hset(key, "a", "b"*100000)
             # if not rv:
             #     send_error(self, err_redis)
             #     return;
            
-            # rv = yield g.redis().get('redistest')
-            # rv = yield g.redis().randomkey()
+            # rv = yield util.redis().get('redistest')
+            # rv = yield util.redis().randomkey()
             self.write("ok")
 
         except:

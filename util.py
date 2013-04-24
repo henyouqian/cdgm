@@ -1,7 +1,11 @@
-﻿import g
+﻿import config
+import brukva
+import adb
 import time
 import csv
+import random
 import __builtin__
+
 
 # simple profile
 class Tm(object):
@@ -11,8 +15,9 @@ class Tm(object):
     def prt(self, text):
         return
         t = time.time()
-        print("%s: %f" %(text, t-self._start))
+        print("%s: %f" % (text, t - self._start))
         self._start = t
+
 
 # parse csv file
 class CsvTbl(object):
@@ -32,7 +37,7 @@ class CsvTbl(object):
                             keycolidx = i
                         self.header[colname] = i
                         i += 1
-                    if keycolidx == None:
+                    if keycolidx is None:
                         raise ValueError("key column not found:" + keycol)
                 else:
                     self.body[row[keycolidx]] = row
@@ -53,6 +58,7 @@ class CsvTbl(object):
         row = self.get_row(rowkey)
         return self.get_values(row, *colnames)
 
+
 class CsvTblMulKey(object):
     def __init__(self, csvpath, *keycols):
         self.header = {}    # {colName:colIndex}
@@ -60,7 +66,6 @@ class CsvTblMulKey(object):
         with open(csvpath, 'rb') as csvfile:
             spamreader = csv.reader(csvfile)
             firstrow = True
-            keycolidx = None
             for row in spamreader:
                 if firstrow:
                     firstrow = False
@@ -68,9 +73,11 @@ class CsvTblMulKey(object):
                     for colname in row:
                         self.header[colname] = i
                         i += 1
-                    keycolids = tuple(self.header[keycol] for keycol in keycols)
+                    keycolids = tuple(self.header[keycol] \
+                                        for keycol in keycols)
                 else:
-                    self.body[tuple(row[colidx] for colidx in keycolids)] = row
+                    self.body[tuple(row[colidx]     \
+                        for colidx in keycolids)] = row
 
     def get_row(self, *keys):
         keys = tuple(str(key) for key in keys)
@@ -84,7 +91,7 @@ class CsvTblMulKey(object):
         return self.body[rowkeys][self.header[colname]]
 
 
-def lower_bound(haystack, needle, lo = 0, hi = None, cmp = None, key = None):
+def lower_bound(haystack, needle, lo=0, hi=None, cmp=None, key=None):
     """lower_bound(haystack, needle[, lo = 0[, hi = None[, cmp = None[, key = None]]]]) => n
 
     Find var{needle} via a binary search on var{haystack}.  Returns the
@@ -98,10 +105,14 @@ def lower_bound(haystack, needle, lo = 0, hi = None, cmp = None, key = None):
     var{cmp} - the cmp function used to order the var{haystack} items.
     var{key} - the key function used to extract keys from the elements.
     """
-    if cmp is None: cmp = __builtin__.cmp
-    if key is None: key = lambda x: x
-    if lo < 0: raise ValueError( 'lo cannot be negative' )
-    if hi is None: hi = len(haystack)
+    if cmp is None:
+        cmp = __builtin__.cmp
+    if key is None:
+        key = lambda x: x
+    if lo < 0:
+        raise ValueError('lo cannot be negative')
+    if hi is None:
+        hi = len(haystack)
 
     val = None
     while lo < hi:
@@ -111,13 +122,19 @@ def lower_bound(haystack, needle, lo = 0, hi = None, cmp = None, key = None):
             lo = mid + 1
         else:
             hi = mid
-    if val is None: return -1
-    elif val == 0: return lo
-    elif lo >= len(haystack): return -1 - lo
-    elif cmp(key(haystack[lo]), needle) == 0: return lo
-    else: return -1 - lo
+    if val is None:
+        return -1
+    elif val == 0:
+        return lo
+    elif lo >= len(haystack):
+        return -1 - lo
+    elif cmp(key(haystack[lo]), needle) == 0:
+        return lo
+    else:
+        return -1 - lo
 
-def upper_bound(haystack, needle, lo = 0, hi = None, cmp = None, key = None):
+
+def upper_bound(haystack, needle, lo=0, hi=None, cmp=None, key=None):
     """upper_bound(haystack, needle[, lo = 0[, hi = None[, cmp = None[, key = None]]]]) => n
 
     Find var{needle} via a binary search on var{haystack}.  Returns the
@@ -132,10 +149,14 @@ def upper_bound(haystack, needle, lo = 0, hi = None, cmp = None, key = None):
     var{cmp} - the cmp function used to order the var{haystack} items.
     var{key} - the key function used to extract keys from the elements.
     """
-    if cmp is None: cmp = __builtin__.cmp
-    if key is None: key = lambda x: x
-    if lo < 0: raise ValueError( 'lo cannot be negative' )
-    if hi is None: hi = len(haystack)
+    if cmp is None:
+        cmp = __builtin__.cmp
+    if key is None:
+        key = lambda x: x
+    if lo < 0:
+        raise ValueError('lo cannot be negative')
+    if hi is None:
+        hi = len(haystack)
 
     val = None
     while lo < hi:
@@ -145,15 +166,22 @@ def upper_bound(haystack, needle, lo = 0, hi = None, cmp = None, key = None):
             hi = mid
         else:
             lo = mid + 1
-    if val is None: return -1
-    elif val == 0: return lo
-    elif lo > 0 and cmp(key(haystack[lo - 1]), needle) == 0: return lo
-    else: return -1 - lo
+    if val is None:
+        return -1
+    elif val == 0:
+        return lo
+    elif lo > 0 and cmp(key(haystack[lo - 1]), needle) == 0:
+        return lo
+    else:
+        return -1 - lo
 
 
 import datetime
 
+
 _local_server_delta_time = None
+
+
 def sync_time():
     import MySQLdb
     import config
@@ -168,18 +196,56 @@ def sync_time():
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     server_datetime = rows[0][0]
     local_datetime = datetime.datetime.utcnow()
     global _local_server_delta_time
     _local_server_delta_time = server_datetime - local_datetime
 
+
 def utc_now():
     local_datetime = datetime.datetime.utcnow()
     return local_datetime + _local_server_delta_time
 
+
 def datetime_to_str(dt):
     return datetime.datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
 
+
 def parse_datetime(str_datetime):
     return datetime.datetime.strptime(str_datetime, "%Y-%m-%d %H:%M:%S")
+
+# reply
+def new_reply():
+    return {"error": ""}
+
+# redis
+redis_pool = []
+
+def init_redis():
+    for __ in xrange(2):
+        c = brukva.Client(**config.redis)
+        c.connect()
+        redis_pool.append([c, time.time()+config.redis_conn_life])
+
+def redis():
+    ct = random.choice(redis_pool)
+    if (not ct[0].connection.connected()) or time.time() > ct[1]:
+        # ct[0].disconnect()
+        ct[0] = brukva.Client(**config.redis)
+        ct[0].connect()
+        ct[1] = time.time() + config.redis_conn_life
+    return ct[0].async
+
+# database
+authdb = None
+whdb = None
+def init_db(): 
+    global authdb, whdb
+    authdb = adb.Database(**config.auth_db)
+    whdb = adb.Database(**config.wh_db)
+
+def stop_db():
+    global authdb, whdb
+    authdb.stop()
+    whdb.stop()

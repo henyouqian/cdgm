@@ -1,7 +1,6 @@
 from session import *
 from error import *
-import g
-from util import CsvTbl, CsvTblMulKey, lower_bound, upper_bound
+import util
 from wagon import Wagon
 
 import tornado.web
@@ -12,14 +11,14 @@ from itertools import repeat, imap
 from random import randint, uniform
 import csv
 
-card_tbl = CsvTbl("data/cards.csv", "ID")
-grow_tbl = CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
-evo_tbl = CsvTblMulKey("data/cardEvolutions.csv", "masterCardId", "evolverCardId")
-evo_cost_tbl = CsvTblMulKey("data/cardEvolutionCosts.csv", "masterCardRarity", "evolverCardRarity")
-skill_tbl = CsvTbl("data/skills.csv", "id")
-skill_level_tbl = CsvTblMulKey("data/skillLevels.csv", "rarity", "level")
-warlord_level_tbl = CsvTbl("data/levels.csv", "level")
-card_level_tbl = CsvTbl("data/cardLevels.csv", "level")
+card_tbl = util.CsvTbl("data/cards.csv", "ID")
+grow_tbl = util.CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
+evo_tbl = util.CsvTblMulKey("data/cardEvolutions.csv", "masterCardId", "evolverCardId")
+evo_cost_tbl = util.CsvTblMulKey("data/cardEvolutionCosts.csv", "masterCardRarity", "evolverCardRarity")
+skill_tbl = util.CsvTbl("data/skills.csv", "id")
+skill_level_tbl = util.CsvTblMulKey("data/skillLevels.csv", "rarity", "level")
+warlord_level_tbl = util.CsvTbl("data/levels.csv", "level")
+card_level_tbl = util.CsvTbl("data/cardLevels.csv", "level")
 
 # # test
 # row = grow_tbl.get_row("1", "11")
@@ -77,25 +76,25 @@ def is_war_lord(proto_id):
 #         card.update({"skill1Exp":0, "skill2Exp":0, "skill2Exp":0})
 
 #         # fixme: check cards limit and put into wagon
-#         conn = yield g.whdb.beginTransaction()
+#         conn = yield util.whdb.beginTransaction()
 #         try:
-#             rows = yield g.whdb.runQuery(
+#             rows = yield util.whdb.runQuery(
 #                 """SELECT COUNT(1) from cardEntities
 #                         WHERE ownerId=%s AND inPackage=%s"""
 #                 , (owner_id, 1), conn
 #             )
 
 
-#             row_nums = yield g.whdb.runOperation(
+#             row_nums = yield util.whdb.runOperation(
 #                 """ INSERT INTO cardEntities
 #                         ({}) VALUES({})
 #                 """.format(",".join(card.keys()), ",".join(("%s",)*len(card)))
 #                 , card.values()
 #                 , conn
 #             )
-#             rows = yield g.whdb.runQuery("SELECT LAST_INSERT_ID()", None, conn)
+#             rows = yield util.whdb.runQuery("SELECT LAST_INSERT_ID()", None, conn)
 #         finally:
-#             yield g.whdb.commitTransaction(conn)
+#             yield util.whdb.commitTransaction(conn)
 
 #         if row_nums != 1:
 #             raise Exception("db insert error")
@@ -108,9 +107,8 @@ def is_war_lord(proto_id):
 
 @adisp.async
 @adisp.process
-def create_cards(owner_id, proto_ids, max_card_num, callback):
+def create_cards(owner_id, proto_ids, max_card_num, level, callback):
     try:
-        level = 1
         cards = []
         for proto_id in proto_ids:
             hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
@@ -127,9 +125,9 @@ def create_cards(owner_id, proto_ids, max_card_num, callback):
             card.update({"_newInsert":1})
             cards.append(card)
 
-        conn = yield g.whdb.beginTransaction()
+        conn = yield util.whdb.beginTransaction()
         try:
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT COUNT(1) from cardEntities
                         WHERE ownerId=%s AND inPackage=%s"""
                 , (owner_id, 1), conn
@@ -144,7 +142,7 @@ def create_cards(owner_id, proto_ids, max_card_num, callback):
                     card["inPackage"] = 0
 
             cols = ",".join(cards[0].keys())
-            yield g.whdb.runOperationMany(
+            yield util.whdb.runOperationMany(
                 """ INSERT INTO cardEntities
                         ({}) VALUES({})
                 """.format(cols, ",".join(("%s",)*len(cards[0])))
@@ -153,9 +151,9 @@ def create_cards(owner_id, proto_ids, max_card_num, callback):
             )
             # append key "id" to fetch
             cols += ",id"
-            rows = yield g.whdb.runQuery("CALL get_new_cards(%s, %s)", (owner_id, cols), conn)
+            rows = yield util.whdb.runQuery("CALL get_new_cards(%s, %s)", (owner_id, cols), conn)
         finally:
-            yield g.whdb.commitTransaction(conn)
+            yield util.whdb.commitTransaction(conn)
 
         reply = []
         keys = cards[0].keys()
@@ -194,14 +192,14 @@ class PactTable(object):
         weights = pact["weights"]
         max_weight = weights[-1]
         rd = uniform(0.0, max_weight)
-        idx = lower_bound(weights, rd)
+        idx = util.lower_bound(weights, rd)
         if idx < 0:
             idx = -idx - 1;
         return pact["results"][idx]
 
 pact_tbl = PactTable("data/pacts.csv")
 sub_pact_tbl = PactTable("data/cardpacts.csv")
-pact_cost_tbl = CsvTbl("data/pactcost.csv", "id")
+pact_cost_tbl = util.CsvTbl("data/pactcost.csv", "id")
 
 
 def get_card_from_pact(pact_id):
@@ -246,7 +244,7 @@ class GetPact(tornado.web.RequestHandler):
                 raise Exception("get pact cost error: pack_id=%s" % pact_cost_id)
 
             # get player info
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                         """SELECT items, whCoin, maxCardNum, wagonTemp FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
@@ -279,15 +277,15 @@ class GetPact(tornado.web.RequestHandler):
                 items[cost_item_id] -= cost_num
 
             # create cards
-            cards = yield create_cards(user_id, card_ids, max_card_num)
+            cards = yield create_cards(user_id, card_ids, max_card_num, 1)
 
             # wagon
             for card in cards:
                 if not card["inPackage"]:
-                    wagon_temp.addCard(card["protoId"], 1, card["id"])
+                    wagon_temp.addCard(card["protoId"], card["id"])
 
             # real pay and set wagon
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                 """UPDATE playerInfos SET whCoin=%s, items=%s, wagonTemp=%s
                         WHERE userId=%s"""
                 ,(wh_coin, json.dumps(items), json.dumps(wagon_temp.data), user_id )
@@ -323,7 +321,7 @@ class Sell(tornado.web.RequestHandler):
                     raise Exception("card_id must be int")
 
             # query all cards info and check owner
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT protoId FROM cardEntities
                         WHERE id IN ({}) AND ownerId = %s""".format(",".join(("%s",)*len(card_ids)))
                 ,tuple(card_ids+[user_id])
@@ -335,18 +333,23 @@ class Sell(tornado.web.RequestHandler):
                 raise Exception("card id error")
 
             # query player info
-            rows = yield g.whdb.runQuery(
-                        """SELECT money, bands, inZoneId, warlord FROM playerInfos
+            rows = yield util.whdb.runQuery(
+                        """SELECT money, bands, inZoneId, warlord, currentBand FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
                     )
             row = rows[0]
             money = row[0]
             bands = json.loads(row[1])
-            inZoneId = row[2]
-            if inZoneId > 0:
-                raise Exception("can not sell card when in zone")
+            in_zone_id = row[2]
             warlord = row[3]
+            current_band = row[4]
+
+            # check whether in current band
+            if in_zone_id > 0:
+                for card_id in card_ids:
+                     if card_id in bands[current_band].members:
+                        raise Exception("can not sell card which in current band when in zone")
 
             if warlord in card_ids:
                 raise Exception("warlord can not be sold")
@@ -369,20 +372,20 @@ class Sell(tornado.web.RequestHandler):
 
             # update playerInfo
             if inband:
-                yield g.whdb.runOperation(
+                yield util.whdb.runOperation(
                         """UPDATE playerInfos SET money=%s, bands=%s
                                 WHERE userId=%s"""
                         ,(money, json.dumps(bands), user_id)
                     )
             else:
-                yield g.whdb.runOperation(
+                yield util.whdb.runOperation(
                         """UPDATE playerInfos SET money=%s
                                 WHERE userId=%s"""
                         ,(money, user_id)
                     )
 
             # delete card
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                 "DELETE FROM cardEntities WHERE id IN ({}) AND ownerId = %s".format(",".join(("%s",)*len(card_ids)))
                 ,tuple(card_ids+[user_id])
             )
@@ -428,7 +431,7 @@ class Evolution(tornado.web.RequestHandler):
             fields = fields_str.translate(None, "\n ").split(",")
 
             # query card info from db and check owner
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT {}
                         FROM cardEntities
                         WHERE (id=%s OR id=%s) AND ownerId = %s""".format(fields_str)
@@ -448,7 +451,7 @@ class Evolution(tornado.web.RequestHandler):
             rarity1 = card_tbl.get(card1["protoId"], "rarity")
             rarity2 = card_tbl.get(card2["protoId"], "rarity")
             cost = int(evo_cost_tbl.get((rarity1, rarity2), "cost"))
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                         """SELECT money, bands, isInZone FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
@@ -497,14 +500,14 @@ class Evolution(tornado.web.RequestHandler):
             card1["agi"] = agi
 
 
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                     """UPDATE cardEntities SET protoId=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s, 
                             hpExtra=%s, atkExtra=%s, defExtra=%s, wisExtra=%s, agiExtra=%s
                             WHERE id=%s"""
                     ,(proto_id, hp, atk, _def, wis, agi, hp_ex, atk_ex, def_ex, wis_ex, agi_ex, card1["id"])
                 )
 
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                     """DELETE FROM cardEntities
                             WHERE id=%s"""
                     ,(card2["id"], )
@@ -520,13 +523,13 @@ class Evolution(tornado.web.RequestHandler):
             
             # update playerInfo
             if inband:
-                yield g.whdb.runOperation(
+                yield util.whdb.runOperation(
                         """UPDATE playerInfos SET money=%s, bands=%s
                                 WHERE userId=%s"""
                         ,(money, json.dumps(bands), user_id)
                     )
             else:
-                yield g.whdb.runOperation(
+                yield util.whdb.runOperation(
                         """UPDATE playerInfos SET money=%s
                                 WHERE userId=%s"""
                         ,(money, user_id)
@@ -566,7 +569,7 @@ class Sacrifice(tornado.web.RequestHandler):
                     raise Exception("id must be int")
 
             # get player info
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT money, warLord FROM playerInfos
                         WHERE userId = %s"""
                 ,(user_id, )
@@ -577,7 +580,7 @@ class Sacrifice(tornado.web.RequestHandler):
             # get cards info
             fields = ["id", "protoId", "skill1Id", "skill1Level", "skill1Exp", 
                 "skill2Id", "skill2Level", "skill2Exp", "skill3Id", "skill3Level", "skill3Exp"]
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT {} FROM cardEntities
                         WHERE id IN {} AND ownerId = %s""".format(",".join(fields), str(tuple(cards)))
                 ,(user_id, )
@@ -648,7 +651,7 @@ class Sacrifice(tornado.web.RequestHandler):
             if money < 0:
                 raise Exception("not enough money")
 
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                 """UPDATE playerInfos SET money=%s
                         WHERE userId=%s"""
                 ,(money, user_id)
@@ -657,14 +660,14 @@ class Sacrifice(tornado.web.RequestHandler):
             # delete absorbed cards
             sacrifice_ids = [str(card["id"]) for card in sacrifice_cards]
 
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                 """DELETE FROM cardEntities WHERE id ({}) AND ownerId=%s
                     """.format(",".join(sacrifice_ids))
                 ,(user_id, )
             )
 
             # update card
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                 """UPDATE cardEntities 
                     SET skill1Level=%s, skill1Exp=%s, 
                         skill2Level=%s, skill2Exp=%s, 
@@ -708,7 +711,7 @@ class Create(tornado.web.RequestHandler):
                 return
 
             # get player's max card number and wagonTemp
-            rows = yield g.whdb.runQuery(
+            rows = yield util.whdb.runQuery(
                 """SELECT maxCardNum, wagonTemp FROM playerInfos
                         WHERE userId=%s"""
                 ,(user_id, )
@@ -717,15 +720,15 @@ class Create(tornado.web.RequestHandler):
             max_card_num = row[0]
             wagon_temp = Wagon(row[1])
 
-            cards = yield create_cards(user_id, [proto], max_card_num)
+            cards = yield create_cards(user_id, [proto], max_card_num, level)
 
             # wagon
             for card in cards:
                 if not card["inPackage"]:
-                    wagon_temp.addCard(card["id"])
+                    wagon_temp.addCard(card["protoId"], card["id"])
 
             # real pay and set wagon
-            yield g.whdb.runOperation(
+            yield util.whdb.runOperation(
                 """UPDATE playerInfos SET wagonTemp=%s
                         WHERE userId=%s"""
                 ,(json.dumps(wagon_temp.data), user_id)
