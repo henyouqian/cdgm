@@ -366,7 +366,7 @@ Server Side Api (ver0.1 Draft)
 - Desc: 抽卡
 - Param:
 		packid = {INT} 		/* 卡包的id */
-		num = {INT}			/* 抽卡次数，只有当消耗物品不为whCoin才起作用 */
+		num = {INT}			/* 抽卡次数，只有当消耗物品不为whCoin才起作用, 目前上限暂定为10 */
 - Example: {ServerURL}/whapi/card/getpact?packid=7&num=5&token=16995a9581c74b18ad1584ad9c68d245
 - Return: 
 - 		{
@@ -551,7 +551,7 @@ Server Side Api (ver0.1 Draft)
 - 		{
  			error: {STRING},   			/* 错误 */
 			wagonIdx: {INT},			/* 0:general 1:temp 2:social */
-			keys: [INT, ...],			/* 物品的key，用来找到并删除*/
+			delKeys: [INT, ...],		/* 物品的key，用来找到并删除*/
 			items: [
 				{
 					id: {INT},	 		/* item类型 */
@@ -587,6 +587,20 @@ Server Side Api (ver0.1 Draft)
 				},
 				...
 			]
+		}
+
+## whapi/wagon/sellall
+- Method: GET
+- Desc: 取出物品
+- Param:
+-		wagonidx = {INT}			/* 0:general 1:temp 2:social 可以同时取多个，用逗号隔开 */
+- Example: 
+-		{ServerURL}/whapi/wagon/sellall?wagonidx=1&token=16995a9581c74b18ad1584ad9c68d245
+- Return:
+- 		{
+ 			error: {STRING},   			/* 错误 */
+			wagonIdx: {INT},			/* 0:general 1:temp 2:social */
+			delKeys: [INT, ...],		/* 物品的key，用来找到并删除*/
 		}
 
 
@@ -648,7 +662,7 @@ Server Side Api (ver0.1 Draft)
 			"foeGroupIdx": 1,
 			"band": {
 				"formation": 11,
-				"members": [3555, 5665, 22565, 11334, null]
+				"members": [119, 120, null]
 			},
 			"allout": false,
 			"useItem": 0

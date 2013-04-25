@@ -1,6 +1,7 @@
 ﻿import config
 import brukva
 import adb
+import adisp
 import time
 import csv
 import random
@@ -236,6 +237,18 @@ def redis():
         ct[0].connect()
         ct[1] = time.time() + config.redis_conn_life
     return ct[0].async
+
+def redis_pipe():
+    ct = random.choice(redis_pool)
+    if (not ct[0].connection.connected()) or time.time() > ct[1]:
+        # ct[0].disconnect()
+        ct[0] = brukva.Client(**config.redis)
+        ct[0].connect()
+        ct[1] = time.time() + config.redis_conn_life
+    return ct[0].pipeline()
+
+def redis_pipe_execute(pipe):
+    return adisp.async(pipe.execute, cbname='callbacks')()
 
 # database
 authdb = None

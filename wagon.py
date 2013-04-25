@@ -2,6 +2,7 @@
 from error import *
 from gamedata import WAGON_TYPE_TEMP, WAGON_TEMP_DURATION
 import util
+import card as mdl_card
 
 import tornado.web
 import adisp
@@ -82,13 +83,19 @@ class List(tornado.web.RequestHandler):
                 out_items = []
                 for item_idx, item in enumerate(wagon):
                     out_item = Wagon.transToDict(item)
+                    wagon_item_time = util.parse_datetime(out_item["time"])
+                    if wagon_idxs[i] == WAGON_TYPE_TEMP:
+                        time_delta = datetime.timedelta(seconds=WAGON_TEMP_DURATION)
+                        if util.utc_now() > wagon_item_time + time_delta:
+                            continue
+
                     out_items.append(out_item)
 
                 out_wagon["items"] = out_items
                 out_wagons.append(out_wagon)
 
             # reply
-            reply = {"error":no_error}
+            reply = util.new_reply()
             reply["wagons"] = out_wagons
             self.write(json.dumps(reply))
 
@@ -236,7 +243,7 @@ class Accept(tornado.web.RequestHandler):
                 )
 
             # reply
-            reply = {"error":no_error}
+            reply = util.new_reply()
             reply["wagonIdx"] = wagon_idx
             reply["keys"] = [obj[0] for obj in del_objs]
             reply["items"] = out_items
@@ -248,7 +255,77 @@ class Accept(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class SellAll(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            user_id = session["userid"]
+
+            # params
+            try:
+                wagon_idx = int(self.get_argument("wagonidx"))
+            except:
+                send_error(self, err_param)
+                return
+
+            # query
+            field_strs = ["wagonGeneral", "wagonTemp", "wagonSocial"]
+            rows = yield util.whdb.runQuery(
+                """SELECT {} FROM playerInfos
+                        WHERE userId=%s""".format(field_strs[wagon_idx])
+                ,(user_id,)
+            )
+            row = rows[0]
+            wagon_items = json.loads(row[0])
+
+            # 
+            cards = []
+            items = []
+            money_add = 0
+            for raw_item in wagon_items:
+                wagon_item = Wagon.transToDict(raw_item)
+                if Wagon.isCard(wagon_item):
+                    cards.append(wagon_item)
+                    cardProto = wagon_item["cardProto"]
+                    money_add += int(mdl_card.card_tbl.get(cardProto, "price"))
+                else:
+                    items.append(raw_item)
+
+            if cards:
+                yield util.whdb.runOperation(
+                    """UPDATE playerInfos SET {}=%s, money=money+%s
+                            WHERE userId=%s""".format(field_strs[wagon_idx])
+                    ,(json.dumps(items), money_add, user_id)
+                )
+                yield util.whdb.runOperation(
+                    """DELETE FROM cardEntities
+                            WHERE id IN ({}) AND ownerId=%s""".format(",".join([str(card["cardEntity"]) for card in cards]))
+                    ,(user_id,)
+                )
+
+
+
+            # reply
+            reply = util.new_reply()
+            reply["wagonIdx"] = wagon_idx
+            reply["moneyAdd"] = money_add
+            reply["delKeys"] = [card["key"] for card in cards]
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/wagon/list", List),
     (r"/whapi/wagon/accept", Accept),
+    (r"/whapi/wagon/sellall", SellAll),
 ]

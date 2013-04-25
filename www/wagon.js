@@ -7,6 +7,7 @@ $(document).ready(function(){
 	$("#btn_back").click(back)
 	$("#btn_accept").click(accept)
 	$("#btn_acceptall").click(acceptAll)
+	$("#btn_sellall").click(sellAll)
 })
 
 function listWagon(wagonIdx)
@@ -51,6 +52,19 @@ function accept()
 function acceptAll()
 {
 	$.getJSON('/whapi/wagon/accept', {"wagonidx":gWagonIdx}, function(json){
+		var err = json.error
+		if (err){
+			alert(err)
+		}else{
+			alert(JSON.stringify(json))
+			listWagon(gWagonIdx)
+		}
+	})
+}
+
+function sellAll()
+{
+	$.getJSON('/whapi/wagon/sellall', {"wagonidx":gWagonIdx}, function(json){
 		var err = json.error
 		if (err){
 			alert(err)

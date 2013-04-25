@@ -229,6 +229,7 @@ class GetPact(tornado.web.RequestHandler):
             try:
                 pact_cost_id = int(self.get_argument("packid"))
                 num = int(self.get_argument("num"))
+                num = min(10, num)
             except:
                 send_error(self, err_param)
                 return

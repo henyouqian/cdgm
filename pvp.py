@@ -166,11 +166,11 @@ class StartBattle(tornado.web.RequestHandler):
             members_data = []
             for row in rows:
                 member_data = dict(zip(fields, row))
-                member_data["hp"] += members_data["hpCrystal"] + members_data["hpExtra"]
-                member_data["atk"] += members_data["atkCrystal"] + members_data["atkExtra"]
-                member_data["def"] += members_data["defCrystal"] + members_data["defExtra"]
-                member_data["wis"] += members_data["wisCrystal"] + members_data["wisExtra"]
-                member_data["agi"] += members_data["agiCrystal"] + members_data["agiExtra"]
+                member_data["hp"] += member_data["hpCrystal"] + member_data["hpExtra"]
+                member_data["atk"] += member_data["atkCrystal"] + member_data["atkExtra"]
+                member_data["def"] += member_data["defCrystal"] + member_data["defExtra"]
+                member_data["wis"] += member_data["wisCrystal"] + member_data["wisExtra"]
+                member_data["agi"] += member_data["agiCrystal"] + member_data["agiExtra"]
                 del member_data["hpCrystal"]
                 del member_data["atkCrystal"]
                 del member_data["defCrystal"]
@@ -181,6 +181,7 @@ class StartBattle(tornado.web.RequestHandler):
                 del member_data["defExtra"]
                 del member_data["wisExtra"]
                 del member_data["agiExtra"]
+                members_data.append(member_data)
 
             ## calc pvp strength
             def calcPvpStrength(members):
@@ -193,11 +194,17 @@ class StartBattle(tornado.web.RequestHandler):
             ## add to redis
             key = make_redis_pvp_list_key(pvp_level)
             pvp_data = {"formation":formation, "strength":pvp_strength, "members":members_data}
-            yield util.redis().lpush(key, json.dumps(pvp_data))
-            
+
+            pipe = util.redis_pipe()
+            pipe.sadd("tset", "t")
+            pipe.scard("tset")
+            # res = pipe.execute()
+            res = yield util.redis_pipe_execute(pipe)
+            # res = yield adisp.async(pipe.execute, cbname='callbacks')()
+
             # reply
             reply = util.new_reply()
-            reply["members"] = members_data
+            reply["res"] = res
             self.write(json.dumps(reply))
 
         except:
