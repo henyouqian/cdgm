@@ -1,0 +1,13 @@
+id,itemId,price,paymentType,num,openedAt,closedAt,name,comment,setItems,maxBuyNum,numPerToday,displayOrder,title
+1,1,100,1,1,1333065600,1831852800,Mandrake,,,0,0,11,
+2,1,1000,1,11,1333065600,1831852860,11-Mandrake Set,,,0,0,12,
+3,2,100,1,3,1333065600,1831852920,3-Elixir Set,,,0,0,13,
+4,3,300,1,1,1333065600,1831852980,Panacea,,,0,0,14,
+5,5,200,1,1,1333065600,1831853040,Heartsblood,,,0,0,15,
+6,5,2000,1,11,1333065600,1831853100,11-Heartsblood Set,,,0,0,16,
+7,11,100,1,1,1333065600,1831853160,Gjallarhorn,,,0,0,5,
+8,11,1000,1,11,1333065600,1831853220,11-Gjallarhorn Set,,,0,0,6,
+9,11,3000,1,35,1333065600,1831853280,35-Gjallarhorn Set,,,0,0,7,
+10,0,100,1,0,1333065600,1831852800,Beginner's Set,"A set of essential items. Mandrake x1, Heartsblood x1, and Gjallarhorn x1.","[{""id"":1,""num"":1}, {""id"":5, ""num"":1}, {""id"":11, ""num"":1}]",1,0,2,First time only!
+11,0,150,1,0,1333065600,1831852800,Essentials Set,A set of essential items. Limit 1 per day. Mandrake x1 and Gjallarhorn x1.,"[{""id"":1,""num"":1}, {""id"":11, ""num"":1}]",0,1,3,Limit 1 per day!
+12,0,250,1,0,1362009600,1362625200,Special Dungeon Set,A set of items for the event. Limit 1 per day. Mandrake x1 and Heartsblood x1.,"[{""id"":1,""num"":1}, {""id"":5, ""num"":1}]",0,1,1,Limit 1 per day!
