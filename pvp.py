@@ -72,6 +72,7 @@ class StartBattle(tornado.web.RequestHandler):
     @adisp.process
     def post(self):
         try:
+            print self
             # session
             session = yield find_session(self)
             if not session:
@@ -195,16 +196,16 @@ class StartBattle(tornado.web.RequestHandler):
             key = make_redis_pvp_list_key(pvp_level)
             pvp_data = {"formation":formation, "strength":pvp_strength, "members":members_data}
 
+
             pipe = util.redis_pipe()
             pipe.sadd("tset", "t")
             pipe.scard("tset")
-            # res = pipe.execute()
             res = yield util.redis_pipe_execute(pipe)
-            # res = yield adisp.async(pipe.execute, cbname='callbacks')()
 
             # reply
             reply = util.new_reply()
             reply["res"] = res
+            reply["time"] = util.utc_now_sec()
             self.write(json.dumps(reply))
 
         except:

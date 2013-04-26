@@ -181,7 +181,7 @@ import datetime
 
 
 _local_server_delta_time = None
-
+_local_server_delta_sec = 0
 
 def sync_time():
     import MySQLdb
@@ -202,6 +202,7 @@ def sync_time():
     local_datetime = datetime.datetime.utcnow()
     global _local_server_delta_time
     _local_server_delta_time = server_datetime - local_datetime
+    _local_server_delta_sec = _local_server_delta_time.total_seconds()
 
 
 def utc_now():
@@ -215,6 +216,10 @@ def datetime_to_str(dt):
 
 def parse_datetime(str_datetime):
     return datetime.datetime.strptime(str_datetime, "%Y-%m-%d %H:%M:%S")
+
+
+def utc_now_sec():
+    return time.time() + _local_server_delta_sec
 
 # reply
 def new_reply():
