@@ -4,7 +4,6 @@ import util
 import auth
 import player
 import zone
-import redistest
 import card
 import wagon
 import pvp
@@ -14,7 +13,7 @@ import logging
 import random
 
 
-handlers = auth.handlers + player.handlers + zone.handlers + redistest.handlers + card.handlers + wagon.handlers + pvp.handlers
+handlers = auth.handlers + player.handlers + zone.handlers + card.handlers + wagon.handlers + pvp.handlers
 
 if config.debug:
     import cheat

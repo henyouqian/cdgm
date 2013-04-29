@@ -12,8 +12,6 @@ import os
 from datetime import datetime, timedelta
 from random import random, choice
 
-import tornadoredis
-
 
 TILE_ALL = 4        # tile index in tiled(the editor), gen item or monster
 TILE_ITEM = 5       # tile index which generate item only

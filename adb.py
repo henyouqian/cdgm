@@ -4,7 +4,7 @@
 # Date: August 2011
 
 from functools import partial
-import psycopg2
+# import psycopg2
 from collections import deque
 
 import tornado.ioloop
@@ -58,16 +58,16 @@ class Database:
         Initializes the per-thread state. In this case we create one
         database connection per-thread.
         """
-        if self._driver == "psycopg2":
-            try:
-                import psycopg2
-                conn = psycopg2.connect(database=self._database,
-                                        user=self._user,
-                                        password=self._password,
-                                        host=self._host)
-            except Exception as ex:
-                raise ex
-        elif self._driver == "MySQLdb":
+        # if self._driver == "psycopg2":
+        #     try:
+        #         import psycopg2
+        #         conn = psycopg2.connect(database=self._database,
+        #                                 user=self._user,
+        #                                 password=self._password,
+        #                                 host=self._host)
+        #     except Exception as ex:
+        #         raise ex
+        if self._driver == "MySQLdb":
             try:
                 import MySQLdb
                 conn = MySQLdb.connect(db=self._database,
