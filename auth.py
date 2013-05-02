@@ -5,7 +5,7 @@ import config
 import tornado.web
 import adisp
 import brukva
-import simplejson as json
+import json
 import hashlib
 import datetime
 

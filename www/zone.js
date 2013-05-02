@@ -26,7 +26,7 @@ function updateZoneInfo() {
 	ul.append("<li id=li_gold_case> goldCase:"+JSON.stringify(zone.goldCase)+"</li>")
 	ul.append("<li id=li_band> band:"+JSON.stringify(zone.band)+"</li>")
 
-	ul.append("<li> xp:"+JSON.stringify(player.xp)+"</li>")
+	ul.append("<li> ap:"+JSON.stringify(player.ap)+"</li>")
 	ul.append("<li> money:"+JSON.stringify(player.money)+"</li>")
 	ul.append("<li> objs:"+JSON.stringify(zone.objs.sort())+"</li>")
 
@@ -100,8 +100,8 @@ function move() {
 		}else{
 			console.log(json)
 
-			playerInfo.xp = json.xp
-			var str = "xp:" + json.xp + "\n"
+			playerInfo.ap = json.ap
+			var str = "ap:" + json.ap + "\n"
 
 			zoneInfo.currPos = json.currPos
 			str += "currPos:(" + json.currPos.x + "," + json.currPos.y + ")\n"

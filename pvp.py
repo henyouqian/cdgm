@@ -1,7 +1,7 @@
-﻿from session import find_session
+from session import find_session
 from error import *
 import util
-from gamedata import AP_ADD_DURATION
+from gamedata import XP_ADD_DURATION
 
 import tornado.web
 import adisp
@@ -93,58 +93,58 @@ class StartBattle(tornado.web.RequestHandler):
 
             # get player info for later use
             rows = yield util.whdb.runQuery(
-                """SELECT ap, maxAp, lastApTime, items FROM playerInfos
+                """SELECT xp, maxXp, lastXpTime, items FROM playerInfos
                         WHERE userId=%s"""
                 ,(user_id, )
             )
             row = rows[0]
-            ap = row[0]
-            max_ap = row[1]
-            last_ap_time = row[2]
-            if not last_ap_time:
-                last_ap_time = util.utc_now()
+            xp = row[0]
+            max_xp = row[1]
+            last_xp_time = row[2]
+            if not last_xp_time:
+                last_xp_time = util.utc_now()
             items = json.loads(row[3])
             items = {int(k):v for k, v in items.iteritems()}
 
-            # update AP from last time
+            # update XP from last time
             curr_time = util.utc_now()
-            dt = curr_time - last_ap_time
+            dt = curr_time - last_xp_time
             dt = int(dt.total_seconds())
-            dap = dt // AP_ADD_DURATION
-            if dap:
-                ap = min(max_ap, ap + dap)
-            if ap == max_ap:
-                last_ap_time = curr_time
+            dxp = dt // XP_ADD_DURATION
+            if dxp:
+                xp = min(max_xp, xp + dxp)
+            if xp == max_xp:
+                last_xp_time = curr_time
             else:
-                last_ap_time = curr_time - datetime.timedelta(seconds = dt % AP_ADD_DURATION)
+                last_xp_time = curr_time - datetime.timedelta(seconds = dt % XP_ADD_DURATION)
 
-            # consume AP
+            # consume XP
             update_items = False
-            need_ap = 3 if allout else 1
-            if need_ap > ap:
-                dap = need_ap - ap
+            need_xp = 3 if allout else 1
+            if need_xp > xp:
+                dxp = need_xp - xp
                 if use_item == 0:
-                    raise Exception("not enough ap, need useItem")
+                    raise Exception("not enough xp, need useItem")
                 elif use_item == 1:
                     item_num = items.get(10, 0)
-                    if item_num < dap:
+                    if item_num < dxp:
                         raise Exception("not enough small item")
-                    items[10] -= dap
+                    items[10] -= dxp
                     update_items = True
                 elif use_item == 2:
                     item_num = items.get(11, 0)
-                    if item_num < dap:
+                    if item_num < dxp:
                         raise Exception("not enough big item")
-                    items[11] -= dap
+                    items[11] -= dxp
                     update_items = True
 
             if not update_items:
-                ap -= need_ap
+                xp -= need_xp
 
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET ap=%s, lastApTime=%s, items=%s 
+                """UPDATE playerInfos SET xp=%s, lastXpTime=%s, items=%s 
                         WHERE userId=%s"""
-                ,(ap, last_ap_time, json.dumps(items), user_id)
+                ,(xp, last_xp_time, json.dumps(items), user_id)
             )
 
             # update user pvp band info
@@ -193,6 +193,8 @@ class StartBattle(tornado.web.RequestHandler):
             pvp_level = calc_pvp_level(pvp_strength)
 
             ## add to redis
+            ## set: (playerId)
+            ## hash: {playerId: pvpData}
             key = make_redis_pvp_list_key(pvp_level)
             pvp_data = {"formation":formation, "strength":pvp_strength, "members":members_data}
 

@@ -1,6 +1,6 @@
 from error import *
 from session import *
-from gamedata import BAND_NUM, XP_ADD_DURATION, AP_ADD_DURATION
+from gamedata import BAND_NUM, AP_ADD_DURATION, XP_ADD_DURATION
 import util
 from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
 
@@ -353,21 +353,21 @@ class Move(tornado.web.RequestHandler):
 
             # db get cache
             rows = yield util.whdb.runQuery(
-                """SELECT zoneCache, xp, maxXp, lastXpTime, UTC_TIMESTAMP(), items, money FROM playerInfos 
+                """SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, money FROM playerInfos 
                         WHERE userid=%s"""
                 ,(session["userid"],)
             )
             row = rows[0]
             cache = row[0]
-            xp = row[1]
-            max_xp = row[2]
-            last_xp_time = row[3]
+            ap = row[1]
+            max_ap = row[2]
+            last_ap_time = row[3]
             curr_time = row[4]
             items = row[5]
             money = row[6]
 
-            if not last_xp_time:
-                last_xp_time = datetime(2013, 1, 1)
+            if not last_ap_time:
+                last_ap_time = datetime(2013, 1, 1)
 
             if not items:
                 items = {}
@@ -387,28 +387,28 @@ class Move(tornado.web.RequestHandler):
             if currpos != path[0]:
                 raise Exception("begin coord not match")
 
-            #update xp
-            dt = curr_time - last_xp_time
+            #update ap
+            dt = curr_time - last_ap_time
             dt = int(dt.total_seconds())
-            dxp = dt // XP_ADD_DURATION
-            if dxp:
-                xp = min(max_xp, xp + dxp)
-            if xp == max_xp:
-                last_xp_time = curr_time
+            dap = dt // AP_ADD_DURATION
+            if dap:
+                ap = min(max_ap, ap + dap)
+            if ap == max_ap:
+                last_ap_time = curr_time
             else:
-                last_xp_time = curr_time - timedelta(seconds = dt % XP_ADD_DURATION)
-            dt = curr_time - last_xp_time
-            nextAddXpTime = int(dt.total_seconds())
+                last_ap_time = curr_time - timedelta(seconds = dt % AP_ADD_DURATION)
+            dt = curr_time - last_ap_time
+            nextAddApTime = int(dt.total_seconds())
 
-            if xp == 0:
-                send_error(self, "no_xp")
+            if ap == 0:
+                send_error(self, "no_ap")
                 return
 
             path = path[1:]
-            if len(path) > xp:
-                path = path[:xp]
+            if len(path) > ap:
+                path = path[:ap]
 
-            xp -= len(path)
+            ap -= len(path)
 
             # check and triger event
             currpos = path[-1]
@@ -463,24 +463,24 @@ class Move(tornado.web.RequestHandler):
             if item_updated:
                 itemsjs = json.dumps(items)
                 yield util.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
+                    """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s,
                         money=%s, items=%s
                             WHERE userid=%s"""
-                    ,(cachejs, xp, last_xp_time, money, itemsjs, session["userid"])
+                    ,(cachejs, ap, last_ap_time, money, itemsjs, session["userid"])
                 )
             else:
                 yield util.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s,
+                    """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s,
                         money=%s
                             WHERE userid=%s"""
-                    ,(cachejs, xp, last_xp_time, money, session["userid"])
+                    ,(cachejs, ap, last_ap_time, money, session["userid"])
                 )
 
             # reply
             reply = {"error":no_error}
             reply["currPos"] = cache["currPos"]
-            reply["xp"] = xp
-            reply["nextAddXpTime"] = nextAddXpTime
+            reply["ap"] = ap
+            reply["nextAddApTime"] = nextAddApTime
             reply["moneyAdd"] = money_add
             reply["redCaseAdd"] = red_case_add
             reply["goldCaseAdd"] = gold_case_add
@@ -563,7 +563,7 @@ class BattleResult(tornado.web.RequestHandler):
                 raise Exception("Not in battle")
 
             row = mongrp_tbl.get_row(str(mon_grp_id))
-            cols = ["order%sID"%(i+1) for i in xrange(10)]
+            cols = ["order%s"%(i+1) for i in xrange(MONSTER_GROUP_MEMBER_MAX)]
             monsters = []
             for col in cols:
                 mon = int(mongrp_tbl.get_value(row, col))

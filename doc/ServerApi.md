@@ -73,12 +73,12 @@ Server Side Api (ver0.1 Draft)
 			money: {INT},			/* 钱 */
 			inZoneId: {INT},    	/* 如果已进入zone返回zoneId，否则返回0 */
 			lastZoneId: {INT}, 		/* 已解锁的地图的最后ID */
-			xp: {INT},				/* 当前行动值，用于推图 */
-			maxXp: {INT},			/* 最大行动值 */
-			xpAddRemain: {INT},		/* 距下次增加xp时间（秒） */
-			ap: {INT},				/* 当前PVP行动值 */
-			maxAp: {INT},			/* 最大PVP行动值 */
+			ap: {INT},				/* 当前行动值，用于推图 */
+			maxAp: {INT},			/* 最大行动值 */
 			apAddRemain: {INT},		/* 距下次增加ap时间（秒） */
+			xp: {INT},				/* 当前活动行动值，用于pvp，boss战等 */
+			maxXp: {INT},			/* 最大活动行动值 */
+			xpAddRemain: {INT},		/* 距下次增加xp时间（秒） */
 			lastFormation: {INT}	/* 最新得到的阵形 */
 			currentBand: {INT}		/* 当前选择band index, 从0开始*/
 			cards: 	[				/* 当前用户拥有的卡片信息，为cardEntity对象的数组*/

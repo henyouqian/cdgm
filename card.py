@@ -6,7 +6,7 @@ from wagon import Wagon
 import tornado.web
 import adisp
 
-import simplejson as json
+import json
 from itertools import repeat, imap
 from random import randint, uniform
 import csv

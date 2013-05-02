@@ -4,7 +4,7 @@ from session import *
 import tornado.web
 import adisp
 import brukva
-import simplejson as json
+import json
 import logging
 
 class Addcard(tornado.web.RequestHandler):
