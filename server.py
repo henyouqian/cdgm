@@ -57,6 +57,8 @@ def main():
         ioloop.IOLoop.instance().start()
     except KeyboardInterrupt as e:
         print "KeyboardInterrupt."
+    except:
+        raise
     finally:
         print "Server shutting down..."
         util.stop_db()
