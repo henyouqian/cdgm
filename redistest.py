@@ -4,7 +4,7 @@ import util
 import tornado.web
 import adisp
 import brukva
-import simplejson as json
+import json
 import csv
 import logging
 import os

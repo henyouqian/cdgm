@@ -1,6 +1,6 @@
 import unittest
 from tornado import httpclient
-import simplejson as json
+import json
 
 class TestPlayer(unittest.TestCase):
     def setUp(self):

@@ -7,7 +7,7 @@ from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_at
 import tornado.web
 import adisp
 import brukva
-import simplejson as json
+import json
 import os
 from datetime import datetime, timedelta
 from random import random, choice

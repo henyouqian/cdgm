@@ -7,7 +7,7 @@ import card as mdl_card
 import tornado.web
 import adisp
 
-import simplejson as json
+import json
 import datetime
 
 class Wagon(object):

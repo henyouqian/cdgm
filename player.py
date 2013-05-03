@@ -6,7 +6,7 @@ from session import *
 import tornado.web
 import adisp
 import brukva
-import simplejson as json
+import json
 import card
 from datetime import datetime, timedelta
 

@@ -6,7 +6,7 @@ from gamedata import XP_ADD_DURATION
 import tornado.web
 import adisp
 
-import simplejson as json
+import json
 import random
 import datetime
 

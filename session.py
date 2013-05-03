@@ -2,7 +2,7 @@ import uuid
 import util
 import brukva
 import adisp
-import simplejson as json
+import json
 import tornado.web
 import config
 

@@ -1,5 +1,5 @@
 ﻿import tornado.web
-import simplejson as json
+import json
 import traceback
 import config
 import logging

@@ -1,12 +1,14 @@
 import os
 import shutil
 
+# setup system
 # os.system("sudo apt-get update")
 os.system("sudo apt-get -y -qq install git")
+os.system("sudo apt-get -y -qq install python-pip")
 os.system("sudo apt-get -y -qq install python-dev")
 os.system("sudo apt-get -y -qq build-dep python-mysqldb")
-os.system("sudo apt-get -y -qq install python-pip")
 os.system("sudo pip install virtualenv")
+# os.system("easy_install -U distribute")
 
 work_dir = "/home/wh"
 try:
@@ -15,12 +17,16 @@ except:
 	pass
 os.chdir(work_dir)
 
-try:
-	shutil.rmtree(work_dir + "/env")
-except:
-	pass
-os.system("virtualenv env")
-os.system(". env/bin/activate")
+# clone or pull cdgm from github
+if not os.path.exists("cdgm"):
+	os.system("git clone https://github.com/henyouqian/cdgm.git")
+	
+os.chdir("cdgm")
 
-os.system("pip install tornado")
-os.system("pip install mysql-python")
+# install dependence
+if not os.path.exists("env"):
+	os.system("virtualenv env")
+
+os.system(". env/bin/activate")
+os.system("env/bin/pip install tornado")
+os.system("env/bin/pip install mysql-python")
