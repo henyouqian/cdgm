@@ -1,0 +1,4 @@
+[INFO 2013-05-05 15:06:49,923 server.py:20] Server starting
+[INFO 2013-05-05 15:06:49,923 server.py:20] Debug mode
+[INFO 2013-05-05 15:07:02,845 server.py:20] KeyboardInterrupt.
+[INFO 2013-05-05 15:07:02,845 server.py:20] Server shutting down...

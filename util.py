@@ -5,6 +5,7 @@ import adisp
 import time
 import csv
 import random
+import logging
 import __builtin__
 
 
@@ -267,3 +268,18 @@ def stop_db():
     global authdb, whdb
     authdb.stop()
     whdb.stop()
+
+# logging
+def init_logger(debug):
+    logger = logging.getLogger()
+    if debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.WARNING)
+
+    # write to file and rollover at midnight
+    FORMAT = '[%(levelname)s %(asctime)-15s %(filename)s:%(levelno)s] %(message)s'
+    formatter = logging.Formatter(fmt=FORMAT)
+    handler = logging.handlers.TimedRotatingFileHandler("log/wh.log", when='midnight', interval=1)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)

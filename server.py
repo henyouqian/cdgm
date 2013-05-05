@@ -20,7 +20,6 @@ if config.debug:
     handlers = handlers + cheat.handlers
 
 def main():
-    print "Server starting..."
     random.seed()
 
     # command line
@@ -45,22 +44,21 @@ def main():
             cookie_secret=config.cookie_secret
         )
         application.listen(params.port)
+
+        util.init_logger(config.debug)
+        logging.info("Server starting")
         if (config.debug):
-            logging.getLogger().setLevel(logging.DEBUG)
-            # options.enable_pretty_logging()
-            print "Server running in debug mode"
-        else:
-            logging.disable(logging.WARNING)
-            print "Server running"
+            logging.info("Debug mode")
 
         # server loop
         ioloop.IOLoop.instance().start()
     except KeyboardInterrupt as e:
-        print "KeyboardInterrupt."
-    except:
-        raise
+        logging.info("KeyboardInterrupt.")
+    except Exception as e:
+        logging.error(e)
+        raise e
     finally:
-        print "Server shutting down..."
+        logging.info("Server shutting down...")
         util.stop_db()
         exit(0)
 

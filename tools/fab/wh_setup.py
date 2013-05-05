@@ -2,7 +2,7 @@ import os
 import shutil
 
 # setup system
-# os.system("sudo apt-get update")
+os.system("sudo apt-get update")
 os.system("sudo apt-get -y -qq install git")
 os.system("sudo apt-get -y -qq install python-pip")
 os.system("sudo apt-get -y -qq install python-dev")
@@ -27,6 +27,5 @@ os.chdir("cdgm")
 if not os.path.exists("env"):
 	os.system("virtualenv env")
 
-os.system(". env/bin/activate")
 os.system("env/bin/pip install tornado")
 os.system("env/bin/pip install mysql-python")
