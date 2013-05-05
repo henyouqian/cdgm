@@ -2,3 +2,15 @@
 [INFO 2013-05-05 15:06:49,923 server.py:20] Debug mode
 [INFO 2013-05-05 15:07:02,845 server.py:20] KeyboardInterrupt.
 [INFO 2013-05-05 15:07:02,845 server.py:20] Server shutting down...
+[INFO 2013-05-05 16:08:57,487 server.py:20] Server starting
+[INFO 2013-05-05 16:08:57,488 server.py:20] Debug mode
+[INFO 2013-05-05 16:09:00,952 web.py:20] 200 GET /authapi/login?username=aa&password=aa (127.0.0.1) 204.69ms
+[INFO 2013-05-05 16:09:01,069 web.py:20] 304 GET /whapi/player/getinfo (127.0.0.1) 11.23ms
+[INFO 2013-05-05 16:09:07,495 web.py:20] 200 GET /authapi/login?username=aa&password=aa (127.0.0.1) 76.27ms
+[INFO 2013-05-05 16:09:07,556 web.py:20] 304 GET /whapi/player/getinfo (127.0.0.1) 25.68ms
+[INFO 2013-05-05 16:11:18,941 server.py:20] Server starting
+[INFO 2013-05-05 16:11:18,942 server.py:20] Debug mode
+[INFO 2013-05-05 16:11:23,405 web.py:20] 200 GET /whapi/player/getinfo (127.0.0.1) 32.14ms
+[INFO 2013-05-05 16:12:59,127 server.py:20] Server starting
+[INFO 2013-05-05 16:12:59,127 server.py:20] Debug mode
+[INFO 2013-05-05 16:13:10,144 web.py:20] 304 GET /whapi/player/getinfo (127.0.0.1) 7.59ms
