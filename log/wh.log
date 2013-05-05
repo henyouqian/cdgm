@@ -14,3 +14,4 @@
 [INFO 2013-05-05 16:12:59,127 server.py:20] Server starting
 [INFO 2013-05-05 16:12:59,127 server.py:20] Debug mode
 [INFO 2013-05-05 16:13:10,144 web.py:20] 304 GET /whapi/player/getinfo (127.0.0.1) 7.59ms
+[INFO 2013-05-05 17:06:45,631 autoreload.py:20] /home/liwei/projects/cdgm/config.py modified; restarting server
