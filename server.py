@@ -54,8 +54,8 @@ def main():
         ioloop.IOLoop.instance().start()
     except KeyboardInterrupt as e:
         logging.info("KeyboardInterrupt.")
-    except Exception as e:
-        logging.error(e)
+    except:
+        traceback.print_exc()
         raise e
     finally:
         logging.info("Server shutting down...")

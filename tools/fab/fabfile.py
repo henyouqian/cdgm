@@ -12,8 +12,8 @@ def do_script(filename):
 	sudo("python " + filename)
 	sudo("rm " + filename)
 
-def wh_setup():
+def setup():
 	do_script("wh_setup.py")
 
-def wh_deploy():
+def deploy():
 	do_script("wh_deploy.py")
