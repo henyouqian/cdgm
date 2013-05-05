@@ -11,6 +11,7 @@ import pvp
 from tornado import web, httpserver, ioloop, options
 import logging
 import random
+import traceback
 
 
 handlers = auth.handlers + player.handlers + zone.handlers + card.handlers + wagon.handlers + pvp.handlers
@@ -26,12 +27,8 @@ def main():
     options.define("port", default=8888, help="Port")
     options.parse_command_line()
     params = options.options
-
     try:
-        # redis
         util.init_redis()
-
-        # database
         util.init_db()
     
         #sync time from sql server
