@@ -271,6 +271,11 @@ def stop_db():
 
 # logging
 def init_logger(debug):
+    try:
+        os.makedirs("log")
+    except:
+        pass
+        
     logger = logging.getLogger()
     if debug:
         logger.setLevel(logging.DEBUG)

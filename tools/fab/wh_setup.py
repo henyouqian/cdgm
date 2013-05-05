@@ -29,3 +29,10 @@ if not os.path.exists("env"):
 
 os.system("env/bin/pip install tornado")
 os.system("env/bin/pip install mysql-python")
+
+os.system("ufw enable")
+os.system("ufw default deny")
+os.system("ufw allow 22")
+os.system("ufw allow 80")
+os.system("ufw allow 8888")
+os.system("ufw allow from 10.0.0.0/8")
