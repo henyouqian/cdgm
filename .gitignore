@@ -39,3 +39,5 @@ env
 .DS_Store
 archive/
 t.py
+log/
+config.py
