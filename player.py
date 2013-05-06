@@ -277,7 +277,7 @@ class SetBand(tornado.web.RequestHandler):
 class UseItem(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
-    def get(self):
+    def post(self):
         try:
             # session
             session = yield find_session(self)
@@ -288,7 +288,9 @@ class UseItem(tornado.web.RequestHandler):
 
             # params
             try:
-                item_id = self.get_argument("itemid")
+                post_input = json.loads(self.request.body)
+                item_id = post_input["itemid"]
+                targets = post_input["targets"]
             except:
                 send_error(self, err_param)
                 return;
@@ -307,11 +309,11 @@ class UseItem(tornado.web.RequestHandler):
 
                 # check item count
                 item_num = items[item_id]
-                if item_num == 0:
-                    raise Exception("Not have this item")
+                if item_num == 0 or item_num < len(targets):
+                    raise Exception("Item not enough")
 
                 # update item count
-                item_num -= 1
+                item_num -= max(1, len(targets))
                 items[item_id] = item_num
                 row_nums = yield util.whdb.runOperation(
                     """ UPDATE playerInfos SET items=%s
