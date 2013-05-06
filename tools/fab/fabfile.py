@@ -7,13 +7,20 @@ env.hosts = ["121.199.15.152"]
 env.user = 'root'
 env.password = 'Nmmgb808313'
 
+def put_conf():
+    put("conf.py", ".")
+
 def do_script(filename):
-	put(filename, "./")
-	sudo("python " + filename)
-	sudo("rm " + filename)
+    put(filename, ".")
+    sudo("python " + filename)
+    sudo("rm " + filename)
 
 def setup():
-	do_script("sys_setup.py")
+    do_script("sys_setup.py")
 
 def deploy():
-	do_script("deploy.py")
+    do_script("deploy.py")
+
+def gmetad():
+    put_conf()
+    do_script("gmetad.py")
