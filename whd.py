@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import server
+import wh
 import sys, os, time, atexit
 from signal import SIGTERM
 
@@ -22,6 +22,11 @@ class Daemon:
         Programming in the UNIX Environment" for details (ISBN 0201563177)
         http://www.erlenstar.demon.co.uk/unix/faq_2.html#SEC16
         """
+        try:
+            f = file(self.pidfile,'w+')
+        except:
+            sys.stderr.write("pidfile open failed, try sudo. pidfile=%s\n" % self.pidfile)
+            sys.exit(1)
         
         try: 
             pid = os.fork() 
@@ -55,7 +60,7 @@ class Daemon:
     
         atexit.register(self.delpid)
         pid = str(os.getpid())
-        file(self.pidfile,'w+').write("%s\n" % pid)
+        f.write("%s\n" % pid)
     
     def delpid(self):
         os.remove(self.pidfile)
@@ -122,10 +127,10 @@ class Daemon:
 
 class MyDaemon(Daemon):
     def _run(self):
-        server.main()
+        wh.main()
 
 if __name__ == "__main__":
-    daemon = MyDaemon('/tmp/whd.pid')
+    daemon = MyDaemon('/var/run/whd.pid')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             daemon.start()

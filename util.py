@@ -6,6 +6,7 @@ import time
 import csv
 import random
 import logging
+import os
 import __builtin__
 
 
@@ -273,9 +274,9 @@ def stop_db():
 def init_logger(debug):
     try:
         os.makedirs("log")
-    except:
+    except OSError:
         pass
-        
+
     logger = logging.getLogger()
     if debug:
         logger.setLevel(logging.DEBUG)
