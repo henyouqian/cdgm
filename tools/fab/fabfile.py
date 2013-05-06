@@ -13,7 +13,7 @@ def do_script(filename):
 	sudo("rm " + filename)
 
 def setup():
-	do_script("wh_setup.py")
+	do_script("sys_setup.py")
 
 def deploy():
-	do_script("wh_deploy.py")
+	do_script("deploy.py")
