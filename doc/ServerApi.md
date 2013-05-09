@@ -151,23 +151,27 @@ Server Side Api (ver0.1 Draft)
 		
 
 ## whapi/player/useitem
-- Method: GET
-- Desc: 使用物品
-- Param:
--		itemid = {INT}
+- Method: POST
+- Desc: 使用物品。注意：如果物品的使用对象是全体，请勿指定targets（留空）。
+- Input:
+-		{
+			itemid: {INT}			/* 使用物品id */
+			targets: [{INT}, ...] 	/* 物品使用对象cardEntityId, 如果没有指定对象可以留空 */
+			allout: {BOOL}			/* 只在使用小号角时有用。指定是否用小号角加满xp */
+		}
 - Example: 
--		{ServerURL}/whapi/player/useitem?itemid=1&token=16995a9581c74b18ad1584ad9c68d245
+-		{ServerURL}/whapi/player/useitem?token=16995a9581c74b18ad1584ad9c68d245
+		{
+			"itemid": 2,
+			"targets": [233, 56334, 5432]
+		}
 - Return: 
 - 		{
  			error: {STRING},   	/* 错误 */
-								/* err_not_exist: 物品不存在（数量为0） */
-								/* err_param: 参数错误*/
-								/* err_db: 数据库错误*/
 			itemId: {INT},		/* 被使用物品 */
 			itemNum: {INT},		/* 物品剩余数量 */
 		}
 		
-
 
 ## whapi/zone/enter
 - Method: GET

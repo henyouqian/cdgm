@@ -1,4 +1,4 @@
-﻿from error import *
+from error import *
 import util
 from gamedata import *
 from session import *
@@ -284,13 +284,23 @@ class UseItem(tornado.web.RequestHandler):
             if not session:
                 send_error(self, err_auth)
                 return
-            userid = session["userid"]
+            user_id = session["userid"]
 
             # params
             try:
                 post_input = json.loads(self.request.body)
                 item_id = post_input["itemid"]
-                targets = post_input["targets"]
+                try:
+                    targets = post_input["targets"]
+                except:
+                    targets = []
+
+                if len(targets) > 10:
+                    raise Exception("len of targets > 10")
+                for t in targets:
+                    if not isinstance(t, int):
+                        raise Exception("target not int")
+
             except:
                 send_error(self, err_param)
                 return;
@@ -299,35 +309,187 @@ class UseItem(tornado.web.RequestHandler):
             conn = yield util.whdb.beginTransaction()
             try:
                 rows = yield util.whdb.runQuery(
-                    """ SELECT items FROM playerInfos
+                    """ SELECT items, ap, maxAp, zoneCache, xp, maxXp FROM playerInfos
                             WHERE userId=%s"""
-                    ,(userid, ), conn
+                    ,(user_id, ), conn
                 )
                 row = rows[0]
-                items = row[0]
-                items = json.loads(items)
+                items = json.loads(row[0])
+                ap = row[1]
+                maxAp = row[2]
+                zoneCache = row[3]
+                xp = row[4]
+                maxXp = row[5]
 
-                # check item count
-                item_num = items[item_id]
-                if item_num == 0 or item_num < len(targets):
-                    raise Exception("Item not enough")
-
-                # update item count
-                item_num -= max(1, len(targets))
-                items[item_id] = item_num
-                row_nums = yield util.whdb.runOperation(
-                    """ UPDATE playerInfos SET items=%s
-                            WHERE userId=%s"""
-                    ,(json.dumps(items), userid)
-                    ,conn
-                )
             finally:
                 yield util.whdb.commitTransaction(conn)
 
+            def consumeItem(items, num):
+                item_num = items.get(str(item_id), 0)
+                remain = item_num - num
+                print item_num, num
+                if remain < 0:
+                    raise Exception("not enough item")
+                items[str(item_id)] = remain
+                return remain
 
-            # use item(fixme)
+            item_id = int(item_id)
 
-            
+            # use item
+            ## recover all ap
+            if item_id == 1: 
+                if ap == maxAp:
+                    raise Exception("ap full")
+
+                item_num = consumeItem(items, 1)
+
+                yield util.whdb.runOperation(
+                    """ UPDATE playerInfos SET items=%s, ap=maxAp
+                            WHERE userId=%s"""
+                    ,(json.dumps(items), user_id)
+                )
+
+            ## recover one hp
+            elif item_id == 2:
+                if not zoneCache:
+                    raise Exception("not in zone")
+
+                zoneCache = json.loads(zoneCache)
+                bandmems = zoneCache["band"]["members"]
+
+                rows = yield util.whdb.runQuery(
+                    """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
+                        WHERE ownerId=%s AND id IN ({})""".format(",".join((str(t) for t in targets))),
+                    (user_id,)
+                )
+                target_hps = [sum(row) for row in rows]
+                target_hps = dict(zip(targets, target_hps))
+                
+                num = 0
+                for m in bandmems:
+                    if m and m[0] in target_hps and m[1] > 0:
+                        full_hp = target_hps[m[0]]
+                        if m[1] != full_hp:
+                            m[1] = full_hp
+                            num += 1
+
+                if num:
+                    item_num = consumeItem(items, num)
+
+                    yield util.whdb.runOperation(
+                        """ UPDATE playerInfos SET items=%s, zoneCache=%s
+                                WHERE userId=%s"""
+                        ,(json.dumps(items), json.dumps(zoneCache), user_id)
+                    )
+                else:
+                    raise Exception("no effect")
+
+            ## revive one 
+            elif item_id == 3:
+                if not zoneCache:
+                    raise Exception("not in zone")
+
+                zoneCache = json.loads(zoneCache)
+                bandmems = zoneCache["band"]["members"]
+
+                rows = yield util.whdb.runQuery(
+                    """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
+                        WHERE ownerId=%s AND id IN ({})""".format(",".join((str(t) for t in targets))),
+                    (user_id,)
+                )
+                target_hps = [sum(row) for row in rows]
+                target_hps = dict(zip(targets, target_hps))
+                
+                num = 0
+                for m in bandmems:
+                    if m and m[0] in target_hps and m[1] == 0:
+                        full_hp = target_hps[m[0]]
+                        if m[1] != full_hp:
+                            m[1] = full_hp
+                            num += 1
+
+                if num:
+                    item_num = consumeItem(items, num)
+
+                    yield util.whdb.runOperation(
+                        """ UPDATE playerInfos SET items=%s, zoneCache=%s
+                                WHERE userId=%s"""
+                        ,(json.dumps(items), json.dumps(zoneCache), user_id)
+                    )
+                else:
+                    raise Exception("no effect")
+
+            ## recover all hp
+            elif item_id == 4:
+                if not zoneCache:
+                    raise Exception("not in zone")
+
+                zoneCache = json.loads(zoneCache)
+                bandmems = zoneCache["band"]["members"]
+
+                targets = [m[0] for m in bandmems if m]
+
+                rows = yield util.whdb.runQuery(
+                    """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
+                        WHERE ownerId=%s AND id IN ({})""".format(",".join((str(t) for t in targets))),
+                    (user_id,)
+                )
+                target_hps = [sum(row) for row in rows]
+                target_hps = dict(zip(targets, target_hps))
+                
+                hp_added = False
+                for m in bandmems:
+                    if m and m[0] in target_hps and m[1] > 0:
+                        full_hp = target_hps[m[0]]
+                        if m[1] != full_hp:
+                            m[1] = full_hp
+                            hp_added = True
+
+                if hp_added:
+                    item_num = consumeItem(items, 1)
+
+                    yield util.whdb.runOperation(
+                        """ UPDATE playerInfos SET items=%s, zoneCache=%s
+                                WHERE userId=%s"""
+                        ,(json.dumps(items), json.dumps(zoneCache), user_id)
+                    )
+                else:
+                    raise Exception("no effect")
+
+            ## recover one xp
+            elif item_id == 10:
+                try:
+                    allout = post_input["allout"]
+                except:
+                    allout = False
+
+                if xp == maxXp:
+                    raise Exception("xp full")
+
+                if allout:
+                    dxp = maxXp - xp
+                else:
+                    dxp = 1
+
+                item_num = consumeItem(items, dxp)
+                print type(dxp)
+                yield util.whdb.runOperation(
+                    """ UPDATE playerInfos SET items=%s, xp=xp+%s
+                            WHERE userId=%s"""
+                    ,(json.dumps(items), dxp, user_id)
+                )
+
+            ## recover all xp
+            elif item_id == 11:
+                if xp == maxXp:
+                    raise Exception("xp full")
+
+                item_num = consumeItem(items, 1)
+                yield util.whdb.runOperation(
+                    """ UPDATE playerInfos SET items=%s, xp=maxXp
+                            WHERE userId=%s"""
+                    ,(json.dumps(items), user_id)
+                )
             
             # reply
             reply = {"error":no_error, "itemId":int(item_id), "itemNum":item_num}

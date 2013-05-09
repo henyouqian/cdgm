@@ -1,0 +1,14 @@
+# Enumerate all the servers here
+
+server { # php/fastcgi
+    listen       8080;
+    server_name  localhost;
+    root         /var/www;
+    index        index.php index.html index.htm;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME /var/www/nginx-default$fastcgi_script_name;
+    include /etc/nginx/fastcgi_params;
+    location ~ \.php$ {
+      fastcgi_pass   127.0.0.1:9000;
+    }
+  }
