@@ -43,13 +43,9 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # add war lord card
-            try:
-                cards = yield card.create_cards(userid, [warlord_proto_id], INIT_MAX_CARD)
-                warlord_card = cards[0]
-                warlord_id = warlord_card["id"]
-            except:
-                send_error(self, "err_create_warlord")
-                return
+            cards = yield card.create_cards(userid, [warlord_proto_id], INIT_MAX_CARD, 1)
+            warlord_card = cards[0]
+            warlord_id = warlord_card["id"]
 
             # init bands
             bands = INIT_BANDS
@@ -76,7 +72,9 @@ class Create(tornado.web.RequestHandler):
             )
 
             #reply
-            send_ok(self)
+            reply = util.new_reply()
+            reply["warlord"] = warlord_card
+            self.write(json.dumps(reply))
         except:
             send_internal_error(self)
         finally:
@@ -492,7 +490,9 @@ class UseItem(tornado.web.RequestHandler):
                 )
             
             # reply
-            reply = {"error":no_error, "itemId":int(item_id), "itemNum":item_num}
+            reply = util.new_reply()
+            reply["itemId"] = int(item_id)
+            reply["itemNum"] = item_num
             self.write(json.dumps(reply))
             
         except:

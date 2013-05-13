@@ -293,7 +293,7 @@ class GetPact(tornado.web.RequestHandler):
             )
 
             # reply
-            reply = {"error": no_error}
+            reply = util.new_reply()
             reply["cards"] = cards
             self.write(json.dumps(reply))
 
@@ -392,7 +392,7 @@ class Sell(tornado.web.RequestHandler):
             )
 
             # reply
-            reply = {"error":no_error}
+            reply = util.new_reply()
             reply["cardIds"] = card_ids
             reply["moneyAdd"] = money_add
             reply["money"] = money
@@ -537,7 +537,7 @@ class Evolution(tornado.web.RequestHandler):
                     )
 
             # reply
-            reply = {"error":no_error}
+            reply = util.new_reply()
             reply["money"] = money
             reply["delCardId"] = card2["id"]
             reply["evoCard"] = card1
@@ -681,7 +681,7 @@ class Sacrifice(tornado.web.RequestHandler):
             )
 
             # reply
-            reply = {"error": no_error}
+            reply = util.new_reply()
             reply["master"] = master_card
             reply["sacrificers"] = [card["id"] for card in sacrifice_cards]
             reply["money"] = money
@@ -736,7 +736,7 @@ class Create(tornado.web.RequestHandler):
             )
 
             # reply
-            reply = {"error":no_error}
+            reply = util.new_reply()
             reply["card"] = cards[0]
             self.write(json.dumps(reply))
 

@@ -54,6 +54,31 @@ Server Side Api (ver0.1 Draft)
 - Return: 
 - 		{
 			error: {STRING},    	/* 错误 */
+			warlord: {
+				id: {INT},			/* 实体id（流水号） */
+				protoId: {INT},		/* 原型id（卡片类型） */
+				level: {INT},		/* 等级 */
+				exp: {INT},			/* 经验值 */
+				hp: {INT},			/* 基础hp */
+				atk: {INT},			/* 基础atk */
+				def: {INT},			/* 基础def */
+				wis: {INT},			/* 基础wis */
+				agi: {INT},			/* 基础agi */
+				hpCrystal: {INT},	/* 水晶增加的hp */
+				atkCrystal: {INT},	/* 水晶增加的atk */
+				defCrystal: {INT},	/* 水晶增加的def */
+				wisCrystal: {INT},	/* 水晶增加的wis */
+				agiCrystal: {INT},	/* 水晶增加的agi */
+				hpExtra: {INT},		/* 进化增加的hp */
+				atkExtra: {INT},	/* 进化增加的atk */
+				defExtra: {INT},	/* 进化增加的def */
+				wisExtra: {INT},	/* 进化增加的wis */
+				agiExtra: {INT},	/* 进化增加的agi */
+				skillLevel: {INT},	/* 技能等级 */
+				skillExp: {INT},	/* 技能经验值 */
+				addSkill1: {INT},	/* 附加技能 */
+				addSkill2: {INT}	/* 附加技能2 */
+			}
 		}
 		error == "err_player_exist": player已存在
 		error == "err_create_warlord": warlord创建失败
@@ -284,7 +309,7 @@ Server Side Api (ver0.1 Draft)
 - Return: 
 - 		{
 			error: {STRING},		/* 错误 */
-			currPos: [{INT}, {INT}],/* 地图中的当前位置 */
+			currPos: {x:{INT}, y:{INT}},/* 地图中的当前位置 */
 			xp: {INT},				/* 当前行动值 */
 			nextAddXpTime: {INT},	/* 距下次加xp还有几秒 */
 			moneyAdd: {INT},		/* 获得的money */
@@ -299,6 +324,7 @@ Server Side Api (ver0.1 Draft)
 			],
 			
 			eventId: {INT}, 		/* 当前格子的event id */
+			catchMons: [{INT}, ...]	/* 可捕捉怪物prototypeId */
 		}
 
 ## whapi/zone/battleresult
@@ -313,9 +339,8 @@ Server Side Api (ver0.1 Draft)
 					hp: {INT}
 				}, /* id为CardEntityId, hp为该Card的当前血量*/ 
 				...
-			]
-			catchCards: [{INT}, {INT} ...], /* fixme:未实现 捕获的新的卡 */
-			consumeItems: [{INT}, ... ]		/* fixme:未实现 使用的ITEM ID */
+			],
+			catchItem: {INT}	/* 5：大抓怪药，6：小抓怪药 */
 		}
 - Example: 
 		{ServerURL}/whapi/zone/battleresult?token=16995a9581c74b18ad1584ad9c68d245
@@ -338,6 +363,35 @@ Server Side Api (ver0.1 Draft)
 					level: {INT}，	/* 更新后的等级 */
 				}
 			]
+			catchedMons: [				/* 当前用户拥有的卡片信息，为cardEntity对象的数组*/
+						{
+							id: {INT},			/* 实体id（流水号） */
+							protoId: {INT},		/* 原型id（卡片类型） */
+							level: {INT},		/* 等级 */
+							exp: {INT},			/* 经验值 */
+							hp: {INT},			/* 基础hp */
+							atk: {INT},			/* 基础atk */
+							def: {INT},			/* 基础def */
+							wis: {INT},			/* 基础wis */
+							agi: {INT},			/* 基础agi */
+							hpCrystal: {INT},	/* 水晶增加的hp */
+							atkCrystal: {INT},	/* 水晶增加的atk */
+							defCrystal: {INT},	/* 水晶增加的def */
+							wisCrystal: {INT},	/* 水晶增加的wis */
+							agiCrystal: {INT},	/* 水晶增加的agi */
+							hpExtra: {INT},		/* 进化增加的hp */
+							atkExtra: {INT},	/* 进化增加的atk */
+							defExtra: {INT},	/* 进化增加的def */
+							wisExtra: {INT},	/* 进化增加的wis */
+							agiExtra: {INT},	/* 进化增加的agi */
+							skillLevel: {INT},	/* 技能等级 */
+							skillExp: {INT},	/* 技能经验值 */
+							addSkill1: {INT},	/* 附加技能 */
+							addSkill2: {INT}	/* 附加技能2 */
+						},
+						... 
+			]
+
 		}
 
 ## whapi/zone/complete

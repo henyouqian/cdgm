@@ -10,3 +10,4 @@
 
 
 * redis服务器要单独配置，需要大内存
+* 凡是得到卡片的消息，例如card/getpact，zone/battleresult,都要标明是否有卡片放入wagon

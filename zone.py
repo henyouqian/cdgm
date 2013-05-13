@@ -144,12 +144,11 @@ def gen_cache(zoneid):
         elif v == TILE_MON:
             r = rand1mon.get()
         elif v == TILE_START:
-            startpos = dict(zip(("x", "y"), map(int, k.split(","))))
+            startpos = map(int, k.split(","))
             continue
         elif v == TILE_GOAL:
-            goalpos = dict(zip(("x", "y"), map(int, k.split(","))))
+            goalpos = map(int, k.split(","))
             continue
-
         if r == 0:      # case or gold
             itemtype = rand2item.get() + 1 # itemtype from 1 to 5
             if itemtype >= 0:
@@ -165,7 +164,7 @@ def gen_cache(zoneid):
 
 
     cache = {"zoneId":int(zoneid), "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos, 
-                "redCase":0, "goldCase":0, "monGrpId":-1}
+               "lastPos":startpos, "redCase":0, "goldCase":0, "monGrpId":-1}
     return cache
 
 # =============================================
@@ -184,6 +183,10 @@ def trans_cache_to_client(cache):
     outband = {"formation":band["formation"]}
     outband["members"] = [{"id": m[0], "hp":m[1]} if m else None for m in band["members"]]
     out["band"] = outband
+
+    out["startPos"] = dict(zip(["x", "y"], out["startPos"]))
+    out["goalPos"] = dict(zip(["x", "y"], out["goalPos"]))
+    out["currPos"] = dict(zip(["x", "y"], out["currPos"]))
     return out
 
 class Enter(tornado.web.RequestHandler):
@@ -383,7 +386,6 @@ class Move(tornado.web.RequestHandler):
             # check path
             #check start pos
             currpos = cache["currPos"]
-            currpos = [currpos["x"], currpos["y"]]
             if currpos != path[0]:
                 raise Exception("begin coord not match")
 
@@ -420,6 +422,7 @@ class Move(tornado.web.RequestHandler):
             gold_case_add = 0
             items_add = []
             monGrpId = None
+            catch_mons = []
             if evtid:
                 del cache["objs"][poskey]
                 zoneid = cache["zoneId"]
@@ -429,9 +432,18 @@ class Move(tornado.web.RequestHandler):
                 elif evtid < 0:         # battle
                     monGrpId = -evtid
                     cache["monGrpId"] = monGrpId
-                    # monrow = mongrp_tbl.get_row(str(-evtid))
-                    # img = mongrp_tbl.get_value(monrow, "image")
-                    # fixme
+                    cache["lastPos"] = path[-2]
+                    row = mongrp_tbl.get_row(monGrpId)
+                    catch_prob = mongrp_tbl.get_value(row, "catchable")
+                    for i in xrange(10):
+                        mon_id = mongrp_tbl.get_value(row, "order%d"%i)
+                        if not mon_id:
+                            break
+                        if random() < catch_prob:
+                            catch_mons.append(mon_id)
+
+                    cache["catchMons"] = catch_mons
+
                 elif evtid == 1:    # wood case
                     item_updated = True
                     caseid = map_tbl.get_value(maprow, "woodprobabilityID")
@@ -449,16 +461,15 @@ class Move(tornado.web.RequestHandler):
                 elif evtid == 3:    # gold case
                     cache["goldCase"] += 1
                     gold_case_add = 1
-                elif evtid == 4:
+                elif evtid == 4:    # big money
                     money_add = 100
-                elif evtid == 5:
+                elif evtid == 5:    # small money
                     money_add = 1000
 
                 if money_add:
                     money += money_add
             
             # update
-            cache["currPos"] = {"x":currpos[0], "y":currpos[1]}
             cachejs = json.dumps(cache)
             if item_updated:
                 itemsjs = json.dumps(items)
@@ -477,8 +488,8 @@ class Move(tornado.web.RequestHandler):
                 )
 
             # reply
-            reply = {"error":no_error}
-            reply["currPos"] = cache["currPos"]
+            reply = util.new_reply()
+            reply["currPos"] = dict(zip(["x", "y"], cache["currPos"]))
             reply["ap"] = ap
             reply["nextAddApTime"] = nextAddApTime
             reply["moneyAdd"] = money_add
@@ -487,7 +498,7 @@ class Move(tornado.web.RequestHandler):
             reply["items"] = items_add
             reply["monGrpId"] = monGrpId
             reply["eventId"] = None
-
+            reply["catchMons"] = catch_mons
             self.write(json.dumps(reply))
 
         except:
@@ -509,38 +520,42 @@ class BattleResult(tornado.web.RequestHandler):
 
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT warlord, zoneCache FROM playerInfos
+                """ SELECT warlord, zoneCache, items, maxCardNum FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
             row = rows[0]
             warlord = row[0]
-            cache = row[1]
-            cache = json.loads(cache)
+            cache = json.loads(row[1])
+            items = json.loads(row[2])
+            max_card_num = row[3]
 
             band = cache["band"]
             members = band["members"]
 
             # post input
             input = json.loads(self.request.body)
-
-            win = input["isWin"]
-            if not win:
-                yield util.whdb.runOperation(
-                    """UPDATE playerInfos SET inZoneId=0, zoneCache=NULL
-                            WHERE userid=%s"""
-                    ,(userid,)
-                )
-                reply = {"error":no_error}
-                self.write(reply)
-                return
-
-            # win
-            # check members valid and store new member status
             inmembers = input["members"]
             if len(inmembers)*2 != len(members):
                 raise Exception("Error member num")
 
+            catch_item = input.get("catchItem")
+
+            win = input["isWin"]
+            # lost
+            if not win:
+                if warlord in inmembers:
+                    yield util.whdb.runOperation(
+                        """UPDATE playerInfos SET inZoneId=0, zoneCache=NULL
+                                WHERE userid=%s"""
+                        ,(userid,)
+                    )
+                    reply = util.new_reply()
+                    self.write(reply)
+                    return
+
+            # win
+            # check members valid and store new member status
             mems_per_row = len(inmembers)
             for idx, inmem in enumerate(inmembers):
                 if inmem:
@@ -555,6 +570,14 @@ class BattleResult(tornado.web.RequestHandler):
                         raise Exception("Error member hp")
                     if inmem["id"] == warlord and inmem["hp"] == 0:
                         raise Exception("Dead warlord")
+
+            if not win:
+                zoneCache["currPos"] = zoneCache["lastPos"]
+                yield util.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s
+                            WHERE userId=%s"""
+                    ,(json.dumps(cache), userid)
+                )
 
             # add exp
             # calc exp
@@ -593,6 +616,7 @@ class BattleResult(tornado.web.RequestHandler):
                 ,"attrs":[row[4], row[5], row[6], row[7], row[8]]
                 ,"hpCrystal":row[9], "hpExtra":row[10]} for row in rows]
 
+            # levelup
             exp_per_card = int(exp / live_num)
             levelups = []
             for card in cards:
@@ -631,8 +655,27 @@ class BattleResult(tornado.web.RequestHandler):
                 except:
                     card["exp"] = int(lvtbl.get(level, "exp"))
 
+            # catch
+            catched_mons = []
+            if catch_item in [5, 6]:
+                item_num = items.get(str(catch_item), 0)
+                if item_num == 0:
+                    raise Exception("item not enough")
+                catch_mons = cache.get("catchMons")
+                if catch_mons:
+                    for mon in catch_mons:
+                        rarity = mon_card_tbl.get(mon, "rarity")
+                        probs = {1:0.5, 2:0.3, 3:0.2, 4:0.1}
+                        prob = probs.get(rarity, 0)
+                        if random() < prob:
+                            catched_mons.append(mon)
+
+                    if catched_mons:
+                        catched_mons = yield create_cards(userid, catched_mons, max_card_num, 1)
+
+
             # update db
-            # update cardEntities
+            ## update cardEntities
             arg_list = [(c["level"], c["exp"], c["attrs"][0], c["attrs"][1]
                 ,c["attrs"][2], c["attrs"][3], c["attrs"][4], c["id"]) for c in cards]
             row_nums = yield util.whdb.runOperationMany(
@@ -641,16 +684,15 @@ class BattleResult(tornado.web.RequestHandler):
                 ,arg_list
             )
 
-            # update band infos in zoneCache
+            ## update band infos in zoneCache
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=%s
                         WHERE userId=%s"""
                 ,(json.dumps(cache), userid)
             )
 
-
             # reply
-            reply = {"error":no_error}
+            reply = util.new_reply()
             members = []
             for card in cards:
                 member = {}
@@ -660,6 +702,7 @@ class BattleResult(tornado.web.RequestHandler):
 
             reply["members"] = members
             reply["levelups"] = levelups
+            reply["catchedMons"] = catched_mons
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
@@ -757,6 +800,7 @@ plc_tbl = PlacementTbl()
 mongrp_tbl = util.CsvTbl("data/monsters.csv", "ID")
 case_tbl = CaseTbl()
 zone_tbl = util.CsvTbl("data/zones.csv", "id")
+mon_card_tbl = util.CsvTbl("data/monstercards.csv", "ID")
 
 
 # =============================================
