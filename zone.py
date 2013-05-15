@@ -354,6 +354,8 @@ class Move(tornado.web.RequestHandler):
             if len(path) < 2:
                 raise Exception("path too short")
 
+            last_pos = path[-2]
+
             # db get cache
             rows = yield util.whdb.runQuery(
                 """SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, money FROM playerInfos 
@@ -435,7 +437,7 @@ class Move(tornado.web.RequestHandler):
                 elif evtid < 0:         # battle
                     monGrpId = -evtid
                     cache["monGrpId"] = monGrpId
-                    cache["lastPos"] = path[-2]
+                    cache["lastPos"] = last_pos
                     row = mongrp_tbl.get_row(monGrpId)
                     catch_prob = mongrp_tbl.get_value(row, "catchable")
                     for i in xrange(10):
