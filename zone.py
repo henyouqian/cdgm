@@ -412,6 +412,9 @@ class Move(tornado.web.RequestHandler):
 
             ap -= len(path)
 
+            # update curr pos
+            currpos = cache["currPos"] = path[-1]
+
             # check and triger event
             currpos = path[-1]
             poskey = "%d,%d" % (currpos[0], currpos[1])
@@ -489,7 +492,7 @@ class Move(tornado.web.RequestHandler):
 
             # reply
             reply = util.new_reply()
-            reply["currPos"] = dict(zip(["x", "y"], cache["currPos"]))
+            reply["currPos"] = dict(zip(["x", "y"], currpos))
             reply["ap"] = ap
             reply["nextAddApTime"] = nextAddApTime
             reply["moneyAdd"] = money_add

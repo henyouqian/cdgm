@@ -310,8 +310,8 @@ Server Side Api (ver0.1 Draft)
 - 		{
 			error: {STRING},		/* 错误 */
 			currPos: {x:{INT}, y:{INT}},/* 地图中的当前位置 */
-			xp: {INT},				/* 当前行动值 */
-			nextAddXpTime: {INT},	/* 距下次加xp还有几秒 */
+			ap: {INT},				/* 当前行动值 */
+			nextAddApTime: {INT},	/* 距下次加ap还有几秒 */
 			moneyAdd: {INT},		/* 获得的money */
 			redCaseAdd: {INT},		/* 获得的红宝箱数量（0或1） */
 			goldCaseAdd: {INT},		/* 获得的金宝箱数量（0或1） */
