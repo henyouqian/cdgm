@@ -439,9 +439,9 @@ class Move(tornado.web.RequestHandler):
                     cache["monGrpId"] = monGrpId
                     cache["lastPos"] = last_pos
                     row = mongrp_tbl.get_row(monGrpId)
-                    catch_prob = mongrp_tbl.get_value(row, "catchable")
+                    catch_prob = float(mongrp_tbl.get_value(row, "catchable"))
                     for i in xrange(10):
-                        mon_id = mongrp_tbl.get_value(row, "order%d"%(i+1))
+                        mon_id = int(mongrp_tbl.get_value(row, "order%d"%(i+1)))
                         if not mon_id:
                             break
                         if random() < catch_prob:
