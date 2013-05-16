@@ -246,10 +246,10 @@ class GetPact(tornado.web.RequestHandler):
 
             # get player info
             rows = yield util.whdb.runQuery(
-                        """SELECT items, whCoin, maxCardNum, wagonTemp FROM playerInfos
-                                WHERE userId=%s"""
-                        ,(user_id, )
-                    )
+                    """SELECT items, whCoin, maxCardNum, wagonTemp FROM playerInfos
+                            WHERE userId=%s"""
+                    ,(user_id, )
+                )
             row = rows[0]
             items = json.loads(row[0])
             wh_coin = row[1]
