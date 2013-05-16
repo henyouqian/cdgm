@@ -9,6 +9,7 @@ $(document).ready(function(){
 	$("#btn_move").click(move)
 	$("#btn_complete").click(complete)
 	$("#btn_teleport").click(teleport)
+	$("#btn_redgold").click(redGold)
 	getZoneInfo()
 })
 
@@ -193,4 +194,26 @@ function teleport() {
 		}
 	})
 }
+
+
+function redGold() {
+	var red = parseInt($("#ipt_red_num").val())
+	var gold = parseInt($("#ipt_gold_num").val())
+	if (!red || !gold) {
+		alert("red or gold must be number")
+		return
+	}
+	$.getJSON('/whapi/cheat/redGold',{"red":red, "gold":gold}, function(json){
+		var err = json.error
+		if (err){
+			alert(err)
+		}else{
+			alert(JSON.stringify(json))
+			zoneInfo.redCase = json.red
+			zoneInfo.goldCase = json.gold
+			updateZoneInfo()
+		}
+	})
+}
+
 
