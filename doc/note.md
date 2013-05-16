@@ -11,3 +11,11 @@
 
 * redis服务器要单独配置，需要大内存
 * 凡是得到卡片的消息，例如card/getpact，zone/battleresult,都要标明是否有卡片放入wagon
+
+* getpact请求发生过一次锁定。
+Traceback (most recent call last):
+  File "/home/wh/cdgm/card.py", line 281, in get
+    cards = yield create_cards(user_id, card_ids, max_card_num, 1)
+GeneratorExit
+
+应该是create_cards没返回。create_cards中的yield全部和数据库操作相关，而且用了transaction。我怀疑是没执行完，数据库被锁。考虑用存储过程替换。

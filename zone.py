@@ -728,7 +728,7 @@ class Complete(tornado.web.RequestHandler):
             
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT zoneCache, items FROM playerInfos
+                """ SELECT zoneCache, items, lastZoneId FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
@@ -737,6 +737,7 @@ class Complete(tornado.web.RequestHandler):
                 raise Exception("not in zone")
             cache = json.loads(row[0])
             items = json.loads(row[1])
+            last_zoneid = row[2]
 
             if cache["currPos"] != cache["goalPos"]:
                 raise Exception("palyer not at goal pos")
@@ -772,12 +773,14 @@ class Complete(tornado.web.RequestHandler):
             next_zone_id = zone_tbl.get(zoneid, "nextZoneId")
             if next_zone_id == 0:
                 next_zone_id = zoneid
+            if last_zoneid < next_zone_id:
+                last_zoneid = next_zone_id
 
             # db store
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0, items=%s, lastZoneId=%s
                         WHERE userid=%s"""
-                ,(json.dumps(items), next_zone_id, session["userid"])
+                ,(json.dumps(items), last_zoneid, session["userid"])
             )
 
             # response
