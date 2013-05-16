@@ -757,7 +757,7 @@ class Complete(tornado.web.RequestHandler):
                     items[itemid] += 1
                 else:
                     items[itemid] = 1
-                red_case_items.append({"id":int(itemid), "num":1})
+                red_case_items.append(int(itemid))
 
             # gold case
             for x in xrange(cache["goldCase"]):
@@ -767,14 +767,12 @@ class Complete(tornado.web.RequestHandler):
                     items[itemid] += 1
                 else:
                     items[itemid] = 1
-                gold_case_items.append({"id":int(itemid), "num":1})
+                gold_case_items.append(int(itemid))
 
             # find new zone id
-            next_zone_id = zone_tbl.get(zoneid, "nextZoneId")
-            if next_zone_id == 0:
-                next_zone_id = zoneid
-            if last_zoneid < next_zone_id:
-                last_zoneid = next_zone_id
+            next_zone_id = None
+            if last_zoneid == zoneid:
+                next_zone_id = zone_tbl.get(zoneid, "nextZoneId")
 
             # db store
             yield util.whdb.runOperation(
@@ -788,6 +786,11 @@ class Complete(tornado.web.RequestHandler):
             reply["redCase"] = red_case_items
             reply["goldCase"] = gold_case_items
             reply["lastZoneId"] = next_zone_id
+            reply["cards"] = []
+            reply["formation"] = None
+            reply["maxCardNum"] = None
+            reply["items"] = []
+
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)

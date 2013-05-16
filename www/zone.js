@@ -8,6 +8,7 @@ $(document).ready(function(){
 	$("#btn_withdraw").click(withdraw)
 	$("#btn_move").click(move)
 	$("#btn_complete").click(complete)
+	$("#btn_teleport").click(teleport)
 	getZoneInfo()
 })
 
@@ -173,3 +174,23 @@ function complete() {
 		window.location.href="main.html"
 	})
 }
+
+function teleport() {
+	var x = parseInt($("#ipt_teleport_x").val())
+	var y = parseInt($("#ipt_teleport_y").val())
+	if (!x || !y) {
+		alert("x or y must be number")
+		return
+	}
+	$.getJSON('/whapi/cheat/teleport',{"x":x, "y":y}, function(json){
+		var err = json.error
+		if (err){
+			alert(err)
+		}else{
+			alert(JSON.stringify(json))
+			zoneInfo.currPos = {"x":json.x, "y":json.y}
+			updateZoneInfo()
+		}
+	})
+}
+

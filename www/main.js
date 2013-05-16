@@ -41,7 +41,9 @@ function getPlayerInfo()
 			}
 
 			$("#ipt_band_idx").val(json.currentBand)
-			$("#ipt_zone_id").val(json.inZoneId)
+			if (json.inZoneId) {
+				$("#ipt_zone_id").val(json.inZoneId)
+			}
 		}
 
 		//band
