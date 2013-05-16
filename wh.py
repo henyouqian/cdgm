@@ -7,6 +7,7 @@ import zone
 import card
 import wagon
 import pvp
+import experiment
 
 from tornado import web, httpserver, ioloop, options
 import logging
@@ -14,7 +15,7 @@ import random
 import traceback
 
 
-handlers = auth.handlers + player.handlers + zone.handlers + card.handlers + wagon.handlers + pvp.handlers
+handlers = auth.handlers + player.handlers + zone.handlers + card.handlers + wagon.handlers + pvp.handlers + experiment.handlers
 
 if config.debug:
     import cheat
