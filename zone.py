@@ -778,7 +778,7 @@ class Complete(tornado.web.RequestHandler):
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0, items=%s, lastZoneId=%s
                         WHERE userid=%s"""
-                ,(json.dumps(items), last_zoneid, session["userid"])
+                ,(json.dumps(items), next_zone_id, session["userid"])
             )
 
             # response
