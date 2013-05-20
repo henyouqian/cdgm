@@ -7,6 +7,7 @@ import csv
 import random
 import logging
 import os
+from tornado import options
 import __builtin__
 
 
@@ -272,6 +273,9 @@ def stop_db():
 
 # logging
 def init_logger(debug):
+    # command line and esay enable logging
+    options.parse_command_line()
+
     try:
         os.makedirs("log")
     except OSError:
@@ -286,6 +290,7 @@ def init_logger(debug):
     # write to file and rollover at midnight
     FORMAT = '[%(levelname)s %(asctime)-15s %(filename)s:%(levelno)s] %(message)s'
     formatter = logging.Formatter(fmt=FORMAT)
+
     handler = logging.handlers.TimedRotatingFileHandler("log/wh.log", when='midnight', interval=1)
     handler.setFormatter(formatter)
     logger.addHandler(handler)

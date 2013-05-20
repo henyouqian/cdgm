@@ -544,7 +544,7 @@ class BattleResult(tornado.web.RequestHandler):
             if len(inmembers)*2 != len(members):
                 raise Exception("Error member num")
 
-            catch_item = input.get("catchItem")
+            catch_item = input.get("catchItem", 0)
 
             win = input["isWin"]
             # lost
