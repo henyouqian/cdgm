@@ -45,6 +45,7 @@ function getZoneInfo() {
 			var err = json.error
 			if (err){
 				alert(err)
+				window.location.href="main.html"
 			}else{
 				zoneInfo = JSON.parse(JSON.stringify(json))
 				updateZoneInfo()
@@ -56,6 +57,7 @@ function getZoneInfo() {
 			var err = json.error
 			if (err){
 				alert(err)
+				window.location.href="main.html"
 			}else{
 				zoneInfo = JSON.parse(JSON.stringify(json))
 				updateZoneInfo()

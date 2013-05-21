@@ -213,7 +213,7 @@ class Enter(tornado.web.RequestHandler):
 
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT bands, inZoneId FROM playerInfos
+                """ SELECT bands, inZoneId, lastZoneId FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
@@ -223,6 +223,9 @@ class Enter(tornado.web.RequestHandler):
             zone_id = row[1]
             if zone_id != 0:
                 raise Exception("Allready in zone")
+            last_zone_id = row[2]
+            if zoneid > last_zone_id:
+                raise Exception("Zone not available")
 
             # gen cache
             cache = gen_cache(zoneid)
@@ -544,7 +547,7 @@ class BattleResult(tornado.web.RequestHandler):
             if len(inmembers)*2 != len(members):
                 raise Exception("Error member num")
 
-            catch_item = input.get("catchItem")
+            catch_item = input.get("catchItem", 0)
 
             win = input["isWin"]
             # lost
@@ -728,7 +731,7 @@ class Complete(tornado.web.RequestHandler):
             
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT zoneCache, items, lastZoneId FROM playerInfos
+                """ SELECT zoneCache, items, lastZoneId, maxCardNum, maxTradeNum, lastFormation FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
@@ -738,6 +741,9 @@ class Complete(tornado.web.RequestHandler):
             cache = json.loads(row[0])
             items = json.loads(row[1])
             last_zoneid = row[2]
+            max_card_num = row[3]
+            max_trade_num = row[4]
+            last_formation = row[5]
 
             if cache["currPos"] != cache["goalPos"]:
                 raise Exception("palyer not at goal pos")
@@ -769,27 +775,78 @@ class Complete(tornado.web.RequestHandler):
                     items[itemid] = 1
                 gold_case_items.append(int(itemid))
 
-            # find new zone id
-            next_zone_id = None
+            # if first time complete
+            new_last_zone_id = None
+            new_max_card_num = None
+            new_max_trade_num = None
+            new_last_formation = None
+
             if last_zoneid == zoneid:
-                next_zone_id = zone_tbl.get(zoneid, "nextZoneId")
+                # find new zone id
+                num = int(zone_tbl.get(zoneid, "nextZoneId"))
+                if num and num > last_zoneid:
+                    new_last_zone_id = last_zoneid = num
+
+                # reward event
+                evtid = map_tbl.get_value(maprow, "rewardeventID")
+                evtrow = evt_tbl.get_row(evtid)
+
+                ## reward items
+                rwditems = []
+                for i in xrange(3):
+                    itemid = int(evt_tbl.get_value(evtrow, "item%dID"%(i+1)))
+                    itemnum = int(evt_tbl.get_value(evtrow, "amount%d"%(i+1)))
+                    if itemid and itemnum:
+                        if itemid in items:
+                            items[itemid] += itemnum
+                        else:
+                            items[itemid] = itemnum
+                        for item in rwditems:
+                            rwditems.append(item)
+
+                ## reward cards
+                rwdcards = []
+                for i in xrange(3):
+                    cardid = int(evt_tbl.get_value(evtrow, "card%dID"%(i+1)))
+                    if cardid:
+                        rwdcards.append(cardid)
+                if rwdcards:
+                    rwdcards = yield create_cards(userid, rwdcards, max_card_num, 1)
+
+                ## reward max card number
+                num = int(evt_tbl.get_value(evtrow, "maxcardnum"))
+                if num and num > max_card_num:
+                    new_max_card_num = max_card_num = num
+
+                ## reward max trade number
+                num = int(evt_tbl.get_value(evtrow, "maxtreadnum"))
+                if num and num > max_trade_num:
+                    new_max_trade_num = max_trade_num = num
+
+                ## reward formation
+                num = int(evt_tbl.get_value(evtrow, "band"))
+                if num and num > last_formation:
+                    new_last_formation = last_formation = num
 
             # db store
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0, items=%s, lastZoneId=%s
-                        WHERE userid=%s"""
-                ,(json.dumps(items), next_zone_id, session["userid"])
+                    , maxCardNum=%s, maxTradeNum=%s, lastFormation=%s
+                    WHERE userid=%s"""
+                ,(json.dumps(items), last_zoneid, max_card_num, max_trade_num, last_formation, session["userid"])
             )
 
             # response
             reply = {"error": no_error}
             reply["redCase"] = red_case_items
             reply["goldCase"] = gold_case_items
-            reply["lastZoneId"] = next_zone_id
-            reply["cards"] = []
-            reply["formation"] = None
-            reply["maxCardNum"] = None
-            reply["items"] = []
+            reply["items"] = rwditems
+            reply["cards"] = rwdcards
+            reply["lastZoneId"] = new_last_zone_id
+            reply["formation"] = new_last_formation
+            reply["maxCardNum"] = new_max_card_num
+            reply["maxTradeNum"] = new_max_trade_num
+            
 
             self.write(json.dumps(reply))
         except:
@@ -812,7 +869,7 @@ mongrp_tbl = util.CsvTbl("data/monsters.csv", "ID")
 case_tbl = CaseTbl()
 zone_tbl = util.CsvTbl("data/zones.csv", "id")
 mon_card_tbl = util.CsvTbl("data/monstercards.csv", "ID")
-
+evt_tbl = util.CsvTbl("data/events.csv", "ID")
 
 # =============================================
 if __name__ == "__main__":

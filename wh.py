@@ -10,10 +10,11 @@ import pvp
 import experiment
 import cheat
 
-from tornado import web, httpserver, ioloop, options
+from tornado import web, httpserver, ioloop
 import logging
 import random
 import traceback
+import os
 
 
 handlers = auth.handlers + player.handlers + zone.handlers + card.handlers + wagon.handlers + pvp.handlers + experiment.handlers \
@@ -23,13 +24,9 @@ if config.debug:
     import cheat
     handlers = handlers + cheat.handlers
 
-def main():
+def main(port=8888):
     random.seed()
 
-    # command line
-    options.define("port", default=8888, help="Port")
-    options.parse_command_line()
-    params = options.options
     try:
         util.init_redis()
         util.init_db()
@@ -43,7 +40,7 @@ def main():
             debug = config.debug,
             cookie_secret=config.cookie_secret
         )
-        application.listen(params.port)
+        application.listen(port)
 
         util.init_logger(config.debug)
         logging.info("Server starting")
@@ -52,8 +49,8 @@ def main():
 
         # server loop
         ioloop.IOLoop.instance().start()
-    except KeyboardInterrupt as e:
-        logging.info("KeyboardInterrupt.")
+    except KeyboardInterrupt:
+        logging.info("Process pid=%d exiting.", os.getpid())
     except Exception as e:
         logging.error(e)
         logging.error(traceback.format_exc())
@@ -62,6 +59,13 @@ def main():
         logging.info("Server shutting down...")
         util.stop_db()
         exit(0)
+
+
+def handler(signum, frame):
+    raise KeyboardInterrupt
+
+import signal
+signal.signal(signal.SIGINT, handler)
 
 if __name__ == "__main__":
     main()

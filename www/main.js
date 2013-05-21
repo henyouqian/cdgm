@@ -27,7 +27,7 @@ function getPlayerInfo()
 		}else{
 			playerInfo = json
 			playerInfoStr = JSON.stringify(json)
-			$("#info").text(playerInfoStr);
+			// $("#info").text(playerInfoStr);
 			
 			window.localStorage.playerInfo = playerInfoStr
 			if (playerInfo.inZoneId == 0) {
