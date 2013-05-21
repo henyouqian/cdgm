@@ -59,7 +59,7 @@ class PlacementTbl(object):
         return out
 
     def get_zone_data(self, zoneid):
-        return self.placements[zoneid]["placements"]
+        return self.placements[str(zoneid)]["placements"]
 
 class CaseTbl(object):
     def __init__(self):
