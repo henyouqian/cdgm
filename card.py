@@ -119,9 +119,9 @@ def create_cards(owner_id, proto_ids, max_card_num, level, callback):
             card.update({"hp":hp, "atk":atk, "def":_def, "wis":wis, "agi":agi})
             card.update({"hpCrystal":0, "atkCrystal":0, "defCrystal":0, "wisCrystal":0, "agiCrystal":0})
             card.update({"hpExtra":0, "atkExtra":0, "defExtra":0, "wisExtra":0, "agiExtra":0})
-            card.update({"skill1Id":skill_1_id, "skill2Id":skill_2_id, "skill2Id":0})
-            card.update({"skill1Level":1, "skill2Level":1, "skill2Level":1})
-            card.update({"skill1Exp":0, "skill2Exp":0, "skill2Exp":0})
+            card.update({"skill1Id":skill_1_id, "skill2Id":skill_2_id, "skill3Id":0})
+            card.update({"skill1Level":1, "skill2Level":1, "skill3Level":1})
+            card.update({"skill1Exp":0, "skill2Exp":0, "skill3Exp":0})
             card.update({"_newInsert":1})
             cards.append(card)
 
