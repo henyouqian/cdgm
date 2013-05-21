@@ -104,6 +104,7 @@ def is_war_lord(proto_id):
 #     except Exception as e:
 #         callback(e)
 
+import os
 
 @adisp.async
 @adisp.process
@@ -125,35 +126,32 @@ def create_cards(owner_id, proto_ids, max_card_num, level, callback):
             card.update({"_newInsert":1})
             cards.append(card)
 
-        conn = yield util.whdb.beginTransaction()
-        try:
-            rows = yield util.whdb.runQuery(
-                """SELECT COUNT(1) from cardEntities
-                        WHERE ownerId=%s AND inPackage=%s"""
-                , (owner_id, 1), conn
-            )
-            inpack_num = rows[0][0]
-            pack_remain_num = max_card_num - inpack_num
-            goto_pack_num = min(pack_remain_num, len(cards))
-            for idx, card in enumerate(cards):
-                if idx < goto_pack_num:
-                    card["inPackage"] = 1
-                else:
-                    card["inPackage"] = 0
+        rows = yield util.whdb.runQuery(
+            """SELECT COUNT(1) from cardEntities
+                    WHERE ownerId=%s AND inPackage=%s"""
+            , (owner_id, 1)
+        )
+        inpack_num = rows[0][0]
+        pack_remain_num = max_card_num - inpack_num
+        goto_pack_num = min(pack_remain_num, len(cards))
+        for idx, card in enumerate(cards):
+            if idx < goto_pack_num:
+                card["inPackage"] = 1
+            else:
+                card["inPackage"] = 0
 
-            cols = ",".join(cards[0].keys())
-            yield util.whdb.runOperationMany(
-                """ INSERT INTO cardEntities
-                        ({}) VALUES({})
-                """.format(cols, ",".join(("%s",)*len(cards[0])))
-                , tuple((card.values() for card in cards))
-                , conn
-            )
-            # append key "id" to fetch
-            cols += ",id"
-            rows = yield util.whdb.runQuery("CALL get_new_cards(%s, %s)", (owner_id, cols), conn)
-        finally:
-            yield util.whdb.commitTransaction(conn)
+        cols = ",".join(cards[0].keys())
+        yield util.whdb.runOperationMany(
+            """ INSERT INTO cardEntities
+                    ({}) VALUES({})
+            """.format(cols, ",".join(("%s",)*len(cards[0])))
+            , tuple((card.values() for card in cards))
+        )
+        # append key "id" to fetch
+        cols += ",id"
+        
+        rows = yield util.whdb.callProc("get_new_cards", (owner_id, cols))
+
 
         reply = []
         keys = cards[0].keys()

@@ -253,3 +253,22 @@ class Database:
             if should_commit:
                 conn.commit()
             cursor.close()
+
+
+    @async
+    def callProc(self, procname, args=None, callback=None):
+        self._threadpool.add_task(
+            partial(self._callProc, procname, args), callback)
+
+    def _callProc(self, procname, args, thread_state=None):
+        conn = thread_state
+        cursor = conn.cursor()
+        try:
+            cursor.callproc(procname, args)
+        except:
+            raise
+        else:
+            rows = cursor.fetchall()
+            return rows
+        finally:
+            cursor.close()

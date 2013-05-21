@@ -770,22 +770,25 @@ class Complete(tornado.web.RequestHandler):
                 gold_case_items.append(int(itemid))
 
             # find new zone id
-            next_zone_id = None
             if last_zoneid == zoneid:
-                next_zone_id = zone_tbl.get(zoneid, "nextZoneId")
+                try:
+                    last_zoneid = zone_tbl.get(zoneid, "nextZoneId")
+                except:
+                    pass
+
 
             # db store
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0, items=%s, lastZoneId=%s
                         WHERE userid=%s"""
-                ,(json.dumps(items), next_zone_id, session["userid"])
+                ,(json.dumps(items), last_zoneid, session["userid"])
             )
 
             # response
             reply = {"error": no_error}
             reply["redCase"] = red_case_items
             reply["goldCase"] = gold_case_items
-            reply["lastZoneId"] = next_zone_id
+            reply["lastZoneId"] = last_zoneid
             reply["cards"] = []
             reply["formation"] = None
             reply["maxCardNum"] = None
