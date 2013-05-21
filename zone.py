@@ -203,9 +203,9 @@ class Enter(tornado.web.RequestHandler):
 
             # param
             try:
-                zoneid = self.get_argument("zoneid")
-                bandidx = self.get_argument("bandidx")
-                if int(bandidx) not in xrange(BAND_NUM):
+                zoneid = int(self.get_argument("zoneid"))
+                bandidx = int(self.get_argument("bandidx"))
+                if bandidx not in xrange(BAND_NUM):
                     raise Exception("Bad bandidx")
             except:
                 send_error(self, err_param)
@@ -231,7 +231,7 @@ class Enter(tornado.web.RequestHandler):
             cache = gen_cache(zoneid)
 
             # band
-            band = bands[int(bandidx)]
+            band = bands[bandidx]
             members = [mem for mem in band["members"] if mem]
 
             sql = """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
