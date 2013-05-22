@@ -88,8 +88,6 @@ function move() {
 	var steps = []
 	for (var i = 0; i < stepNum; ++i) {
 		var step = [currPos.x, currPos.y-i*3]
-		if (step[1] < goalPos.y)
-			break
 		steps.push(step)
 	}
 	if (steps.length == 0) {
