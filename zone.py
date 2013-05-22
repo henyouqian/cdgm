@@ -59,7 +59,7 @@ class PlacementTbl(object):
         return out
 
     def get_zone_data(self, zoneid):
-        return self.placements[str(zoneid)]["placements"]
+        return self.placements[zoneid]["placements"]
 
 class CaseTbl(object):
     def __init__(self):
@@ -203,9 +203,9 @@ class Enter(tornado.web.RequestHandler):
 
             # param
             try:
-                zoneid = int(self.get_argument("zoneid"))
-                bandidx = int(self.get_argument("bandidx"))
-                if bandidx not in xrange(BAND_NUM):
+                zoneid = self.get_argument("zoneid")
+                bandidx = self.get_argument("bandidx")
+                if int(bandidx) not in xrange(BAND_NUM):
                     raise Exception("Bad bandidx")
             except:
                 send_error(self, err_param)
@@ -231,7 +231,7 @@ class Enter(tornado.web.RequestHandler):
             cache = gen_cache(zoneid)
 
             # band
-            band = bands[bandidx]
+            band = bands[int(bandidx)]
             members = [mem for mem in band["members"] if mem]
 
             sql = """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
