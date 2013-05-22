@@ -1,7 +1,7 @@
 $(document).ready(function(){
 	// getPlayerInfo();
 	$(".thumbnails>li>a").click(function(){
-		selectPlayer(this.id+119)
+		selectPlayer(parseInt(this.id)+119)
 	});
 });
 
