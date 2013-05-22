@@ -644,7 +644,6 @@ class BattleResult(tornado.web.RequestHandler):
                         card["exp"] = int(lvtbl.get(level, "exp"))
 
                     #level up
-                    logging.debug((level, card["level"]))
                     if level != card["level"]:
                         card["level"] = level
                         card["attrs"] = calc_card_proto_attr(card["proto"], level)
