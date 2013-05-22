@@ -25,10 +25,9 @@ class Create(tornado.web.RequestHandler):
 
             # param
             try:
-                warlord_idx = int(self.get_argument("warlord"))
-                if warlord_idx not in xrange(8):
-                    raise IndexError("warlord_idx not in [0, 7]")
-                warlord_proto_id = WARLORD_ID_BEGIN + warlord_idx
+                warlord_proto_id = int(self.get_argument("warlord"))
+                if warlord_proto_id not in (119, 120, 121, 122, 123, 124, 125, 126):
+                    raise IndexError("invalid warlord_proto_id")
             except:
                 send_error(self, err_param)
                 return;
@@ -66,7 +65,7 @@ class Create(tornado.web.RequestHandler):
                 """ INSERT INTO playerInfos
                         (userId, name, warLord, money, inZoneId, lastZoneId, maxCardNum, maxTradeNum, currentBand, 
                             xp, maxXp, ap, maxAp, bands, items, wagonGeneral, wagonTemp, wagonSocial)
-                        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
                 ,(userid, username, warlord_id, INIT_GOLD, 0, INIT_ZONE_ID, INIT_MAX_CARD, INIT_MAX_TRADE, 0
                 , INIT_XP, INIT_XP, INIT_AP, INIT_AP, bands, items, wagon, wagon, wagon)
             )
