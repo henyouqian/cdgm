@@ -636,7 +636,7 @@ class BattleResult(tornado.web.RequestHandler):
                     card["exp"] += exp_per_card
                     while card["exp"] >= next_lv_exp:
                         level += 1
-                        next_lv_exp = int(lvtbl.get(level, "exp"))
+                        next_lv_exp = int(lvtbl.get(level+1, "exp"))
 
                     #max level check
                     if level >= max_level:
