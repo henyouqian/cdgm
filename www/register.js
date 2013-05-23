@@ -21,7 +21,7 @@ function register(){
 		alert("Password mismatch.");
 		return;
 	}
-	$.getJSON('/authapi/register', {username:username, password:password}, function(json){
+	$.getJSON('https://'+window.location.hostname+'/authapi/register?callback=?', {username:username, password:password}, function(json){
 		var err = json.error;
 		if (err){
 			alert("Sign up failed. Error=" + err);

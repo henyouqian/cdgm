@@ -18,6 +18,7 @@ class Register(tornado.web.RequestHandler):
             try:
                 username = self.get_argument("username")
                 password = self.get_argument("password")
+                callback = self.get_argument("callback", None)
             except:
                 send_error(self, err_param)
                 return;
@@ -49,11 +50,17 @@ class Register(tornado.web.RequestHandler):
             if usertoken == None:
                 raise Exception("error new_session")
 
-            reply = {"error":no_error, "token":usertoken}
-            self.write(json.dumps(reply))
             self.set_cookie("token", usertoken, 
                             expires=datetime.datetime.utcnow()+datetime.timedelta(seconds=SESSION_TTL), 
                             path='/') #fixme expires and path
+
+            reply = util.new_reply()
+            reply["token"] = usertoken
+            
+            if callback:
+                self.write("%s(%s)" % (callback, json.dumps(reply)))
+            else:
+                self.write(json.dumps(reply))
             
         except:
             send_internal_error(self)
@@ -69,6 +76,7 @@ class Login(tornado.web.RequestHandler):
             try:
                 username = self.get_argument("username")
                 password = self.get_argument("password")
+                callback = self.get_argument("callback", None)
             except:
                 send_error(self, err_param)
                 return
@@ -106,12 +114,19 @@ class Login(tornado.web.RequestHandler):
                 player_exist = False
 
             # reply
-            reply = {"error":no_error, "token":usertoken, "playerExist":player_exist}
-            self.write(json.dumps(reply))
-
             self.set_cookie("token", usertoken, 
                             expires=datetime.datetime.utcnow()+datetime.timedelta(seconds=SESSION_TTL), 
                             path='/') #fixme expires and path
+
+            reply = util.new_reply()
+            reply["token"] = usertoken
+            reply["playerExist"] = player_exist
+
+            if callback:
+                self.write("%s(%s)" % (callback, json.dumps(reply)))
+            else:
+                self.write(json.dumps(reply))
+
         except:
             send_internal_error(self)
         finally:
