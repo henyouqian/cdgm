@@ -11,7 +11,7 @@ server {
     client_max_body_size 50M;
 
     location ^~ / {
-        root /home/liwei/projects/cdgm/www;
+        root /home/wh/cdgm/www;
         if ($query_string) {
             expires max;
         }
@@ -21,6 +21,15 @@ server {
     }
     location = /robots.txt {
         rewrite (.*) /static/robots.txt;
+    }
+
+	location /authapi/ {
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Scheme $scheme;
+        proxy_pass http://frontends;
     }
 
 	location /whapi/ {
