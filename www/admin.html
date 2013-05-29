@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Admin</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/angular.min.js"></script>
+
+    <style type="text/css">
+      code {
+        font-size:150%;
+      }
+
+      form input[type="text"] {
+        margin-bottom: 0px;
+      }
+
+      .affixList {
+        top: 10px;
+      }
+
+      .page-header {
+        padding-bottom: 0px;
+        margin: 20px 0 20px;
+        border-top: 1px solid #eee;
+        border-bottom: 0px solid #eee;
+      }
+
+    </style>
+  </head>
+
+  <body ng-app>
+    <div class="container" id="top" ng-controller="Controller">
+      <h1>Admin</h1>
+      <!-- <button class="btn" ng-click="toTop()">
+        <i class="icon-arrow-up"></i>top
+      </button> -->
+      
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#tab1" data-toggle="tab">Server</a></li>
+        <li><a href="#tab2" data-toggle="tab">Player</a></li>
+      </ul>
+      <div class="tab-content">
+        
+        <!-- server tab -->
+        <div class="tab-pane active" id="tab1">
+          <div class="row">
+            <div class="span2">
+              <div class="well affixList" data-spy="affix" data-offset-top="108">
+                <ul class="nav nav-list" id="server-tab" ng-hide="page">
+                  <li><a href="#top">顶部</a></li>
+                  <li><a href="#server-rolling">滚动公告</a></li>
+                  <li><a href="#server-exp">全服经验</a></li>
+                  <li><a href="#server-item">全服道具</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="span10">
+              <section id="server-rolling">
+                <div class="page-header">
+                  <h2>滚动公告</h2>
+                </div>
+                <code>滚动公告滚动公告</code><br><br>
+                <form>
+                  <input type="text" style="width:400px;" maxlength="100">
+                  <button class="btn btn-primary" ng-click="reset()">设置</button>
+                </form>
+              </section>
+
+              <section id="server-exp">
+                <div class="page-header">
+                  <h2>全服经验</h2>
+                </div>
+                xxbb<br><br>
+                xxbb<br><br>
+                xxbb<br><br>
+                xxbb<br><br>
+                xxbb<br><br>
+                xxbb<br><br>
+              </section>
+
+              <section id="server-item">
+                <div class="page-header">
+                  <h2>全服道具</h2>
+                </div>
+                xxbb<br><br>
+                xxbb<br><br>
+                xxbb<br><br>
+                xxbb<br><br>
+                xxbb<br><br>
+                xxbb<br><br>
+              </section>
+
+              <section id="xyz">
+                <div class="page-header">
+                  <h2>xyz</h2>
+                </div>
+                xyz<br><br>
+                xyzxyz<br><br>
+                xyzxyz<br><br>
+                xyzxyzxyz<br><br>
+                xyzxyzxyz<br><br>
+                xyzxyzxyz<br><br>
+                xyzxyzxyz<br><br>
+                xyzxyzxyz<br><br>
+                xyzxyzxyz<br><br>
+                xyzxyzxyz<br><br>
+                xyzxyzxyz<br><br>
+                xyzxyzxyz<br><br>
+              </section>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- player tab -->
+        <div class="tab-pane" id="tab2">
+          <div class="row">
+            <div class="span2">
+              <div class="well affixList" data-spy="affix" data-offset-top="108">
+                <ul class="nav nav-list" id="server-tab" ng-hide="page">
+                  <li><a href="#top">顶部</a></li>
+                  <li><a href="#player-set">用户</a></li>
+                  <li><a href="#player-item">道具</a></li>
+                  <li><a href="#player-card">卡牌</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="span10">
+              <section id="player-set">
+                <div class="page-header">
+                  <h2>用户</h2>
+                </div>
+                Accounts name, id:
+                <span class="label label-success">{{playerInfo.name}}, {{playerInfo.userId}}</span><br><br>
+                <form>
+                  <input type="text" style="width:200px;" ng-model="userNameInput" placeholder="用户帐号">
+                  <button class="btn btn-primary" ng-click="getPlayerInfo()">选择用户</button>
+                </form>
+                <hr>
+
+                <form>
+                  开启地图: {{playerInfo.lastZoneId}}
+                  <input type="text" style="width:100px;" ng-model="lastZoneId" pattern="[0-9]*" ng-pattern="/[0-9]*/" placeholder="zone id">
+                  <button class="btn btn-primary" ng-click="setLastZoneId()">设置</button>
+                </form>
+                <form>
+                  包裹最大数量: {{playerInfo.maxCardNum}}
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="max card number">
+                  <button class="btn btn-primary" ng-click="setMaxCardNum()">设置</button>
+                </form>
+                <form>
+                  开启阵形: {{playerInfo.lastFormation}}
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="formation id">
+                  <button class="btn btn-primary" ng-click="setLastFormation()">设置</button>
+                </form>
+                <form>
+                  钱: {{playerInfo.money}}
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="money">
+                  <button class="btn btn-primary" ng-click="setMoney()">设置</button>
+                </form>
+                <form>
+                  AP: {{playerInfo.ap}}/{{playerInfo.maxAp}}
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="current">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="max">
+                  <button class="btn btn-primary" ng-click="setAp()">设置</button>
+                </form>
+                <form>
+                  XP: {{playerInfo.xp}}/{{playerInfo.maxXp}}
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="current">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="max">
+                  <button class="btn btn-primary" ng-click="setXp()">设置</button>
+                </form>
+
+              </session>
+
+              <section id="player-item">
+                <div class="page-header">
+                  <h2>道具</h2>
+                </div>
+                <span>{{playerInfo.items}}</span><br><br>
+                <form>
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="id" ng-model="itemIdInput">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="数量" ng-model="itemNumInput">
+                  <button class="btn btn-primary" ng-click="setItem()">设置</button>
+                </form>
+              </section>
+
+              <section id="player-card">
+                <div class="page-header">
+                  <h2>卡牌</h2>
+                </div>
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>id</th>
+                      <th>name</th>
+                      <th>level</th>
+                      <th>rarity</th>
+                      <th>evolution</th>
+                    </tr>
+                  </thead>
+                  <tbody ng-repeat="card in cards">
+                    <tr>
+                      <th>{{card.id}}</th>
+                      <th>{{card.name}}</th>
+                      <th>{{card.level}}</th>
+                      <th>{{card.rarity}}</th>
+                      <th>{{card.evolution}}</th>
+                    </tr>
+                  </tbody>
+                </table>
+                <form>
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="prototype id">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="level">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="skill level">
+                  <button class="btn btn-primary" ng-click="setItem()">送卡</button>
+                </form>
+                <form>
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="card id">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="level">
+                  <button class="btn btn-primary" ng-click="setItem()">设置等级</button>
+                </form>
+                <form>
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="card id">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="skill level">
+                  <button class="btn btn-primary" ng-click="setItem()">设置技能等级</button>
+                </form>
+              </section>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /container -->
+
+    <script src="js/jquery-1.9.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="util.js"></script>
+    <script src="admin.js"></script>
+
+  </body>
+</html>

@@ -259,7 +259,7 @@ class SetBand(tornado.web.RequestHandler):
             # store db
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET bands=%s
-                        WHERE userid=%s"""
+                        WHERE userId=%s"""
                 ,(json.dumps(db_bands), userid)
             )
             

@@ -9,6 +9,7 @@ import wagon
 import pvp
 import experiment
 import cheat
+import admin
 
 from tornado import web, httpserver, ioloop
 import logging
@@ -18,7 +19,7 @@ import os
 
 
 handlers = auth.handlers + player.handlers + zone.handlers + card.handlers + wagon.handlers + pvp.handlers + experiment.handlers \
-            + cheat.handlers
+            + cheat.handlers + admin.handlers
 
 if config.debug:
     import cheat
