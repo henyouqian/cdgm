@@ -232,27 +232,27 @@ class Enter(tornado.web.RequestHandler):
 
             # band
             band = bands[bandidx]
-            members = [mem for mem in band["members"] if mem]
+            memids = [mem for mem in band["members"] if mem]
+            print memids
 
-            sql = """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
-                        WHERE id IN {} AND ownerId=%s"""
-            if len(members) == 1:
-                sql = sql.format("(%s)"% members[0])
-            else:
-                sql = sql.format(str(tuple(members)))
+            sql = """ SELECT id, hp, hpCrystal, hpExtra FROM cardEntities
+                        WHERE id IN ({}) AND ownerId=%s""".format(",".join((str(m) for m in memids)))
             rows = yield util.whdb.runQuery(
                 sql, (userid, )
             )
 
-            if len(rows) != len(members):
+            if len(rows) != len(memids):
                 raise Exception("Band member error")
             
-            hps = [sum(row) for row in rows]
-            mem_hp = dict(zip(members, hps))
+            dict_id_hp = {}
+            for row in rows:
+                hpsum = sum(row[1:])
+                dict_id_hp[row[0]] = hpsum
+
             new_members = []
-            for member in band["members"]:
-                if member:
-                    new_members.append((member, mem_hp[member]))
+            for memid in band["members"]:
+                if memid:
+                    new_members.append((memid, dict_id_hp[memid]))
                 else:
                     new_members.append(None)
             
