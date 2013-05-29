@@ -347,7 +347,7 @@ class Sell(tornado.web.RequestHandler):
             # check whether in current band
             if in_zone_id > 0:
                 for card_id in card_ids:
-                     if card_id in bands[current_band].members:
+                     if card_id in bands[current_band]["members"]:
                         raise Exception("can not sell card which in current band when in zone")
 
             if warlord in card_ids:
