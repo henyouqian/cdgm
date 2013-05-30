@@ -3,6 +3,7 @@ from error import *
 import util
 from card import card_tbl
 from zone import zone_tbl
+from player import fmt_tbl
 
 import tornado.web
 import adisp
@@ -29,7 +30,7 @@ class GetPlayerInfo(tornado.web.RequestHandler):
 
             # get player info
             cols = "userId,name,money,lastZoneId," \
-                    "xp,maxXp,ap,maxAp,maxCardNum," \
+                    "xp,maxXp,ap,maxAp,maxCardNum,maxTradeNum," \
                     "lastFormation,items"
 
             rows = yield util.whdb.runQuery(
@@ -132,8 +133,128 @@ class SetLastZoneId(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class SetMaxCardNum(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            userid = int(self.get_argument("userId"))
+            max_card_num = int(self.get_argument("maxCardNum"))
+            max_card_num = max(0, min(100, max_card_num))
+
+            # update db
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET maxCardNum=%s
+                        WHERE userId=%s"""
+                ,(max_card_num, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["maxCardNum"] = max_card_num
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
+class SetMaxTradeNum(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            userid = int(self.get_argument("userId"))
+            max_trade_num = int(self.get_argument("maxTradeNum"))
+            max_trade_num = max(0, min(10, max_trade_num))
+
+            # update db
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET maxTradeNum=%s
+                        WHERE userId=%s"""
+                ,(max_trade_num, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["maxTradeNum"] = max_trade_num
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
+class SetLastFormation(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            userid = int(self.get_argument("userId"))
+            last_formation = int(self.get_argument("lastFormation"))
+            try:
+                formation_id = fmt_tbl.get(last_formation, "id")
+            except:
+                raise Exception("invalid formation id")
+
+            # update db
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET lastFormation=%s
+                        WHERE userId=%s"""
+                ,(last_formation, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["lastFormation"] = last_formation
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
+class SetMoney(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            userid = int(self.get_argument("userId"))
+            money = int(self.get_argument("money"))
+            money = max(0, min(10000000, money))
+
+            # update db
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET money=%s
+                        WHERE userId=%s"""
+                ,(money, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["money"] = money
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
 handlers = [
     (r"/whapi/admin/setItemNum", setItemNum),
     (r"/whapi/admin/getPlayerInfo", GetPlayerInfo),
     (r"/whapi/admin/setLastZoneId", SetLastZoneId),
+    (r"/whapi/admin/setMaxCardNum", SetMaxCardNum),
+    (r"/whapi/admin/setMaxTradeNum", SetMaxTradeNum),
+    (r"/whapi/admin/setLastFormation", SetLastFormation),
+    (r"/whapi/admin/setMoney", SetMoney),
 ]

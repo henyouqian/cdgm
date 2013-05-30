@@ -148,17 +148,22 @@
                 </form>
                 <form>
                   包裹最大数量: {{playerInfo.maxCardNum}}
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="max card number">
+                  <input type="text" style="width:100px;" ng-model="maxCardNum" pattern="[0-9]*" placeholder="max card number">
                   <button class="btn btn-primary" ng-click="setMaxCardNum()">设置</button>
                 </form>
                 <form>
+                  日交易最大数量: {{playerInfo.maxTradeNum}}
+                  <input type="text" style="width:100px;" ng-model="maxTradeNum" pattern="[0-9]*" placeholder="max trade number">
+                  <button class="btn btn-primary" ng-click="setMaxTradeNum()">设置</button>
+                </form>
+                <form>
                   开启阵形: {{playerInfo.lastFormation}}
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="formation id">
+                  <input type="text" style="width:100px;" ng-model="lastFormation" pattern="[0-9]*" placeholder="formation id">
                   <button class="btn btn-primary" ng-click="setLastFormation()">设置</button>
                 </form>
                 <form>
                   钱: {{playerInfo.money}}
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="money">
+                  <input type="text" style="width:100px;" ng-model="money" pattern="[0-9]*" placeholder="money">
                   <button class="btn btn-primary" ng-click="setMoney()">设置</button>
                 </form>
                 <form>

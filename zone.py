@@ -656,7 +656,7 @@ class BattleResult(tornado.web.RequestHandler):
                         levelup = {}
                         levelup["id"] = card["id"]
                         levelup["level"] = level
-                        # levelup.update(dict(zip(["hp", "atk", "def", "wis", "agi"], card["attrs"])))
+                        levelup.update(dict(zip(["hp", "atk", "def", "wis", "agi"], card["attrs"])))
                         levelups.append(levelup)
 
                 except:
