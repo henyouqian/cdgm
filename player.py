@@ -134,7 +134,7 @@ class GetInfo(tornado.web.RequestHandler):
             reply["error"] = no_error
 
             #update xp
-            xp = infos["xp"]
+            oldxp = xp = infos["xp"]
             max_xp = infos["maxXp"]
             last_xp_time = infos["lastXpTime"]
             if not last_xp_time:
@@ -146,12 +146,15 @@ class GetInfo(tornado.web.RequestHandler):
                 xp = min(max_xp, xp + dxp)
             if xp == max_xp:
                 reply["xpAddRemain"] = 0
+                last_xp_time = curr_time
             else:
+                t = dt % XP_ADD_DURATION
                 reply["xpAddRemain"] = dt % XP_ADD_DURATION
+                last_xp_time = curr_time - timedelta(seconds = t)
             reply["xp"] = xp
 
             #update ap
-            ap = infos["ap"]
+            oldap = ap = infos["ap"]
             max_ap = infos["maxAp"]
             last_ap_time = infos["lastApTime"]
             if not last_ap_time:
@@ -163,9 +166,21 @@ class GetInfo(tornado.web.RequestHandler):
                 ap = min(max_ap, ap + dap)
             if ap == max_ap:
                 reply["apAddRemain"] = 0
+                last_ap_time = curr_time
             else:
-                reply["apAddRemain"] = dt % AP_ADD_DURATION
+                t = dt % AP_ADD_DURATION
+                reply["apAddRemain"] = t
+                last_ap_time = curr_time - timedelta(seconds = t)
             reply["ap"] = ap
+
+            # update to db
+            if (oldap != ap) or (oldxp != xp):
+                yield util.whdb.runOperation(
+                    """UPDATE playerInfos SET ap=%s, lastApTime=%s, xp=%s, lastXpTime=%s
+                            WHERE userId=%s"""
+                    ,(ap, last_ap_time, xp, last_xp_time, userid)
+                )
+
 
             del reply["lastXpTime"]
             del reply["lastApTime"]

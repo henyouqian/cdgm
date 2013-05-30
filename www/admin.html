@@ -168,14 +168,14 @@
                 </form>
                 <form>
                   AP: {{playerInfo.ap}}/{{playerInfo.maxAp}}
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="current">
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="max">
+                  <input type="text" style="width:100px;" ng-model="ap" pattern="[0-9]*" placeholder="current">
+                  <input type="text" style="width:100px;" ng-model="maxAp" pattern="[0-9]*" placeholder="max">
                   <button class="btn btn-primary" ng-click="setAp()">设置</button>
                 </form>
                 <form>
                   XP: {{playerInfo.xp}}/{{playerInfo.maxXp}}
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="current">
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="max">
+                  <input type="text" style="width:100px;" ng-model="xp" pattern="[0-9]*" placeholder="current">
+                  <input type="text" style="width:100px;" ng-model="maxXp" pattern="[0-9]*" placeholder="max">
                   <button class="btn btn-primary" ng-click="setXp()">设置</button>
                 </form>
 

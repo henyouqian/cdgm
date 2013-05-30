@@ -10,7 +10,7 @@ env.password = 'Nmmgb808313'
 root_dir = "/home/wh/cdgm/"
 
 def a():
-    put("player.py", root_dir)
+    put("zone.py", root_dir)
 
 def do_script(filename):
     put(filename, ".")

@@ -249,6 +249,103 @@ class SetMoney(tornado.web.RequestHandler):
             self.finish()
 
 
+class SetAp(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            userid = int(self.get_argument("userId"))
+            ap = self.get_argument("ap", None)
+            maxap = self.get_argument("maxAp", None)
+            if ap:
+                ap = int(ap)
+            if maxap:
+                maxap = int(maxap)
+            
+            if ap == None and maxap == None:
+                raise Exception("need param ap or mapAp")
+
+            # query db
+            rows = yield util.whdb.runQuery(
+                "SELECT ap, maxAp FROM playerInfos WHERE userId=%s",
+                (userid, )
+            )
+            _ap, _maxAp = rows[0]
+
+            if ap == None:
+                ap = _ap
+            if maxap == None:
+                maxap = _maxAp
+
+            ap = min(ap, maxap)
+
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET ap=%s, maxAp=%s
+                    WHERE userId=%s"""
+                ,(ap, maxap, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["ap"] = ap
+            reply["maxAp"] = maxap
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
+class SetXp(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            userid = int(self.get_argument("userId"))
+            xp = self.get_argument("xp", None)
+            maxxp = self.get_argument("maxXp", None)
+            if xp:
+                xp = int(xp)
+            if maxxp:
+                maxxp = int(maxxp)
+            
+            if xp == None and maxxp == None:
+                raise Exception("need param xp or maxXp")
+
+            # query db
+            rows = yield util.whdb.runQuery(
+                "SELECT xp, maxXp FROM playerInfos WHERE userId=%s",
+                (userid, )
+            )
+            _xp, _maxXp = rows[0]
+
+            if xp == None:
+                xp = _xp
+            if maxxp == None:
+                maxxp = _maxXp
+
+            xp = min(xp, maxxp)
+
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET xp=%s, maxXp=%s
+                    WHERE userId=%s"""
+                ,(xp, maxxp, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["xp"] = xp
+            reply["maxXp"] = maxxp
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/admin/setItemNum", setItemNum),
     (r"/whapi/admin/getPlayerInfo", GetPlayerInfo),
@@ -257,4 +354,6 @@ handlers = [
     (r"/whapi/admin/setMaxTradeNum", SetMaxTradeNum),
     (r"/whapi/admin/setLastFormation", SetLastFormation),
     (r"/whapi/admin/setMoney", SetMoney),
+    (r"/whapi/admin/setAp", SetAp),
+    (r"/whapi/admin/setXp", SetXp),
 ]

@@ -171,4 +171,53 @@ function Controller($scope, $http) {
 		})
 	}
 
+	$scope.setAp = function() {
+		try {
+			var userId = $scope.playerInfo.userId
+		} catch(err) {
+			alert("select user first")
+			return
+		}
+
+		if (!$scope.ap && (!$scope.maxAp)) {
+			alert("fill the blank")
+			return
+		}
+		$.getJSON('/whapi/admin/setAp', {"userId": userId, "ap": $scope.ap, "maxAp": $scope.maxAp}, function(json){
+			var err = json.error;
+			if (err){
+				alert(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.playerInfo.ap = json.ap
+					$scope.playerInfo.maxAp = json.maxAp
+				})
+			}
+		})
+	}
+
+	$scope.setXp = function() {
+		try {
+			var userId = $scope.playerInfo.userId
+		} catch(err) {
+			alert("select user first")
+			return
+		}
+
+		if (!$scope.xp && (!$scope.maxXp)) {
+			alert("fill the blank")
+			return
+		}
+		$.getJSON('/whapi/admin/setXp', {"userId": userId, "xp": $scope.xp, "maxXp": $scope.maxXp}, function(json){
+			var err = json.error;
+			if (err){
+				alert(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.playerInfo.xp = json.xp
+					$scope.playerInfo.maxXp = json.maxXp
+				})
+			}
+		})
+	}
 }

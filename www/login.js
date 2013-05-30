@@ -20,7 +20,8 @@ function login(){
 		alert("Form incomplete.")
 		return;
 	}
-	$.getJSON('https://'+window.location.hostname+'/authapi/login?callback=?', {"username":username, "password":password}, function(json){
+	//$.getJSON('https://'+window.location.hostname+'/authapi/login?callback=?', {"username":username, "password":password}, function(json){
+	$.getJSON('/authapi/login', {"username":username, "password":password}, function(json){
 		var err = json.error;
 		if (err){
 			alert("Sign in failed. Error=" + err);
