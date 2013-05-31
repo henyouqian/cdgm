@@ -779,6 +779,8 @@ class Complete(tornado.web.RequestHandler):
             new_max_card_num = None
             new_max_trade_num = None
             new_last_formation = None
+            rwditems = []
+            rwdcards = []
 
             if last_zoneid == zoneid:
                 # find new zone id
@@ -791,7 +793,6 @@ class Complete(tornado.web.RequestHandler):
                 evtrow = evt_tbl.get_row(evtid)
 
                 ## reward items
-                rwditems = []
                 for i in xrange(3):
                     itemid = int(evt_tbl.get_value(evtrow, "item%dID"%(i+1)))
                     itemnum = int(evt_tbl.get_value(evtrow, "amount%d"%(i+1)))
@@ -804,7 +805,6 @@ class Complete(tornado.web.RequestHandler):
                             rwditems.append(item)
 
                 ## reward cards
-                rwdcards = []
                 for i in xrange(3):
                     cardid = int(evt_tbl.get_value(evtrow, "card%dID"%(i+1)))
                     if cardid:
