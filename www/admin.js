@@ -220,4 +220,31 @@ function Controller($scope, $http) {
 			}
 		})
 	}
+
+	$scope.addCard = function() {
+		try {
+			var userId = $scope.playerInfo.userId
+		} catch(err) {
+			alert("select user first")
+			return
+		}
+
+		var cardId = $scope.addCardId
+		var cardLevel = $scope.addCardLevel
+		if ((!cardId) && (!cardLevel)) {
+			alert("fill the blank")
+			return
+		}
+		$.getJSON('/whapi/admin/addCard', {"userId": userId, "cardId": cardId, "cardLevel": cardLevel}, function(json){
+			var err = json.error;
+			if (err){
+				alert(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.push(json.card)
+				})
+			}
+		})
+	}
+	
 }

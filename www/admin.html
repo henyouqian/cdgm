@@ -17,6 +17,7 @@
 
       .affixList {
         top: 10px;
+        width: 100px;
       }
 
       .page-header {
@@ -123,7 +124,8 @@
                   <li><a href="#top">顶部</a></li>
                   <li><a href="#player-set">用户</a></li>
                   <li><a href="#player-item">道具</a></li>
-                  <li><a href="#player-card">卡牌</a></li>
+                  <li><a href="#player-card">卡牌信息</a></li>
+                  <li><a href="#player-cardform">卡牌设置</a></li>
                 </ul>
               </div>
             </div>
@@ -197,41 +199,63 @@
                 <div class="page-header">
                   <h2>卡牌</h2>
                 </div>
-                <table class="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>id</th>
-                      <th>name</th>
-                      <th>level</th>
-                      <th>rarity</th>
-                      <th>evolution</th>
-                    </tr>
-                  </thead>
-                  <tbody ng-repeat="card in cards">
-                    <tr>
-                      <th>{{card.id}}</th>
-                      <th>{{card.name}}</th>
-                      <th>{{card.level}}</th>
-                      <th>{{card.rarity}}</th>
-                      <th>{{card.evolution}}</th>
-                    </tr>
-                  </tbody>
-                </table>
+
+                <div class="accordion-group">
+                  <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+                      卡牌信息
+                    </a>
+                  </div>
+                  <div id="collapseTwo" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                      <table class="table table-striped">
+                        <thead>
+                          <tr>
+                            <th>id</th>
+                            <th>name</th>
+                            <th>level</th>
+                            <th>rarity</th>
+                            <th>evolution</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr ng-repeat="card in cards">
+                            <th>{{card.id}}</th>
+                            <th>{{card.name}}</th>
+                            <th>{{card.level}}</th>
+                            <th>{{card.rarity}}</th>
+                            <th>{{card.evolution}}</th>
+                          </tr>
+                        </tbody>
+                        <thead>
+                          <tr>
+                            <th>id</th>
+                            <th>name</th>
+                            <th>level</th>
+                            <th>rarity</th>
+                            <th>evolution</th>
+                          </tr>
+                        </thead>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <br id="player-cardform">
                 <form>
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="prototype id">
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="level">
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="skill level">
-                  <button class="btn btn-primary" ng-click="setItem()">送卡</button>
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="prototype id" ng-model="addCardId">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="level" ng-model="addCardLevel">
+                  <button class="btn btn-primary" ng-click="addCard()">送卡</button>
                 </form>
                 <form>
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="card id">
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="level">
-                  <button class="btn btn-primary" ng-click="setItem()">设置等级</button>
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="card id" ng-model="setCardLevelId">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="level" ng-model="setCardLevelLevel">
+                  <button class="btn btn-primary" ng-click="setCardLevel()">设置等级</button>
                 </form>
                 <form>
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="card id">
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="skill level">
-                  <button class="btn btn-primary" ng-click="setItem()">设置技能等级</button>
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="card id" ng-model="setCardSkillId">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="skill level" ng-model="setCardSkillLevel">
+                  <button class="btn btn-primary" ng-click="setCardSkill()">设置技能等级</button>
                 </form>
               </section>
 

@@ -92,7 +92,7 @@ class GetInfo(tornado.web.RequestHandler):
             userid = session["userid"]
 
             # query user info
-            cols = "userId,name,warlord,money,inZoneId,lastZoneId," \
+            cols = "userId,name,warlord,money,inZoneId,lastZoneId,maxCardNum," \
                     "xp,maxXp,lastXpTime,ap,maxAp,lastApTime,currentBand," \
                     "lastFormation,bands,items,wagonGeneral,wagonTemp,wagonSocial,UTC_TIMESTAMP()"
 

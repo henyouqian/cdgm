@@ -29,16 +29,14 @@ class GetPlayerInfo(tornado.web.RequestHandler):
             userid = rows[0][0]
 
             # get player info
-            cols = "userId,name,money,lastZoneId," \
-                    "xp,maxXp,ap,maxAp,maxCardNum,maxTradeNum," \
-                    "lastFormation,items"
+            cols = ["userId","name","money","lastZoneId",
+                    "xp","maxXp","ap","maxAp","maxCardNum","maxTradeNum",
+                    "lastFormation","items"]
 
             rows = yield util.whdb.runQuery(
-                "SELECT {} FROM playerInfos WHERE userId=%s".format(cols),
+                "SELECT {} FROM playerInfos WHERE userId=%s".format(",".join(cols)),
                 (userid, )
             )
-
-            cols = cols.split(",")
             playerInfo = dict(zip(cols, rows[0]))
             playerInfo["items"] = json.loads(playerInfo["items"])
 
@@ -339,6 +337,34 @@ class SetXp(tornado.web.RequestHandler):
             reply = util.new_reply()
             reply["xp"] = xp
             reply["maxXp"] = maxxp
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
+class AddCard(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            userid = int(self.get_argument("userId"))
+            money = int(self.get_argument("money"))
+            money = max(0, min(10000000, money))
+
+            # update db
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET money=%s
+                        WHERE userId=%s"""
+                ,(money, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["money"] = money
             self.write(json.dumps(reply))
 
         except:
