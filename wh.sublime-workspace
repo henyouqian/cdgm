@@ -1,0 +1,637 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"maxap",
+				"maxap"
+			],
+			[
+				"install_",
+				"install_mdl"
+			],
+			[
+				"local",
+				"local_datetime"
+			],
+			[
+				"wagon",
+				"wagonSocial"
+			],
+			[
+				"pactnum",
+				"pact_num"
+			],
+			[
+				"skill",
+				"skillid1"
+			],
+			[
+				"userid",
+				"user_id"
+			],
+			[
+				"cardid",
+				"cardid1"
+			],
+			[
+				"mem",
+				"members"
+			],
+			[
+				"metal",
+				"metalCase"
+			],
+			[
+				"last",
+				"last_ap_time"
+			],
+			[
+				"redis",
+				"redis_pool"
+			],
+			[
+				"BL",
+				"BLANK_ALL"
+			],
+			[
+				"pars",
+				"parsePath"
+			],
+			[
+				"assert",
+				"assertTrue"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "cheat.py",
+			"settings":
+			{
+				"buffer_size": 3042,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "zone.py",
+			"settings":
+			{
+				"buffer_size": 30719,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 264.0,
+		"selected_items":
+		[
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"instll",
+				"Package Control: Install Package"
+			],
+			[
+				"",
+				"Package Control: Install Package"
+			],
+			[
+				"pag",
+				"Package Control: Install Package"
+			],
+			[
+				"markdown",
+				"Markdown Slideshow: Default theme"
+			],
+			[
+				"Package Control: ins",
+				"Package Control: Install Package"
+			],
+			[
+				"mard",
+				"Markdown Preview: preview in Browser"
+			],
+			[
+				"pagc",
+				"Package Control: Install Package"
+			],
+			[
+				"pains",
+				"Package Control: Install Package"
+			],
+			[
+				"packagecon",
+				"Package Control: Install Package"
+			],
+			[
+				"edit",
+				"Edit history: Previous/Back"
+			],
+			[
+				"packins",
+				"Package Control: Install Package"
+			],
+			[
+				"mark",
+				"Markdown Preview: preview in Browser"
+			],
+			[
+				"packageins",
+				"Package Control: Install Package"
+			],
+			[
+				"packagec",
+				"Package Control: List Packages"
+			],
+			[
+				"package cins",
+				"Package Control: Install Package"
+			],
+			[
+				"Install Package",
+				"Package Control: Install Package"
+			],
+			[
+				"package ",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 146.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/liwei/tmp/NdComPlatformSDK_UI_iOS_20130530_3.2.5/readme.txt",
+		"/home/liwei/projects/temp/bjoern/env/lib/python2.7/site-packages/bottle.py",
+		"/home/liwei/projects/temp/bjoern/bottle.py",
+		"/home/liwei/projects/cdgm/archive/zone.py",
+		"/home/liwei/projects/cdgm/config.py",
+		"/home/liwei/projects/cdgm/util.py",
+		"/home/liwei/projects/cdgm/www/admin.html",
+		"/home/liwei/projects/cdgm/config_local.py",
+		"/home/liwei/projects/cdgm/www/index.html",
+		"/home/liwei/projects/cdgm/experiment.py",
+		"/home/liwei/projects/cdgm/gamedata.py",
+		"/home/liwei/projects/cdgm/adb.py",
+		"/home/liwei/projects/cdgm/www/main.js",
+		"/home/liwei/tmp/a.py",
+		"/home/liwei/projects/cdgm/mgr.py",
+		"/home/liwei/projects/cdgm/wh.py",
+		"/home/liwei/projects/cdgm/session.py",
+		"/home/liwei/projects/cdgm/adisp.py",
+		"/home/liwei/projects/cdgm/www/card.html",
+		"/home/liwei/projects/cdgm/www/create_player.html",
+		"/home/liwei/projects/cdgm/www/login.html",
+		"/home/liwei/projects/cdgm/www/zone.html",
+		"/home/liwei/projects/cdgm/www/main.html",
+		"/home/liwei/projects/cdgm/www/register.html",
+		"/home/liwei/projects/cdgm/www/wagon.html",
+		"/home/liwei/projects/cdgm/www/create_player.js",
+		"/home/liwei/projects/cdgm/www/zone.js",
+		"/home/liwei/projects/cdgm/player.py",
+		"/home/liwei/projects/cdgm/install/ganglia/gmetad.py",
+		"/home/liwei/tmp/1362407031.jpg",
+		"/home/liwei/projects/cdgm/archive/card.py",
+		"/home/liwei/projects/hanzi/server/build.py",
+		"/home/liwei/projects/hanzi/server/oss/oss_api.py",
+		"/home/liwei/projects/hanzi/server/oss/oss_sample.py",
+		"/home/liwei/projects/hanzi/server/static/main.js",
+		"/home/liwei/projects/hanzi/server/g.py",
+		"/home/liwei/projects/temp/l.py",
+		"/home/liwei/projects/temp/a.py",
+		"/home/liwei/projects/cdgm/tools/fab/gmetad.py",
+		"/home/liwei/projects/cdgm/tools/fab/conf.py",
+		"/home/liwei/projects/cdgm/whd.py",
+		"/home/liwei/projects/cdgm/config_aliyun.py",
+		"/home/liwei/projects/cdgm/auth.py",
+		"/home/liwei/projects/cdgm/card.py",
+		"/home/liwei/projects/cdgm/error.py",
+		"/home/liwei/projects/cdgm/tools/fab/deploy.py",
+		"/home/liwei/projects/cdgm/tools/fab/fabfile.py",
+		"/home/liwei/projects/cdgm/tools/fab/conf.py~",
+		"/home/liwei/projects/cdgm/tools/fab/ganglia.py",
+		"/home/liwei/projects/cdgm/tools/fab/wh_deploy.py",
+		"/home/liwei/projects/cdgm/tools/fab/wh_setup.py",
+		"/home/liwei/projects/cdgm/daemon.py",
+		"/home/liwei/projects/cdgm/server.py",
+		"/home/liwei/projects/cdgm/install.sh",
+		"/home/wh/cdgm/server.py",
+		"/home/liwei/projects/cdgm/tools/fab/install.py",
+		"/home/liwei/projects/cdgm/pvp.py",
+		"/home/liwei/projects/cdgm/redistest.py",
+		"/home/liwei/projects/cdgm/test/auth_test.py",
+		"/home/liwei/projects/cdgm/test/player_test.py",
+		"/home/liwei/projects/cdgm/wagon.py",
+		"/home/liwei/projects/cdgm/zone.py",
+		"/home/liwei/projects/cdgm/install.py",
+		"/home/liwei/projects/cdgm/tools/fab.py",
+		"/home/liwei/projects/cdgm/tools/install.py",
+		"/home/liwei/projects/cdgm/cheat.py",
+		"/home/liwei/projects/cdgm/www/wagon.js",
+		"/home/liwei/projects/cdgm/doc/ServerApi.md",
+		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/redis-2.7.2-py2.7.egg-info/PKG-INFO",
+		"/home/liwei/projects/asiahero/temp/功能點拆分.xlsx",
+		"/home/liwei/projects/asiahero/Src/Doc/ServerApi.md",
+		"/home/liwei/.config/sublime-text-2/Packages/Markdown Preview/MarkdownPreview.sublime-settings",
+		"/usr/bin/retext",
+		"/home/liwei/projects/asiahero/tools/bigNumVerify/bignum_verify.py",
+		"/home/liwei/projects/asiahero/tools/bigNumVerify/bignumVerify.bat",
+		"/home/liwei/projects/asiahero/tools/bigNumVerify/bignumVerify.py",
+		"/home/liwei/projects/temp/bignum/10101.json",
+		"/home/liwei/projects/temp/bignum/bignumVerify.py",
+		"/home/liwei/projects/temp/10101.json",
+		"/home/liwei/projects/temp/bignumVerify.py",
+		"/home/liwei/projects/cdgm/tools/json2csv/json2csv.py",
+		"/home/liwei/projects/cdgm/.gitignore~",
+		"/home/liwei/projects/test/oss/test.py",
+		"/home/liwei/projects/test/oss/oss_sample.py",
+		"/home/liwei/projects/cdgm/www/card.js",
+		"/home/liwei/projects/cdgm/www/util.js",
+		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/MySQLdb/cursors.py",
+		"/home/liwei/.config/sublime-text-2/Packages/User/Default (Linux).sublime-keymap",
+		"/home/liwei/projects/cdgm/threadpool.py",
+		"/home/liwei/projects/cdgm/db_lab.py",
+		"/home/liwei/projects/cdgm/brukva/client.py",
+		"/home/liwei/projects/cdgm/tools/json2csv/gamedata312",
+		"/home/liwei/projects/cdgm/data/map/1.json",
+		"/home/liwei/projects/test/out",
+		"/home/liwei/projects/test/t.py",
+		"/home/liwei/projects/test/out5",
+		"/home/liwei/projects/test/out4",
+		"/home/liwei/下载/gamedata406",
+		"/home/liwei/player.py",
+		"/home/liwei/projects/test/udps.py",
+		"/home/liwei/projects/test/udpc.py",
+		"/home/liwei/projects/cdgm/lab/db_lab.py",
+		"/home/liwei/projects/cdgm/www/login.js",
+		"/home/liwei/projects/cdgm/www/register.js",
+		"/home/liwei/projects/cdgm/data/cards.csv",
+		"/home/liwei/projects/cdgm/data/cardGrowthMappings.csv",
+		"/home/liwei/projects/cdgm/band.py",
+		"/home/liwei/projects/cdgm/archive/player.py",
+		"/home/liwei/projects/cdgm/archive/auth.py",
+		"/home/liwei/projects/test/redis.py",
+		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/tornado/database.py",
+		"/home/liwei/projects/cdgm/data/map/50101.json",
+		"/home/liwei/projects/cdgm/app.py",
+		"/home/liwei/projects/cdgm/t.py",
+		"/home/liwei/projects/cdgm/brukva/brukva/client.py",
+		"/home/liwei/projects/cdgm/brukva/brukva/exceptions.py",
+		"/home/liwei/projects/brukva/brukva/client.py",
+		"/home/liwei/projects/cdgm/gserver.py",
+		"/home/liwei/projects/cdgm/tools/zone_trans/zone.py",
+		"/home/liwei/projects/cdgm/tools/zone_trans/zonetrans.py",
+		"/home/liwei/projects/cdgm/map.py",
+		"/home/liwei/projects/test/bj.py",
+		"/home/liwei/projects/asiahero/v1.0/map/Zones/50101.json",
+		"/home/liwei/projects/cdgm/tools/zone_trans/proto.json",
+		"/home/liwei/projects/cdgm/tools/zone_trans/t.py",
+		"/home/liwei/projects/cdgm/tools/zone_trans/output/map.json",
+		"/home/liwei/projects/test/s.py",
+		"/home/liwei/projects/test/bjoern.py"
+	],
+	"find":
+	{
+		"height": 46.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+			"/home/liwei/projects/cdgm"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"move",
+			"monkey",
+			"move",
+			"last_ap_time",
+			"util.",
+			"formations.csv",
+			"playerInfo",
+			"members",
+			"gen_cache",
+			"Enter",
+			"ng-pattern=\"/[0-9]*/\"",
+			"card_tbl",
+			"cards",
+			"WHERE userid",
+			"update",
+			"player-set-form",
+			"ng",
+			"warlord_level_tbl",
+			">>> ",
+			"post",
+			"get_zone_data",
+			"gen_cache",
+			"result",
+			"debug",
+			"enter",
+			"max_card_num",
+			"create_cards",
+			"lastZoneid",
+			"options.",
+			"options",
+			"bind",
+			"create_cards",
+			"pact_cost_tbl",
+			"pactcost",
+			"create_cards",
+			"reply = {\"error\":no_error}",
+			"reply = ",
+			"monstercards.csv",
+			"monGrpId",
+			"getpact",
+			"trans_cache_to_client",
+			"Get(",
+			"Get",
+			"goalPos",
+			"startPos",
+			"startpos",
+			"currPos",
+			"setband",
+			"json.loads",
+			"move",
+			"complete_upload",
+			"multi_upload_file",
+			"GetInitUploadIdXml",
+			"multi_upload_file",
+			"desc_root",
+			"conf",
+			"proj_root",
+			"_daemonize",
+			"Operation",
+			"start",
+			"server",
+			"logging",
+			"ioloop",
+			"import simplejson as json",
+			"import simplejson",
+			"simplejson",
+			"mongrp_tbl",
+			"make_redis_pvp_list_key",
+			"move",
+			"xp",
+			"nextAddXpTime",
+			"nextAddApTime",
+			"xp",
+			"Ap",
+			"ap",
+			"import simplejson",
+			"simplejson",
+			"psycopg2",
+			"cache error",
+			"time",
+			"eval",
+			"redis",
+			"util.redis()",
+			"redis()",
+			"async",
+			"set",
+			"card.",
+			"card_tbl",
+			"wagon_item_time",
+			"parse_datetime",
+			"sell",
+			"transToDict",
+			"Wagon",
+			"getCard",
+			"getItem",
+			"addCard",
+			"card_num",
+			"redis()",
+			"calc_pvp_level",
+			"member_attrs",
+			"field",
+			"feild",
+			"create_cards",
+			"level",
+			"addCard",
+			"import g",
+			"CsvTbl",
+			"upper_bound",
+			"lower_bound",
+			"CsvTblMulKey",
+			"CsvTbl",
+			"g.whdb",
+			"g.authdb",
+			"threading",
+			"logging",
+			"os",
+			"redistest",
+			"time",
+			"make_redis_pvp_list_key",
+			"g.redis",
+			"KeepAliveThread",
+			"redis_pool",
+			"g.",
+			".",
+			"pvp_win_streak",
+			"dxp",
+			"AP_ADD_DURATION",
+			"last_xp_time"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"memids",
+			"pattern=\"[0-9]*\"",
+			"",
+			"dst_root",
+			"import json",
+			"util.whdb",
+			"util.authdb",
+			"util.redis",
+			"item_idx",
+			"var",
+			"cardEntities",
+			"cachejs",
+			"trans_cache_to_client",
+			"get_item",
+			"get_zone_data",
+			"get_value",
+			"get_row",
+			"gen_cache",
+			"g.redis()"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "cheat.py",
+					"settings":
+					{
+						"buffer_size": 3042,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								455,
+								455
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "zone.py",
+					"settings":
+					{
+						"buffer_size": 30719,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								14905,
+								14905
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 8230.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 34.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"zon",
+				"zone.py"
+			],
+			[
+				"uti",
+				"util.py"
+			],
+			[
+				"player",
+				"player.py"
+			],
+			[
+				"admin",
+				"admin.py"
+			],
+			[
+				"player.py",
+				"player.py"
+			],
+			[
+				"pvp",
+				"pvp.py"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 207.0,
+	"status_bar_visible": true
+}

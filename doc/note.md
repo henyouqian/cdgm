@@ -19,3 +19,5 @@ Traceback (most recent call last):
 GeneratorExit
 
 应该是create_cards没返回。create_cards中的yield全部和数据库操作相关，而且用了transaction。我怀疑是没执行完，数据库被锁。考虑用存储过程替换。
+
+* 用户的password做sha1，应该要拼接个字符串

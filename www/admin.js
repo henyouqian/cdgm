@@ -229,19 +229,82 @@ function Controller($scope, $http) {
 			return
 		}
 
-		var cardId = $scope.addCardId
+		var cardId = $scope.addCardProto
 		var cardLevel = $scope.addCardLevel
 		if ((!cardId) && (!cardLevel)) {
 			alert("fill the blank")
 			return
 		}
-		$.getJSON('/whapi/admin/addCard', {"userId": userId, "cardId": cardId, "cardLevel": cardLevel}, function(json){
+		$.getJSON('/whapi/admin/addCard', {"userId": userId, "protoId": cardId, "level": cardLevel}, function(json){
 			var err = json.error;
 			if (err){
 				alert(err)
 			}else{
 				$scope.$apply(function(){
-					$scope.push(json.card)
+					$scope.cards.push(json.card)
+				})
+			}
+		})
+	}
+
+	$scope.setCardLevel = function() {
+		try {
+			var userId = $scope.playerInfo.userId
+		} catch(err) {
+			alert("select user first")
+			return
+		}
+
+		var cardId = $scope.setCardLevelId
+		var cardLevel = $scope.setCardLevelLevel
+		if ((!cardId) && (!cardLevel)) {
+			alert("fill the blank")
+			return
+		}
+		$.getJSON('/whapi/admin/setCardLevel', {"userId": userId, "cardId": cardId, "level": cardLevel}, function(json){
+			var err = json.error;
+			if (err){
+				alert(err)
+			}else{
+				$scope.$apply(function(){
+					for (var i = 0; i < $scope.cards.length; ++i) {
+						if ($scope.cards[i].id == json.cardId) {
+							$scope.cards[i].level = json.level
+							break;
+						}
+					}
+				})
+			}
+		})
+	}
+
+	$scope.setCardSkill = function() {
+		try {
+			var userId = $scope.playerInfo.userId
+		} catch(err) {
+			alert("select user first")
+			return
+		}
+
+		var cardId = $scope.setCardSkillId
+		var level = $scope.setCardSkillLevel
+		var index = $scope.setCardSkillIndex
+		if ((!cardId) && (!level) && (!index)) {
+			alert("fill the blank")
+			return
+		}
+		$.getJSON('/whapi/admin/setCardSkillLevel', {"userId": userId, "cardId": cardId, "index": index, "level": level}, function(json){
+			var err = json.error;
+			if (err){
+				alert(err)
+			}else{
+				$scope.$apply(function(){
+					for (var i = 0; i < $scope.cards.length; ++i) {
+						if ($scope.cards[i].id == json.cardId) {
+							$scope.cards[i]["skill"+json.index+"Level"] = json.level
+							break;
+						}
+					}
 				})
 			}
 		})

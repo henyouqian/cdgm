@@ -243,7 +243,7 @@
 
                 <br id="player-cardform">
                 <form>
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="prototype id" ng-model="addCardId">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="prototype id" ng-model="addCardProto">
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="level" ng-model="addCardLevel">
                   <button class="btn btn-primary" ng-click="addCard()">送卡</button>
                 </form>
@@ -254,6 +254,7 @@
                 </form>
                 <form>
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="card id" ng-model="setCardSkillId">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="skill index(1-3)" ng-model="setCardSkillIndex">
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="skill level" ng-model="setCardSkillLevel">
                   <button class="btn btn-primary" ng-click="setCardSkill()">设置技能等级</button>
                 </form>

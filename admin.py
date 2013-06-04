@@ -1,7 +1,7 @@
 from session import find_session
 from error import *
 import util
-from card import card_tbl
+from card import card_tbl, create_cards, calc_card_proto_attr, warlord_level_tbl, card_level_tbl, is_war_lord, skill_level_tbl, skill_tbl
 from zone import zone_tbl
 from player import fmt_tbl
 
@@ -352,19 +352,128 @@ class AddCard(tornado.web.RequestHandler):
         try:
             # param
             userid = int(self.get_argument("userId"))
-            money = int(self.get_argument("money"))
-            money = max(0, min(10000000, money))
+            protoid = int(self.get_argument("protoId"))
+            level = int(self.get_argument("level"))
+
+            # get max card number
+            rows = yield util.whdb.runQuery(
+                """SELECT maxCardNum FROM playerInfos
+                    WHERE userid=%s"""
+                ,(userid,)
+            )
+            max_card_num = rows[0][0]
+
+            # update db
+            proto_ids = [protoid]
+            cards = yield create_cards(userid, proto_ids, max_card_num, level)
+            card = cards[0]
+            card["name"], card["rarity"], card["evolution"] = card_tbl.gets(protoid, "name", "rarity", "evolution")
+
+            # reply
+            reply = util.new_reply()
+            reply["card"] = card
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+class SetCardLevel(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            userid = int(self.get_argument("userId"))
+            cardid = int(self.get_argument("cardId"))
+            level = int(self.get_argument("level"))
+
+            # get proto
+            rows = yield util.whdb.runQuery(
+                """SELECT protoId FROM cardEntities
+                    WHERE id=%s"""
+                ,(cardid,)
+            )
+            try:
+                protoid = rows[0][0]
+            except:
+                raise Exception("card id is invalid")
+
+            try:
+                hp, atk, _def, wis, agi = calc_card_proto_attr(protoid, level)
+                lvtbl = warlord_level_tbl if is_war_lord(protoid) else card_level_tbl
+                exp = lvtbl.get(level, "exp")
+            except:
+                raise Exception("level is invalid")
 
             # update db
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET money=%s
-                        WHERE userId=%s"""
-                ,(money, userid)
+                """UPDATE cardEntities SET level=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s, exp=%s
+                        WHERE id=%s"""
+                ,(level, hp, atk, _def, wis, agi, exp, cardid)
             )
 
             # reply
             reply = util.new_reply()
-            reply["money"] = money
+            reply["cardId"] = cardid
+            reply["level"] = level
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
+class SetCardSkillLevel(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            userid = int(self.get_argument("userId"))
+            cardid = int(self.get_argument("cardId"))
+            index = int(self.get_argument("index"))
+            level = int(self.get_argument("level"))
+
+            if index not in (1, 2, 3):
+                raise Exception("index not in (1, 2, 3)")
+
+            # get proto
+            rows = yield util.whdb.runQuery(
+                """SELECT protoId, skill1Id, skill2Id, skill3Id FROM cardEntities
+                    WHERE id=%s"""
+                ,(cardid,)
+            )
+            try:
+                protoid, skill1id, skill2id, skill3id = rows[0]
+                skillids = [skill1id, skill2id, skill3id]
+                skillid = skillids[index-1]
+            except:
+                raise Exception("invalid card id")
+
+            try:
+                rarity = skill_tbl.get(skillid, "rarity")
+            except:
+                raise Exception("invalid index")
+
+            try:
+                exp = skill_level_tbl.get((rarity, level), "exp")
+            except:
+                raise Exception("invalid level")
+
+            # update db
+            yield util.whdb.runOperation(
+                """UPDATE cardEntities SET skill{0}Level=%s, skill{0}Exp=%s
+                        WHERE id=%s""".format(index)
+                ,(level, exp, cardid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["cardId"] = cardid
+            reply["level"] = level
             self.write(json.dumps(reply))
 
         except:
@@ -382,4 +491,8 @@ handlers = [
     (r"/whapi/admin/setMoney", SetMoney),
     (r"/whapi/admin/setAp", SetAp),
     (r"/whapi/admin/setXp", SetXp),
+    (r"/whapi/admin/addCard", AddCard),
+    (r"/whapi/admin/setCardLevel", SetCardLevel),
+    (r"/whapi/admin/setCardSkillLevel", SetCardSkillLevel),
+
 ]
