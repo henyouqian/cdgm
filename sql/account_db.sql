@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.31-0ubuntu0.12.04.1)
 # Database: account_db
-# Generation Time: 2013-06-04 12:37:46 +0000
+# Generation Time: 2013-06-04 12:42:09 +0000
 # ************************************************************
 
 
@@ -32,7 +32,7 @@ CREATE TABLE `user_account` (
   `uin91` varchar(40) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
-  KEY `index3` (`username`)
+  UNIQUE KEY `uin91` (`uin91`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 LOCK TABLES `user_account` WRITE;
