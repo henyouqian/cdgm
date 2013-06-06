@@ -23,7 +23,7 @@ def install_app(apt_name):
 
 
 def install_mdl(mdl_name):
-    os.system("sudo pip install %s" % mdl_name)
+    os.system("sudo env/bin/pip install %s" % mdl_name)
 
 if __name__ == "__main__":
     install_app("python-dev")
