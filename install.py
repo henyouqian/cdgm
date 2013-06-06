@@ -27,9 +27,10 @@ def install_mdl(mdl_name):
 
 if __name__ == "__main__":
     os.system("sudo pwd")
+    os.system("sudo easy_install -U distribute")
 
     install_app("python-dev")
-    install_app("build-dep python-mysqldb")
+	os.system("sudo apt-get build-dep python-mysqldb")
     install_app("python-pip")
     install_mdl("virtualenv")
 
