@@ -19,23 +19,22 @@ def mdl_exists(mdl):
         return True
 
 def install_app(apt_name):
-	os.system("sudo apt-get install %s" % apt_name)
-		
+    os.system("sudo apt-get install %s" % apt_name)
+
 
 def install_mdl(mdl_name):
-    os.system("sudo pip install %s" % mdl_name)
+    os.system("sudo env/bin/pip install %s" % mdl_name)
 
 if __name__ == "__main__":
-    os.system("sudo easy_install -U distribute")
-
     install_app("python-dev")
     os.system("sudo apt-get build-dep python-mysqldb")
     install_app("python-pip")
     install_mdl("virtualenv")
 
     if not os.path.exists("env"):
-    	os.system("virtualenv env")
+        os.system("virtualenv env")
     os.system(". env/bin/activate")
 
     install_mdl("tornado")
+    os.system("sudo easy_install -U distribute")
     install_mdl("mysql-python")
