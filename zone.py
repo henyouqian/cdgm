@@ -1,6 +1,7 @@
 from error import *
 from session import *
-from gamedata import BAND_NUM, AP_ADD_DURATION, XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX
+from gamedata import BAND_NUM, AP_ADD_DURATION, \
+    XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID
 import util
 from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
 
@@ -335,6 +336,12 @@ class Get(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+def getMoneyNum(bag_type):
+    if bag_type == MONEY_BAG_SMALL_ID:
+        return 100
+    elif bag_type == MONEY_BAG_BIG_ID:
+        return 1000
+
 class Move(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -469,10 +476,14 @@ class Move(tornado.web.RequestHandler):
                 elif evtid == 3:    # gold case
                     cache["goldCase"] += 1
                     gold_case_add = 1
-                elif evtid == 4:    # big money
-                    money_add = 100
-                elif evtid == 5:    # small money
-                    money_add = 1000
+                elif evtid == 4:    # small money bag
+                    n = getMoneyNum(MONEY_BAG_SMALL_ID)
+                    items_add.append({"id":MONEY_BAG_SMALL_ID, "num":n})
+                    money_add += n
+                elif evtid == 5:    # big money bag
+                    n = getMoneyNum(MONEY_BAG_BIG_ID)
+                    items_add.append({"id":MONEY_BAG_BIG_ID, "num":n})
+                    money_add += n
 
                 if money_add:
                     money += money_add
@@ -500,7 +511,6 @@ class Move(tornado.web.RequestHandler):
             reply["currPos"] = dict(zip(["x", "y"], currpos))
             reply["ap"] = ap
             reply["nextAddApTime"] = nextAddApTime
-            reply["moneyAdd"] = money_add
             reply["redCaseAdd"] = red_case_add
             reply["goldCaseAdd"] = gold_case_add
             reply["items"] = items_add
@@ -730,7 +740,7 @@ class Complete(tornado.web.RequestHandler):
             
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT zoneCache, items, lastZoneId, maxCardNum, maxTradeNum, lastFormation FROM playerInfos
+                """ SELECT zoneCache, items, lastZoneId, maxCardNum, maxTradeNum, lastFormation, money FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
@@ -739,10 +749,12 @@ class Complete(tornado.web.RequestHandler):
                 raise Exception("not in zone")
             cache = json.loads(row[0])
             items = json.loads(row[1])
+            items = {int(k):v for k, v in items.iteritems()}
             last_zoneid = row[2]
             max_card_num = row[3]
             max_trade_num = row[4]
             last_formation = row[5]
+            money = row[6]
 
             if cache["currPos"] != cache["goalPos"]:
                 raise Exception("palyer not at goal pos")
@@ -756,23 +768,37 @@ class Complete(tornado.web.RequestHandler):
 
             # red case
             for x in xrange(cache["redCase"]):
-                caseid = map_tbl.get_value(maprow, "treasureprobabilityID")
-                itemid = case_tbl.get_item(caseid)
-                if itemid in items:
-                    items[itemid] += 1
+                caseid = int(map_tbl.get_value(maprow, "treasureprobabilityID"))
+                itemid = int(case_tbl.get_item(caseid))
+                itemobj = {"id":itemid}
+                if itemid in (MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID):
+                    n = getMoneyNum(itemid)
+                    itemobj["num"] = n
+                    money += n
                 else:
-                    items[itemid] = 1
-                red_case_items.append(int(itemid))
+                    itemobj["num"] = 1
+                    if itemid in items:
+                        items[itemid] += 1
+                    else:
+                        items[itemid] = 1
+                red_case_items.append(itemobj)
 
             # gold case
             for x in xrange(cache["goldCase"]):
-                caseid = map_tbl.get_value(maprow, "chestprobabilityID")
-                itemid = case_tbl.get_item(caseid)
-                if itemid in items:
-                    items[itemid] += 1
+                caseid = int(map_tbl.get_value(maprow, "chestprobabilityID"))
+                itemid = int(case_tbl.get_item(caseid))
+                itemobj = {"id":itemid}
+                if itemid in (MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID):
+                    n = getMoneyNum(itemid)
+                    itemobj["num"] = n
+                    money += n
                 else:
-                    items[itemid] = 1
-                gold_case_items.append(int(itemid))
+                    itemobj["num"] = 1
+                    if itemid in items:
+                        items[itemid] += 1
+                    else:
+                        items[itemid] = 1
+                gold_case_items.append(itemobj)
 
             # if first time complete
             new_last_zone_id = None
@@ -797,12 +823,15 @@ class Complete(tornado.web.RequestHandler):
                     itemid = int(evt_tbl.get_value(evtrow, "item%dID"%(i+1)))
                     itemnum = int(evt_tbl.get_value(evtrow, "amount%d"%(i+1)))
                     if itemid and itemnum:
-                        if itemid in items:
-                            items[itemid] += itemnum
+                        if itemid in (MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID):
+                            itemnum = getMoneyNum(itemid) * itemnum
+                            money += itemnum
                         else:
-                            items[itemid] = itemnum
-                        for item in rwditems:
-                            rwditems.append(item)
+                            if itemid in items:
+                                items[itemid] += itemnum
+                            else:
+                                items[itemid] = itemnum
+                        rwditems.append({"id": itemid, "num":itemnum})
 
                 ## reward cards
                 for i in xrange(3):
@@ -830,9 +859,9 @@ class Complete(tornado.web.RequestHandler):
             # db store
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0, items=%s, lastZoneId=%s
-                    , maxCardNum=%s, maxTradeNum=%s, lastFormation=%s
+                    , maxCardNum=%s, maxTradeNum=%s, lastFormation=%s, money=%s
                     WHERE userid=%s"""
-                ,(json.dumps(items), last_zoneid, max_card_num, max_trade_num, last_formation, session["userid"])
+                ,(json.dumps(items), last_zoneid, max_card_num, max_trade_num, last_formation, money, session["userid"])
             )
 
             # response

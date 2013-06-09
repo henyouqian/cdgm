@@ -1,0 +1,5 @@
+配置,"i3, 2core, 2.2GHz, 4G ram","aliyun, 1core, 512MB ram"
+价格,,46(不包括对外带宽和数据盘)
+"bjoern, hello world(1core)",924252 pages/min,703716 pages/min
+bottle+gevent,145356 pages/min,
+tornado,167352 pages/min,111972 pages/min
