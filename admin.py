@@ -9,11 +9,35 @@ import tornado.web
 import adisp
 import json
 
+class CheckAccount(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            session = yield find_session(self)
+            if not session or session["username"] != "admin":
+                send_error(self, "err_auth")
+                return
+
+            # reply
+            reply = util.new_reply()
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 class GetPlayerInfo(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
         try:
+            session = yield find_session(self)
+            if not session or session["username"] != "admin":
+                send_error(self, "err_auth")
+                return
+
             # param
             username = self.get_argument("userName")
 
@@ -63,7 +87,7 @@ class GetPlayerInfo(tornado.web.RequestHandler):
             self.finish()
 
 
-class setItemNum(tornado.web.RequestHandler):
+class SetItemNum(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -482,7 +506,8 @@ class SetCardSkillLevel(tornado.web.RequestHandler):
             self.finish()
 
 handlers = [
-    (r"/whapi/admin/setItemNum", setItemNum),
+    (r"/whapi/admin/checkAccount", CheckAccount),
+    (r"/whapi/admin/setItemNum", SetItemNum),
     (r"/whapi/admin/getPlayerInfo", GetPlayerInfo),
     (r"/whapi/admin/setLastZoneId", SetLastZoneId),
     (r"/whapi/admin/setMaxCardNum", SetMaxCardNum),

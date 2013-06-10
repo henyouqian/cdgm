@@ -1,5 +1,22 @@
 function Controller($scope, $http) {
 
+	function checkAccount() {
+		$.getJSON('/whapi/admin/checkAccount', function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}
+		});
+	}
+	checkAccount()
+
+	function errProc(err) {
+		alert(err)
+		if (err == "err_auth") {
+			window.location.href="login.html?redirect=admin.html"
+		}
+	}
+
 	$scope.getPlayerInfo = function() {
 		var userName = $scope.userNameInput
 		if (!userName) {
@@ -9,7 +26,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/getPlayerInfo', {"userName": userName}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					$scope.playerInfo = json.playerInfo

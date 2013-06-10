@@ -26,7 +26,11 @@ function login(){
 		if (err){
 			alert("Sign in failed. Error=" + err);
 		}else{
-			window.location.href="main.html";
+			var url = getUrlParam("redirect")
+			if (url)
+				window.location.href=url
+			else
+				window.location.href="main.html"
 		}
 	});
 }

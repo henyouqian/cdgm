@@ -318,23 +318,18 @@ class UseItem(tornado.web.RequestHandler):
                 return;
 
             # query items info
-            conn = yield util.whdb.beginTransaction()
-            try:
-                rows = yield util.whdb.runQuery(
-                    """ SELECT items, ap, maxAp, zoneCache, xp, maxXp FROM playerInfos
-                            WHERE userId=%s"""
-                    ,(user_id, ), conn
-                )
-                row = rows[0]
-                items = json.loads(row[0])
-                ap = row[1]
-                maxAp = row[2]
-                zoneCache = row[3]
-                xp = row[4]
-                maxXp = row[5]
-
-            finally:
-                yield util.whdb.commitTransaction(conn)
+            rows = yield util.whdb.runQuery(
+                """ SELECT items, ap, maxAp, zoneCache, xp, maxXp FROM playerInfos
+                        WHERE userId=%s"""
+                ,(user_id, ), conn
+            )
+            row = rows[0]
+            items = json.loads(row[0])
+            ap = row[1]
+            maxAp = row[2]
+            zoneCache = row[3]
+            xp = row[4]
+            maxXp = row[5]
 
             def consumeItem(items, num):
                 item_num = items.get(str(item_id), 0)
