@@ -364,13 +364,15 @@ class UseItem(tornado.web.RequestHandler):
                 zoneCache = json.loads(zoneCache)
                 bandmems = zoneCache["band"]["members"]
 
-                rows = yield util.whdb.runQuery(
+
+                rows = yield util.whdb.runQueryMany(
                     """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
-                        WHERE ownerId=%s AND id IN ({})""".format(",".join((str(t) for t in targets))),
-                    (user_id,)
+                        WHERE ownerId=%s AND id=%s""",
+                    ((user_id, t) for t in targets)
                 )
                 target_hps = [sum(row) for row in rows]
                 target_hps = dict(zip(targets, target_hps))
+                print rows
                 
                 num = 0
                 for m in bandmems:
@@ -399,10 +401,10 @@ class UseItem(tornado.web.RequestHandler):
                 zoneCache = json.loads(zoneCache)
                 bandmems = zoneCache["band"]["members"]
 
-                rows = yield util.whdb.runQuery(
+                rows = yield util.whdb.runQueryMany(
                     """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
-                        WHERE ownerId=%s AND id IN ({})""".format(",".join((str(t) for t in targets))),
-                    (user_id,)
+                        WHERE ownerId=%s AND id=%s""",
+                    ((user_id, t) for t in targets)
                 )
                 target_hps = [sum(row) for row in rows]
                 target_hps = dict(zip(targets, target_hps))
@@ -436,10 +438,10 @@ class UseItem(tornado.web.RequestHandler):
 
                 targets = [m[0] for m in bandmems if m]
 
-                rows = yield util.whdb.runQuery(
+                rows = yield util.whdb.runQueryMany(
                     """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
-                        WHERE ownerId=%s AND id IN ({})""".format(",".join((str(t) for t in targets))),
-                    (user_id,)
+                        WHERE ownerId=%s AND id=%s""",
+                    ((user_id, t) for t in targets)
                 )
                 target_hps = [sum(row) for row in rows]
                 target_hps = dict(zip(targets, target_hps))

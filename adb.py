@@ -174,6 +174,40 @@ class Database:
                 conn.commit()
             cursor.close()
 
+
+    @async
+    def runQueryMany(self, query, args=None, conn=None, callback=None):
+        """Send a SELECT query to the database.
+
+        The callback is invoked with all the rows in the result.
+        """
+        self._threadpool.add_task(
+            partial(self._queryMany, query, args, conn), callback)
+
+    def _queryMany(self, query, args, conn=None, thread_state=None):
+        """This method is called in a worker thread.
+
+        Execute the query and return the result so it can be passed as
+        argument to the callback.
+        """
+        if not conn:
+            conn = thread_state
+            should_commit = True
+        else:
+            should_commit = False
+        cursor = conn.cursor()
+        try:
+            cursor.executemany(query, args)
+        except:
+            raise
+        else:
+            rows = cursor.fetchall()
+            return rows
+        finally:
+            if should_commit:
+                conn.commit()
+            cursor.close()
+
     @async
     def runOperation(self, stmt, args=None, conn=None, callback=None):
         """Execute a SQL statement other than a SELECT.
