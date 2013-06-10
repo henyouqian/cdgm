@@ -321,7 +321,7 @@ class UseItem(tornado.web.RequestHandler):
             rows = yield util.whdb.runQuery(
                 """ SELECT items, ap, maxAp, zoneCache, xp, maxXp FROM playerInfos
                         WHERE userId=%s"""
-                ,(user_id, ), conn
+                ,(user_id, )
             )
             row = rows[0]
             items = json.loads(row[0])
