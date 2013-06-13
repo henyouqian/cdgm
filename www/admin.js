@@ -5,6 +5,10 @@ function Controller($scope, $http) {
 			var err = json.error;
 			if (err){
 				errProc(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.notification = json.notification
+				});
 			}
 		});
 	}
@@ -53,7 +57,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setItemNum', {"userId": userId, "itemId": itemId, "itemNum": itemNum}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					var change = json.change
@@ -81,7 +85,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setLastZoneId', {"userId": userId, "lastZoneId": lastZoneId}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					$scope.playerInfo.lastZoneId = json.lastZoneId
@@ -107,7 +111,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setMaxCardNum', {"userId": userId, "maxCardNum": maxCardNum}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					$scope.playerInfo.maxCardNum = json.maxCardNum
@@ -131,7 +135,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setMaxTradeNum', {"userId": userId, "maxTradeNum": $scope.maxTradeNum}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					$scope.playerInfo.maxTradeNum = json.maxTradeNum
@@ -155,7 +159,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setLastFormation', {"userId": userId, "lastFormation": $scope.lastFormation}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					$scope.playerInfo.lastFormation = json.lastFormation
@@ -179,7 +183,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setMoney', {"userId": userId, "money": $scope.money}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					$scope.playerInfo.money = json.money
@@ -203,7 +207,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setAp', {"userId": userId, "ap": $scope.ap, "maxAp": $scope.maxAp}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					$scope.playerInfo.ap = json.ap
@@ -228,7 +232,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setXp', {"userId": userId, "xp": $scope.xp, "maxXp": $scope.maxXp}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					$scope.playerInfo.xp = json.xp
@@ -255,7 +259,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/addCard', {"userId": userId, "protoId": cardId, "level": cardLevel}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					$scope.cards.push(json.card)
@@ -281,7 +285,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setCardLevel', {"userId": userId, "cardId": cardId, "level": cardLevel}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					for (var i = 0; i < $scope.cards.length; ++i) {
@@ -313,7 +317,7 @@ function Controller($scope, $http) {
 		$.getJSON('/whapi/admin/setCardSkillLevel', {"userId": userId, "cardId": cardId, "index": index, "level": level}, function(json){
 			var err = json.error;
 			if (err){
-				alert(err)
+				errProc(err)
 			}else{
 				$scope.$apply(function(){
 					for (var i = 0; i < $scope.cards.length; ++i) {
@@ -326,5 +330,26 @@ function Controller($scope, $http) {
 			}
 		})
 	}
+
+
+	$scope.submitNotification = function() {
+		var notification = $scope.notification
+		if (!notification) {
+			alert("fill the blank")
+			return
+		}
+		$.getJSON("/whapi/admin/setNotification", {"text": notification}, function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.notification = json.text
+				})
+				alert("Notification changed.")
+			}
+		})
+	}
+	
 	
 }

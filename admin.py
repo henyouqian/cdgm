@@ -9,18 +9,37 @@ import tornado.web
 import adisp
 import json
 
+KEY_NOTIFICATION = "wh/notification"
+
+@adisp.async
+@adisp.process
+def check_admin(reqHdl, callback):
+    try:
+        session = yield find_session(reqHdl)
+        if not session or session["username"] != "admin":
+            send_error(reqHdl, "err_auth")
+            callback(False)
+        else:
+            callback(True)
+
+    except:
+        callback(False)
+
 class CheckAccount(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
         try:
-            session = yield find_session(self)
-            if not session or session["username"] != "admin":
-                send_error(self, "err_auth")
+            # check admin
+            if (yield check_admin(self)) == False:
                 return
+
+            # notification
+            notification = yield util.redis().get(KEY_NOTIFICATION)
 
             # reply
             reply = util.new_reply()
+            reply["notification"] = notification
             self.write(json.dumps(reply))
 
         except:
@@ -33,9 +52,8 @@ class GetPlayerInfo(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
-            session = yield find_session(self)
-            if not session or session["username"] != "admin":
-                send_error(self, "err_auth")
+            # check admin
+            if (yield check_admin(self)) == False:
                 return
 
             # param
@@ -92,6 +110,10 @@ class SetItemNum(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             itemid = int(self.get_argument("itemId"))
@@ -130,6 +152,10 @@ class SetLastZoneId(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             last_zoneid = int(self.get_argument("lastZoneId"))
@@ -161,6 +187,10 @@ class SetMaxCardNum(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             max_card_num = int(self.get_argument("maxCardNum"))
@@ -189,6 +219,10 @@ class SetMaxTradeNum(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             max_trade_num = int(self.get_argument("maxTradeNum"))
@@ -217,6 +251,10 @@ class SetLastFormation(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             last_formation = int(self.get_argument("lastFormation"))
@@ -248,6 +286,10 @@ class SetMoney(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             money = int(self.get_argument("money"))
@@ -276,6 +318,10 @@ class SetAp(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             ap = self.get_argument("ap", None)
@@ -325,6 +371,10 @@ class SetXp(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             xp = self.get_argument("xp", None)
@@ -374,6 +424,10 @@ class AddCard(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             protoid = int(self.get_argument("protoId"))
@@ -408,6 +462,10 @@ class SetCardLevel(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             cardid = int(self.get_argument("cardId"))
@@ -455,6 +513,10 @@ class SetCardSkillLevel(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
             # param
             userid = int(self.get_argument("userId"))
             cardid = int(self.get_argument("cardId"))
@@ -505,6 +567,32 @@ class SetCardSkillLevel(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class SetNotification(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
+            # param
+            text = self.get_argument("text")
+
+            # update redis
+            yield util.redis().set(KEY_NOTIFICATION, text)
+
+            # reply
+            reply = util.new_reply()
+            reply["text"] = text
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/admin/checkAccount", CheckAccount),
     (r"/whapi/admin/setItemNum", SetItemNum),
@@ -520,4 +608,5 @@ handlers = [
     (r"/whapi/admin/setCardLevel", SetCardLevel),
     (r"/whapi/admin/setCardSkillLevel", SetCardSkillLevel),
 
+    (r"/whapi/admin/setNotification", SetNotification),
 ]

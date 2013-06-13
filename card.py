@@ -320,10 +320,10 @@ class Sell(tornado.web.RequestHandler):
                     raise Exception("card_id must be int")
 
             # query all cards info and check owner
-            rows = yield util.whdb.runQuery(
+            rows = yield util.whdb.runQueryMany(
                 """SELECT protoId FROM cardEntities
-                        WHERE id IN ({}) AND ownerId = %s""".format(",".join(("%s",)*len(card_ids)))
-                ,tuple(card_ids+[user_id])
+                        WHERE id=%s AND ownerId=%s"""
+                ,((card_id, user_id) for card_id in card_ids)
             )
 
             proto_ids = [row[0] for row in rows]
@@ -384,9 +384,9 @@ class Sell(tornado.web.RequestHandler):
                     )
 
             # delete card
-            yield util.whdb.runOperation(
-                "DELETE FROM cardEntities WHERE id IN ({}) AND ownerId = %s".format(",".join(("%s",)*len(card_ids)))
-                ,tuple(card_ids+[user_id])
+            yield util.whdb.runOperationMany(
+                "DELETE FROM cardEntities WHERE id=%s AND ownerId=%s".format(",".join(("%s",)*len(card_ids)))
+                ,((card_id, user_id) for card_id in card_ids)
             )
 
             # reply
@@ -579,10 +579,10 @@ class Sacrifice(tornado.web.RequestHandler):
             # get cards info
             fields = ["id", "protoId", "skill1Id", "skill1Level", "skill1Exp", 
                 "skill2Id", "skill2Level", "skill2Exp", "skill3Id", "skill3Level", "skill3Exp"]
-            rows = yield util.whdb.runQuery(
+            rows = yield util.whdb.runQueryMany(
                 """SELECT {} FROM cardEntities
-                        WHERE id IN {} AND ownerId = %s""".format(",".join(fields), str(tuple(cards)))
-                ,(user_id, )
+                        WHERE id=%s AND ownerId = %s""".format(",".join(fields))
+                ,((card, user_id) for card in cards)
             )
             if len(rows) != len(cards):
                 raise Exception("error card id")

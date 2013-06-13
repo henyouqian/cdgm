@@ -7,10 +7,6 @@
     <script src="js/angular.min.js"></script>
 
     <style type="text/css">
-      code {
-        font-size:150%;
-      }
-
       form input[type="text"] {
         margin-bottom: 0px;
       }
@@ -50,7 +46,7 @@
               <div class="well affixList" data-spy="affix" data-offset-top="108">
                 <ul class="nav nav-list" id="server-tab" ng-hide="page">
                   <li><a href="#top">顶部</a></li>
-                  <li><a href="#server-rolling">滚动公告</a></li>
+                  <li><a href="#server-rolling">公告</a></li>
                   <li><a href="#server-exp">全服经验</a></li>
                   <li><a href="#server-item">全服道具</a></li>
                 </ul>
@@ -60,12 +56,12 @@
             <div class="span10">
               <section id="server-rolling">
                 <div class="page-header">
-                  <h2>滚动公告</h2>
+                  <h2>公告</h2>
                 </div>
-                <code>滚动公告滚动公告</code><br><br>
+                <pre>使用换行来分割多条公告</pre>
                 <form>
-                  <input type="text" style="width:400px;" maxlength="100">
-                  <button class="btn btn-primary" ng-click="reset()">设置</button>
+                  <textarea cols="60", rows="10" style="width:98%" ng-model="notification"></textarea><br>
+                  <button class="btn btn-primary" ng-click="submitNotification()">设置</button>
                 </form>
               </section>
 
