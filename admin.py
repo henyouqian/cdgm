@@ -302,6 +302,7 @@ class SetLastFormation(tornado.web.RequestHandler):
                     back = back[:mem_num]
 
                 band["members"] = front + back
+                band["formation"] = last_formation
 
             # update db
             yield util.whdb.runOperation(
