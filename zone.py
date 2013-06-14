@@ -860,26 +860,26 @@ class Complete(tornado.web.RequestHandler):
                         if mem_num2 - mem_num1 != 1:
                             raise Exception("new formation member count error:%d->%d")
                         for band in bands:
-                            for band in bands:
-                                mem_num = mem_num2
-                                members = band["members"]
-                                n = len(members)
-                                front = members[:(n/2)]
-                                back = members[(n/2):-1]
+                            mem_num = mem_num2
+                            members = band["members"]
+                            n = len(members)
+                            front = members[:(n/2)]
+                            back = members[(n/2):-1]
 
-                                lfront = len(front)
-                                if lfront < mem_num:
-                                    front += (mem_num - lfront)*[None]
-                                elif lfront > mem_num:
-                                    front = front[:mem_num]
+                            lfront = len(front)
+                            if lfront < mem_num:
+                                front += (mem_num - lfront)*[None]
+                            elif lfront > mem_num:
+                                front = front[:mem_num]
 
-                                lback = len(back)
-                                if lback < mem_num:
-                                    back += (mem_num - lback)*[None]
-                                elif lback > mem_num:
-                                    back = back[:mem_num]
+                            lback = len(back)
+                            if lback < mem_num:
+                                back += (mem_num - lback)*[None]
+                            elif lback > mem_num:
+                                back = back[:mem_num]
 
-                                band["members"] = front + back
+                            band["members"] = front + back
+                            band["formation"] = new_last_formation
 
             # db store
             yield util.whdb.runOperation(
