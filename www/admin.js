@@ -1,5 +1,12 @@
 function Controller($scope, $http) {
 
+	$scope.expMultiEvents = [
+		{multiplier:3.4, time:"today"},
+		{multiplier:4.4, time:"tomorrow"}
+	]
+
+	$(".form_datetime").datetimepicker({format: 'yyyy-mm-dd hh:ii', todayBtn: true});
+
 	function checkAccount() {
 		$.getJSON('/whapi/admin/checkAccount', function(json){
 			var err = json.error;
@@ -8,6 +15,7 @@ function Controller($scope, $http) {
 			}else{
 				$scope.$apply(function(){
 					$scope.notification = json.notification
+					$scope.expMultiplier = json.expMultiplier
 				});
 			}
 		});
@@ -332,7 +340,7 @@ function Controller($scope, $http) {
 	}
 
 
-	$scope.submitNotification = function() {
+	$scope.setNotification = function() {
 		var notification = $scope.notification
 		if (!notification) {
 			alert("fill the blank")
@@ -347,6 +355,26 @@ function Controller($scope, $http) {
 					$scope.notification = json.text
 				})
 				alert("Notification changed.")
+			}
+		})
+	}
+
+
+	$scope.setExpMultiplier = function() {
+		var expMulti = $scope.expMultiplierInput
+		if (!expMulti) {
+			alert("fill the blank")
+			return
+		}
+		$.getJSON("/whapi/admin/setExpMultiplier", {"multiplier": expMulti}, function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.expMultiplier = json.multiplier
+				})
+				alert("Exp multiplier changed.")
 			}
 		})
 	}

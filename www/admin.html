@@ -4,10 +4,13 @@
     <meta charset="utf-8">
     <title>Admin</title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/datetimepicker.css" rel="stylesheet">
+
     <script src="js/angular.min.js"></script>
 
     <style type="text/css">
-      form input[type="text"] {
+      input[type="text"],
+      input[type="datetime"] {
         margin-bottom: 0px;
       }
 
@@ -61,7 +64,7 @@
                 <pre>使用换行来分割多条公告</pre>
                 <form>
                   <textarea cols="60", rows="10" style="width:98%" ng-model="notification"></textarea><br>
-                  <button class="btn btn-primary" ng-click="submitNotification()">设置</button>
+                  <button class="btn btn-primary" ng-click="setNotification()">设置</button>
                 </form>
               </section>
 
@@ -69,12 +72,27 @@
                 <div class="page-header">
                   <h2>全服经验</h2>
                 </div>
-                xxbb<br><br>
-                xxbb<br><br>
-                xxbb<br><br>
-                xxbb<br><br>
-                xxbb<br><br>
-                xxbb<br><br>
+                <form>
+                  <span>Multiplier:{{expMultiplier}}</span>
+                  <input type="text" style="width:100px;" ng-model="expMultiplierInput" pattern="^[0-9]*\.?[0-9]+$" placeholder="exp multiplier">
+                  <button class="btn btn-primary" ng-click="setExpMultiplier()">立即设置</button>
+                  <br><br>
+                  <table class="table table-striped">
+                    <thead>
+                      <th>time</th>
+                      <th>multiplier</th>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="evt in expMultiEvents">
+                        <td>{{evt.time}}</td>
+                        <td>{{evt.multiplier}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <input size="16" type="text" readonly class="form_datetime" ng-model="expMultiplierTimeInput">
+                  <input type="text" style="width:100px;" ng-model="expMultiplierNumInput" pattern="^[0-9]*\.?[0-9]+$" placeholder="multiplier">
+                  <button class="btn btn-primary" ng-click="addExpMultiplier()">添加变更点</button>
+                </form>
               </section>
 
               <section id="server-item">
@@ -264,6 +282,7 @@
 
     <script src="js/jquery-1.9.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-datetimepicker.min.js"></script>
     <script src="util.js"></script>
     <script src="admin.js"></script>
 

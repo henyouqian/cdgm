@@ -554,6 +554,7 @@ class BattleResult(tornado.web.RequestHandler):
             # post input
             input = json.loads(self.request.body)
             inmembers = input["members"]
+            memid_list = [mem["id"] for mem in inmembers if mem]
             if len(inmembers)*2 != len(members):
                 raise Exception("Error member num")
 
@@ -562,13 +563,16 @@ class BattleResult(tornado.web.RequestHandler):
             win = input["isWin"]
             # lost
             if not win:
-                if warlord in inmembers:
+                if warlord in memid_list:
                     yield util.whdb.runOperation(
                         """UPDATE playerInfos SET inZoneId=0, zoneCache=NULL
                                 WHERE userid=%s"""
                         ,(userid,)
                     )
                     reply = util.new_reply()
+                    reply["members"]=[]
+                    reply["levelups"]=[]
+                    reply["catchedMons"]=[]
                     self.write(reply)
                     return
 

@@ -10,6 +10,7 @@ import adisp
 import json
 
 KEY_NOTIFICATION = "wh/notification"
+KEY_EXP_MUTIPLIER = "wh/expMultiplier"
 
 @adisp.async
 @adisp.process
@@ -35,11 +36,19 @@ class CheckAccount(tornado.web.RequestHandler):
                 return
 
             # notification
-            notification = yield util.redis().get(KEY_NOTIFICATION)
+            notification, exp_multi = yield util.redis().mget((KEY_NOTIFICATION, KEY_EXP_MUTIPLIER))
+            exp_multi = float(exp_multi)
+            if not notification:
+                notification = ""
+                yield util.redis().set(KEY_NOTIFICATION, notification)
+            if not exp_multi:
+                exp_multi = 1.0
+                yield util.redis().set(KEY_EXP_MUTIPLIER, exp_multi)
 
             # reply
             reply = util.new_reply()
             reply["notification"] = notification
+            reply["expMultiplier"] = exp_multi
             self.write(json.dumps(reply))
 
         except:
@@ -593,6 +602,32 @@ class SetNotification(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class SetExpMultiplier(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
+            # param
+            multiplier = self.get_argument("multiplier")
+
+            # update redis
+            yield util.redis().set(KEY_EXP_MUTIPLIER, multiplier)
+
+            # reply
+            reply = util.new_reply()
+            reply["multiplier"] = multiplier
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/admin/checkAccount", CheckAccount),
     (r"/whapi/admin/setItemNum", SetItemNum),
@@ -609,4 +644,6 @@ handlers = [
     (r"/whapi/admin/setCardSkillLevel", SetCardSkillLevel),
 
     (r"/whapi/admin/setNotification", SetNotification),
+    (r"/whapi/admin/setExpMultiplier", SetExpMultiplier),
+
 ]
