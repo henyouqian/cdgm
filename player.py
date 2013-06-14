@@ -268,6 +268,9 @@ class SetBand(tornado.web.RequestHandler):
                 count = len(rows)
 
                 if count != mem_proto_num:
+                    print "---------------------"
+                    print member_set
+                    print count, mem_proto_num
                     raise Exception("May be one or some cards is not yours")
 
             # store db
