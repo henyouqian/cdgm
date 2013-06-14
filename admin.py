@@ -271,15 +271,41 @@ class SetLastFormation(tornado.web.RequestHandler):
             userid = int(self.get_argument("userId"))
             last_formation = int(self.get_argument("lastFormation"))
             try:
-                formation_id = fmt_tbl.get(last_formation, "id")
+                mem_num = fmt_tbl.get(last_formation, "maxNum")
             except:
                 raise Exception("invalid formation id")
 
+            # get band info
+            rows = yield util.whdb.runQuery(
+                """ SELECT bands FROM playerInfos
+                        WHERE userId=%s"""
+                ,(userid, )
+            )
+            row = rows[0]
+            bands = json.loads(row[0])
+            for band in bands:
+                members = band["members"]
+                n = len(members)
+                front = members[:(n/2)]
+                back = members[(n/2):-1]
+
+                lfront = len(front)
+                if lfront < mem_num:
+                    front += (mem_num - lfront)*[None]
+                else if lfront > mem_num:
+                    front = [:mem_num]
+
+                lback = len(back)
+                if lback < mem_num:
+                    back += (mem_num - lback)*[None]
+                else if lback > mem_num:
+                    back = [:mem_num]
+
             # update db
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET lastFormation=%s
+                """UPDATE playerInfos SET lastFormation=%s, bands=%s
                         WHERE userId=%s"""
-                ,(last_formation, userid)
+                ,(last_formation, json.dumps(bands), userid)
             )
 
             # reply
