@@ -4,6 +4,7 @@ from gamedata import BAND_NUM, AP_ADD_DURATION, \
     XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID
 import util
 from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
+from player import fmt_tbl
 
 import tornado.web
 import adisp
@@ -736,7 +737,7 @@ class Complete(tornado.web.RequestHandler):
             
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT zoneCache, items, lastZoneId, maxCardNum, maxTradeNum, lastFormation, money FROM playerInfos
+                """ SELECT zoneCache, items, lastZoneId, maxCardNum, maxTradeNum, lastFormation, money, bands FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
@@ -751,6 +752,7 @@ class Complete(tornado.web.RequestHandler):
             max_trade_num = row[4]
             last_formation = row[5]
             money = row[6]
+            bands = json.loads(row[7])
 
             if cache["currPos"] != cache["goalPos"]:
                 raise Exception("palyer not at goal pos")
@@ -850,14 +852,23 @@ class Complete(tornado.web.RequestHandler):
                 ## reward formation
                 num = int(evt_tbl.get_value(evtrow, "band"))
                 if num and num > last_formation:
+                    mem_num1 = int(fmt_tbl.get(last_formation, "maxNum"))
+                    mem_num2 = int(fmt_tbl.get(num, "maxNum"))
                     new_last_formation = last_formation = num
+                    if mem_num1 != mem_num2:
+                        if mem_num2 - mem_num1 != 1:
+                            raise Exception("new formation member count error:%d->%d")
+                        for band in bands:
+                            members = band["members"]
+                            members.insert(mem_num1, None)
+                            members.append(None)
 
             # db store
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0, items=%s, lastZoneId=%s
-                    , maxCardNum=%s, maxTradeNum=%s, lastFormation=%s, money=%s
+                    , maxCardNum=%s, maxTradeNum=%s, lastFormation=%s, money=%s, bands=%s
                     WHERE userid=%s"""
-                ,(json.dumps(items), last_zoneid, max_card_num, max_trade_num, last_formation, money, session["userid"])
+                ,(json.dumps(items), last_zoneid, max_card_num, max_trade_num, last_formation, money, json.dumps(bands), session["userid"])
             )
 
             # response
