@@ -45,7 +45,7 @@ class CheckAccount(tornado.web.RequestHandler):
             if not exp_multi:
                 exp_multi = 1.0
                 yield util.redis().set(KEY_EXP_MUTIPLIER, exp_multi)
-            else
+            else:
                 exp_multi = float(exp_multi)
 
             # reply
