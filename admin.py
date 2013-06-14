@@ -12,12 +12,14 @@ import json
 KEY_NOTIFICATION = "wh/notification"
 KEY_EXP_MUTIPLIER = "wh/expMultiplier"
 
+ADMINS = ["admin", "JiaheTest2", "adminMc"]
+
 @adisp.async
 @adisp.process
 def check_admin(reqHdl, callback):
     try:
         session = yield find_session(reqHdl)
-        if not session or session["username"] != "admin":
+        if not session or session["username"] not in ADMINS:
             send_error(reqHdl, "err_auth")
             callback(False)
         else:
@@ -37,13 +39,14 @@ class CheckAccount(tornado.web.RequestHandler):
 
             # notification
             notification, exp_multi = yield util.redis().mget((KEY_NOTIFICATION, KEY_EXP_MUTIPLIER))
-            exp_multi = float(exp_multi)
             if not notification:
                 notification = ""
                 yield util.redis().set(KEY_NOTIFICATION, notification)
             if not exp_multi:
                 exp_multi = 1.0
                 yield util.redis().set(KEY_EXP_MUTIPLIER, exp_multi)
+            else
+                exp_multi = float(exp_multi)
 
             # reply
             reply = util.new_reply()
