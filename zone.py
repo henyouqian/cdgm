@@ -561,22 +561,7 @@ class BattleResult(tornado.web.RequestHandler):
             catch_item = input.get("catchItem", 0)
 
             win = input["isWin"]
-            # lost
-            if not win:
-                if warlord in memid_list:
-                    yield util.whdb.runOperation(
-                        """UPDATE playerInfos SET inZoneId=0, zoneCache=NULL
-                                WHERE userid=%s"""
-                        ,(userid,)
-                    )
-                    reply = util.new_reply()
-                    reply["members"]=[]
-                    reply["levelups"]=[]
-                    reply["catchedMons"]=[]
-                    self.write(reply)
-                    return
 
-            # win
             # check members valid and store new member status
             mems_per_row = len(inmembers)
             for idx, inmem in enumerate(inmembers):
@@ -590,16 +575,23 @@ class BattleResult(tornado.web.RequestHandler):
                         raise Exception("Error member pos")
                     if inmem["hp"] > members[idx][1] or inmem["hp"] < 0:
                         raise Exception("Error member hp")
-                    if inmem["id"] == warlord and inmem["hp"] == 0:
+                    if win and inmem["id"] == warlord and inmem["hp"] == 0:
                         raise Exception("Dead warlord")
 
+            # lost
             if not win:
-                zoneCache["currPos"] = zoneCache["lastPos"]
                 yield util.whdb.runOperation(
                     """UPDATE playerInfos SET zoneCache=%s
                             WHERE userId=%s"""
                     ,(json.dumps(cache), userid)
                 )
+                reply = util.new_reply()
+                reply["members"]=[]
+                reply["levelups"]=[]
+                reply["catchedMons"]=[]
+                self.write(reply)
+                return
+
 
             # add exp
             # calc exp
