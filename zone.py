@@ -855,6 +855,7 @@ class Complete(tornado.web.RequestHandler):
                     mem_num1 = int(fmt_tbl.get(last_formation, "maxNum"))
                     mem_num2 = int(fmt_tbl.get(num, "maxNum"))
                     new_last_formation = last_formation = num
+                    print new_last_formation, "new_last_formationnnnnnnnnnnnnnnnn"
                     if mem_num1 != mem_num2:
                         if mem_num2 - mem_num1 != 1:
                             raise Exception("new formation member count error:%d->%d")
