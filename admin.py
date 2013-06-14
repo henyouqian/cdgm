@@ -12,7 +12,7 @@ import json
 KEY_NOTIFICATION = "wh/notification"
 KEY_EXP_MUTIPLIER = "wh/expMultiplier"
 
-ADMINS = ["admin", "JiaheTest2", "adminMc"]
+ADMINS = ["admin", "JiaheTest2", "adminMc", "aa"]
 
 @adisp.async
 @adisp.process
@@ -271,7 +271,7 @@ class SetLastFormation(tornado.web.RequestHandler):
             userid = int(self.get_argument("userId"))
             last_formation = int(self.get_argument("lastFormation"))
             try:
-                mem_num = fmt_tbl.get(last_formation, "maxNum")
+                mem_num = int(fmt_tbl.get(last_formation, "maxNum"))
             except:
                 raise Exception("invalid formation id")
 
@@ -292,14 +292,16 @@ class SetLastFormation(tornado.web.RequestHandler):
                 lfront = len(front)
                 if lfront < mem_num:
                     front += (mem_num - lfront)*[None]
-                else if lfront > mem_num:
-                    front = [:mem_num]
+                elif lfront > mem_num:
+                    front = front[:mem_num]
 
                 lback = len(back)
                 if lback < mem_num:
                     back += (mem_num - lback)*[None]
-                else if lback > mem_num:
-                    back = [:mem_num]
+                elif lback > mem_num:
+                    back = back[:mem_num]
+
+                band["members"] = front + back
 
             # update db
             yield util.whdb.runOperation(
