@@ -249,6 +249,7 @@ class SetBand(tornado.web.RequestHandler):
                 if len(members) != max_num * 2:
                     raise Exception("member_num error")
                 mems_not_none = [int(mem) for mem in members if mem or mem==0]
+                print members
                 ms = set(members)
                 ms.discard(None)
                 if len(ms) != len(mems_not_none):
@@ -260,17 +261,14 @@ class SetBand(tornado.web.RequestHandler):
             # check member
             mem_proto_num = len(member_set)
             if mem_proto_num:
-                rows = yield util.whdb.runQueryMany(
-                    """ SELECT 1 FROM cardEntities
-                        WHERE ownerId=%s AND id=%s""",
-                    ((userid, t) for t in tuple(member_set))
+                rows = yield util.whdb.runQuery(
+                    """ SELECT COUNT(1) FROM cardEntities
+                            WHERE ownerId = %s AND id IN ({})""".format(",".join(("%s",)*len(member_set)))
+                    ,(userid,) + tuple(member_set)
                 )
-                count = len(rows)
+                count = rows[0][0]
 
                 if count != mem_proto_num:
-                    print "---------------------"
-                    print member_set
-                    print count, mem_proto_num
                     raise Exception("May be one or some cards is not yours")
 
             # store db
@@ -336,6 +334,7 @@ class UseItem(tornado.web.RequestHandler):
             def consumeItem(items, num):
                 item_num = items.get(str(item_id), 0)
                 remain = item_num - num
+                print item_num, num
                 if remain < 0:
                     raise Exception("not enough item")
                 items[str(item_id)] = remain
@@ -365,14 +364,14 @@ class UseItem(tornado.web.RequestHandler):
                 zoneCache = json.loads(zoneCache)
                 bandmems = zoneCache["band"]["members"]
 
-
-                rows = yield util.whdb.runQueryMany(
-                    """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
-                        WHERE ownerId=%s AND id=%s""",
-                    ((user_id, t) for t in targets)
+                rows = yield util.whdb.runQuery(
+                    """ SELECT hp, hpCrystal, hpExtra, id FROM cardEntities
+                        WHERE ownerId=%s AND id IN ({})""".format(",".join((str(t) for t in targets))),
+                    (user_id,)
                 )
-                target_hps = [sum(row) for row in rows]
-                target_hps = dict(zip(targets, target_hps))
+                # target_hps = [sum(row) for row in rows]
+                # target_hps = dict(zip(targets, target_hps))
+                target_hps = {row[3]:row[0]+row[1]+row[2] for row in rows}
                 
                 num = 0
                 for m in bandmems:
@@ -401,13 +400,14 @@ class UseItem(tornado.web.RequestHandler):
                 zoneCache = json.loads(zoneCache)
                 bandmems = zoneCache["band"]["members"]
 
-                rows = yield util.whdb.runQueryMany(
-                    """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
-                        WHERE ownerId=%s AND id=%s""",
-                    ((user_id, t) for t in targets)
+                rows = yield util.whdb.runQuery(
+                    """ SELECT hp, hpCrystal, hpExtra, id FROM cardEntities
+                        WHERE ownerId=%s AND id IN ({})""".format(",".join((str(t) for t in targets))),
+                    (user_id,)
                 )
-                target_hps = [sum(row) for row in rows]
-                target_hps = dict(zip(targets, target_hps))
+                # target_hps = [sum(row) for row in rows]
+                # target_hps = dict(zip(targets, target_hps))
+                target_hps = {row[3]:row[0]+row[1]+row[2] for row in rows}
                 
                 num = 0
                 for m in bandmems:
@@ -438,13 +438,14 @@ class UseItem(tornado.web.RequestHandler):
 
                 targets = [m[0] for m in bandmems if m]
 
-                rows = yield util.whdb.runQueryMany(
-                    """ SELECT hp, hpCrystal, hpExtra FROM cardEntities
-                        WHERE ownerId=%s AND id=%s""",
-                    ((user_id, t) for t in targets)
+                rows = yield util.whdb.runQuery(
+                    """ SELECT hp, hpCrystal, hpExtra, id FROM cardEntities
+                        WHERE ownerId=%s AND id IN ({})""".format(",".join((str(t) for t in targets))),
+                    (user_id,)
                 )
-                target_hps = [sum(row) for row in rows]
-                target_hps = dict(zip(targets, target_hps))
+                # target_hps = [sum(row) for row in rows]
+                # target_hps = dict(zip(targets, target_hps))
+                target_hps = {row[3]:row[0]+row[1]+row[2] for row in rows}
                 
                 hp_added = False
                 for m in bandmems:
@@ -481,6 +482,7 @@ class UseItem(tornado.web.RequestHandler):
                     dxp = 1
 
                 item_num = consumeItem(items, dxp)
+                print type(dxp)
                 yield util.whdb.runOperation(
                     """ UPDATE playerInfos SET items=%s, xp=xp+%s
                             WHERE userId=%s"""

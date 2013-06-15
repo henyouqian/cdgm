@@ -201,7 +201,7 @@ class Database:
         except:
             raise
         else:
-            rows = cursor.fetchall()
+            rows = cursor.fetchmany()
             return rows
         finally:
             if should_commit:
