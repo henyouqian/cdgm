@@ -539,7 +539,7 @@ class BattleResult(tornado.web.RequestHandler):
 
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT warlord, zoneCache, items, maxCardNum FROM playerInfos
+                """ SELECT warlord, zoneCache, items, maxCardNum, ap, maxAp FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
@@ -548,6 +548,8 @@ class BattleResult(tornado.web.RequestHandler):
             cache = json.loads(row[1])
             items = json.loads(row[2])
             max_card_num = row[3]
+            ap = row[4]
+            max_ap = row[5]
 
             band = cache["band"]
             members = band["members"]
@@ -665,6 +667,8 @@ class BattleResult(tornado.web.RequestHandler):
                         levelup["level"] = level
                         levelup.update(dict(zip(["hp", "atk", "def", "wis", "agi"], card["attrs"])))
                         levelups.append(levelup)
+                        if card["id"] == warlord:
+                            ap = max_ap
 
                 except:
                     card["exp"] = int(lvtbl.get(level, "exp"))
@@ -700,9 +704,9 @@ class BattleResult(tornado.web.RequestHandler):
 
             ## update band infos in zoneCache
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET zoneCache=%s
+                """UPDATE playerInfos SET zoneCache=%s, ap=%s
                         WHERE userId=%s"""
-                ,(json.dumps(cache), userid)
+                ,(json.dumps(cache), userid, ap)
             )
 
             # reply
