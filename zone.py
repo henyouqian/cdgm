@@ -727,6 +727,75 @@ class BattleResult(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class CatchMonster(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def post(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+
+            # get player info
+            rows = yield util.whdb.runQuery(
+                """ SELECT zoneCache, items, maxCardNum FROM playerInfos
+                        WHERE userId=%s"""
+                ,(userid, )
+            )
+            row = rows[0]
+            cache = json.loads(row[0])
+            items = json.loads(row[1])
+            max_card_num = row[2]
+
+            band = cache["band"]
+            members = band["members"]
+
+            # post input
+            input = json.loads(self.request.body)
+            catch_item = input["catchItem"]
+
+            # catch
+            catched_mons = []
+            if catch_item in [5, 6]:
+                item_num = items.get(str(catch_item), 0)
+                if item_num == 0:
+                    raise Exception("not enough item")
+                catch_mons = cache.get("catchMons")
+                if catch_mons:
+                    for mon in catch_mons:
+                        rarity = mon_card_tbl.get(mon, "rarity")
+                        probs = {1:0.5, 2:0.3, 3:0.2, 4:0.1}
+                        prob = probs.get(rarity, 0)
+                        if random() < prob:
+                            catched_mons.append(mon)
+
+                    if catched_mons:
+                        catched_mons = yield create_cards(userid, catched_mons, max_card_num, 1)
+
+                    del cache["catchMons"]
+
+
+            ## update band infos in zoneCache
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET zoneCache=%s
+                        WHERE userId=%s"""
+                ,(json.dumps(cache), userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["catchedMons"] = catched_mons
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
 class Complete(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -916,6 +985,7 @@ handlers = [
     (r"/whapi/zone/get", Get),
     (r"/whapi/zone/move", Move),
     (r"/whapi/zone/battleresult", BattleResult),
+    (r"/whapi/zone/catchmonster", CatchMonster),
     (r"/whapi/zone/complete", Complete),
 ]
 
