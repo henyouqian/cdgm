@@ -363,6 +363,9 @@ class UseItem(tornado.web.RequestHandler):
             elif item_id == 2:
                 if not zoneCache:
                     raise Exception("not in zone")
+                    
+                if not targets:
+                    raise Exception("no targets")
 
                 zoneCache = json.loads(zoneCache)
                 bandmems = zoneCache["band"]["members"]
@@ -399,6 +402,9 @@ class UseItem(tornado.web.RequestHandler):
             elif item_id == 3:
                 if not zoneCache:
                     raise Exception("not in zone")
+
+                if not targets:
+                    raise Exception("no targets")
 
                 zoneCache = json.loads(zoneCache)
                 bandmems = zoneCache["band"]["members"]
