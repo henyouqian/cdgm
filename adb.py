@@ -11,6 +11,7 @@ import tornado.ioloop
 
 from threadpool import ThreadPool
 from adisp import process, async
+import logging
 
 class Database:
     """Asynchronous database interface.
@@ -165,6 +166,7 @@ class Database:
         try:
             cursor.execute(query, args)
         except:
+            logging.error(query)
             raise
         else:
             rows = cursor.fetchall()
