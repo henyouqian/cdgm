@@ -42,15 +42,18 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # add war lord card
-            cards = yield card.create_cards(userid, [warlord_proto_id], INIT_MAX_CARD, 1)
+            cards = yield card.create_cards(userid, [warlord_proto_id]+INIT_CARDS, INIT_MAX_CARD, 1)
             warlord_card = cards[0]
             warlord_id = warlord_card["id"]
 
             # init bands
-            bands = INIT_BANDS
+            bands = INIT_BANDS[:]
 
             for band in bands:
                 band["members"][1] = warlord_id
+                
+            bands[0]["members"][0] = cards[1]["id"]
+            bands[0]["members"][2] = cards[2]["id"]
 
             bands = json.dumps(bands)
 
