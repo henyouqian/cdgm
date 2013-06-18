@@ -37,6 +37,9 @@ else:
         reply = '{"error":"%s"}' % (err, )
         hdl.write(reply)
 
+        if hdl.request.body:
+            logging.error(self.request.body)
+
 def send_ok(hdl):
     hdl.write('{"error":""}')
 
