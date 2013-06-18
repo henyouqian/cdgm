@@ -32,13 +32,13 @@ if config.debug:
             reply = {"error":"%s" % err, "traceback":"%s" % traceback.format_exc()}
             hdl.write(json.dumps(reply))
             traceback.print_exc()
+
+            if hdl.request.body:
+                logging.error(self.request.body)
 else:
     def send_error(hdl, err, text=None):
         reply = '{"error":"%s"}' % (err, )
         hdl.write(reply)
-
-        if hdl.request.body:
-            logging.error(self.request.body)
 
 def send_ok(hdl):
     hdl.write('{"error":""}')
