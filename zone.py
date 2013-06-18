@@ -557,7 +557,6 @@ class BattleResult(tornado.web.RequestHandler):
             # post input
             input = json.loads(self.request.body)
             inmembers = input["members"]
-            print inmembers, "xxxxxxxxxxxxx"
             memid_list = [mem["id"] for mem in inmembers if mem]
             if len(inmembers)*2 != len(members):
                 raise Exception("Error member num")
@@ -707,7 +706,7 @@ class BattleResult(tornado.web.RequestHandler):
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=%s, ap=%s
                         WHERE userId=%s"""
-                ,(json.dumps(cache), userid, ap)
+                ,(json.dumps(cache), ap, userid)
             )
 
             # reply
