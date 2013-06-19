@@ -34,7 +34,7 @@ if config.debug:
             traceback.print_exc()
 
             if hdl.request.body:
-                logging.error(self.request.body)
+                logging.error(hdl.request.body)
 else:
     def send_error(hdl, err, text=None):
         reply = '{"error":"%s"}' % (err, )
@@ -51,7 +51,7 @@ if config.debug:
         traceback.print_exc()
 
         if hdl.request.body:
-            logging.error(self.request.body)
+            logging.error(hdl.request.body)
 else:
     def send_internal_error(hdl):
         reply = '{"error":"err_internal"}'
