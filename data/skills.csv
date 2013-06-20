@@ -62,7 +62,7 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 61,3,5,復仇,為相鄰隊員抵擋傷害并且反擊。,14,1,1,0,0,0,2,40,4,skill_large,hit_midium,damage_middle,12,50,0
 62,2,5,犧牲,為相鄰隊員抵擋傷害。,12,1,1,0,0,0,2,39,0,skill_midium,0,0,12,50,0
 63,3,5,霸體,為所有隊員抵擋傷害。,12,0,0,0,0,0,4,38,0,skill_small,0,0,12,50,0
-64,2,3,反擊,當受到攻擊時一定几率反擊。,13,1,1,0,0,0,1,38,4,skill_small,hit_midium,damage_middle,12,50,0
+64,2,3,反擊,當受到攻擊時一定几率反擊。,13,1,1,0,0,0,22,38,4,skill_small,hit_midium,damage_middle,12,50,0
 65,4,4,寶物獵人,推圖時一定几率撿到金錢。,15,0,0,0,0,0,0,40,0,skill_large,0,0,11,30,0
 66,2,4,養神,增加推圖時后備隊員HP回復量。,0,0,0,0,0,0,0,0,0,0,0,0,11,30,0
 67,1,2,金錢攻擊,扔錢對敵方造成傷害，一定几率麻痺。,4,1,0.5,2,0.1,0,8,38,32,skill_small,skill_coin,skill_coin,12,50,0

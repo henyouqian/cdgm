@@ -50,7 +50,7 @@
          "name":"path",
          "opacity":0.150000005960464,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":70,
          "x":0,
          "y":0
