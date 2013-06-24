@@ -11,6 +11,7 @@ import adisp
 import brukva
 import json
 import os
+import logging
 from datetime import datetime, timedelta
 from random import random, choice
 
@@ -20,6 +21,9 @@ TILE_ITEM = 5       # tile index which generate item only
 TILE_MON = 6        # tile index which generate monster only
 TILE_START = 2      # start tile
 TILE_GOAL = 3       # goal tile
+
+TILE_EVENT_RANGE = xrange(11, 21)
+
 
 
 class PlacementTbl(object):
@@ -137,6 +141,7 @@ def gen_cache(zoneid):
     objs = {}
     startpos = None
     goalpos = None
+    events = {}
     for k, v in tiles.iteritems():
         r = -1
         if v == TILE_ALL:
@@ -151,6 +156,12 @@ def gen_cache(zoneid):
         elif v == TILE_GOAL:
             goalpos = map(int, k.split(","))
             continue
+        elif v > 10:    # event
+            try:
+                event_id = map_evt_tbl.get((zoneid, v), "eventid")
+                events[k] = event_id
+            except:
+                logging.error("map_evt_tbl error: mapid=%d, tilevalue=%d" % (zoneid, v))
         if r == 0:      # case or gold
             itemtype = rand2item.get() + 1 # itemtype from 1 to 5
             if itemtype >= 0:
@@ -166,7 +177,7 @@ def gen_cache(zoneid):
 
 
     cache = {"zoneId":zoneid, "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos, 
-               "lastPos":startpos, "redCase":0, "goldCase":0, "monGrpId":-1}
+               "lastPos":startpos, "redCase":0, "goldCase":0, "monGrpId":-1, "events":events}
     return cache
 
 # =============================================
@@ -189,6 +200,19 @@ def trans_cache_to_client(cache):
     out["startPos"] = dict(zip(["x", "y"], out["startPos"]))
     out["goalPos"] = dict(zip(["x", "y"], out["goalPos"]))
     out["currPos"] = dict(zip(["x", "y"], out["currPos"]))
+
+    events = cache["events"]
+    outevents = []
+    for pos, eventid in events.iteritems():
+        try:
+            pt = [int(p) for p in pos.split(",")]
+            start_dialog, end_dialog, monsterid = evt_tbl.gets(eventid, "startdialogueID", "overdialogueID", "monsterID")
+            event = {"x": pt[0], "y": pt[1], "startDialog": int(start_dialog), "endDialog": int(end_dialog), "monsterId": int(monsterid)}
+            outevents.append(event)
+        except:
+            logging.error("event parse error: %s", traceback.format_exc())
+
+    out["events"] = outevents
     return out
 
 class Enter(tornado.web.RequestHandler):
@@ -996,6 +1020,7 @@ case_tbl = CaseTbl()
 zone_tbl = util.CsvTbl("data/zones.csv", "id")
 mon_card_tbl = util.CsvTbl("data/monstercards.csv", "ID")
 evt_tbl = util.CsvTbl("data/events.csv", "ID")
+map_evt_tbl = util.CsvTblMulKey("data/mapevents.csv", "mapid", "tilevalue")
 
 # =============================================
 if __name__ == "__main__":
