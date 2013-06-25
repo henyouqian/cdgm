@@ -1,7 +1,7 @@
 from error import *
 from session import *
 from gamedata import BAND_NUM, AP_ADD_DURATION, \
-    XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID
+    XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID
 import util
 from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
 from player import fmt_tbl
@@ -158,10 +158,11 @@ def gen_cache(zoneid):
             continue
         elif v > 10:    # event
             try:
-                event_id = map_evt_tbl.get((zoneid, v), "eventid")
+                event_id = int(map_evt_tbl.get((zoneid, v), "eventid"))
                 events[k] = event_id
             except:
                 logging.error("map_evt_tbl error: mapid=%d, tilevalue=%d" % (zoneid, v))
+            continue
         if r == 0:      # case or gold
             itemtype = rand2item.get() + 1 # itemtype from 1 to 5
             if itemtype >= 0:
@@ -377,6 +378,7 @@ class Move(tornado.web.RequestHandler):
             if not session:
                 send_error(self, err_auth)
                 return
+            userid = session["userid"]
 
             # post input
             path = json.loads(self.request.body)
@@ -393,9 +395,9 @@ class Move(tornado.web.RequestHandler):
 
             # db get cache
             rows = yield util.whdb.runQuery(
-                """SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, money FROM playerInfos 
+                """SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, money, maxCardNum FROM playerInfos 
                         WHERE userid=%s"""
-                ,(session["userid"],)
+                ,(userid,)
             )
             row = rows[0]
             cache = row[0]
@@ -405,6 +407,7 @@ class Move(tornado.web.RequestHandler):
             curr_time = row[4]
             items = row[5]
             money = row[6]
+            max_card_num = row[7]
 
             if not last_ap_time:
                 last_ap_time = datetime(2013, 1, 1)
@@ -421,12 +424,12 @@ class Move(tornado.web.RequestHandler):
             
 
             # check path
-            #check start pos
+            # check start pos
             currpos = cache["currPos"]
             if currpos != path[0]:
                 raise Exception("begin coord not match")
 
-            #update ap
+            # update ap
             dt = curr_time - last_ap_time
             dt = int(dt.total_seconds())
             dap = dt // AP_ADD_DURATION
@@ -452,11 +455,10 @@ class Move(tornado.web.RequestHandler):
             # update curr pos
             currpos = cache["currPos"] = path[-1]
 
-            # check and triger event
+            # check and triger battles and get items
             currpos = path[-1]
             poskey = "%d,%d" % (currpos[0], currpos[1])
             evtid = cache["objs"].get(poskey)
-            item_updated = False
             money_add = 0
             red_case_add = 0
             gold_case_add = 0
@@ -464,72 +466,102 @@ class Move(tornado.web.RequestHandler):
             monGrpId = None
             catch_mons = []
             if evtid:
-                del cache["objs"][poskey]
                 zoneid = cache["zoneId"]
                 maprow = map_tbl.get_row(zoneid)
                 if evtid == 10000:      # event
                     pass
                 elif evtid < 0:         # battle
                     monGrpId = -evtid
-                    cache["monGrpId"] = monGrpId
-                    cache["lastPos"] = last_pos
-                    row = mongrp_tbl.get_row(monGrpId)
-                    catch_prob = float(mongrp_tbl.get_value(row, "catchable"))
-                    for i in xrange(10):
-                        mon_id = int(mongrp_tbl.get_value(row, "order%d"%(i+1)))
-                        if not mon_id:
-                            break
-                        if random() < catch_prob:
-                            catch_mons.append(mon_id)
-
-                    cache["catchMons"] = catch_mons
-
                 elif evtid == 1:    # wood case
-                    item_updated = True
                     caseid = map_tbl.get_value(maprow, "woodprobabilityID")
                     itemid = case_tbl.get_item(caseid)
-                    print "itemid:", itemid
-                    if itemid in items:
-                        items[itemid] += 1
-                    else:
-                        items[itemid] = 1
                     items_add.append({"id":itemid, "num":1})
-
                 elif evtid == 2:    # red case
-                    cache["redCase"] += 1
-                    red_case_add = 1
+                    items_add.append({"id":RED_CASE_ID, "num":1})
                 elif evtid == 3:    # gold case
-                    cache["goldCase"] += 1
-                    gold_case_add = 1
+                    items_add.append({"id":GOLD_CASE_ID, "num":1})
                 elif evtid == 4:    # small money bag
-                    n = getMoneyNum(MONEY_BAG_SMALL_ID)
-                    items_add.append({"id":MONEY_BAG_SMALL_ID, "num":n})
-                    money_add += n
+                    items_add.append({"id":MONEY_BAG_SMALL_ID, "num":1})
                 elif evtid == 5:    # big money bag
-                    n = getMoneyNum(MONEY_BAG_BIG_ID)
-                    items_add.append({"id":MONEY_BAG_BIG_ID, "num":n})
-                    money_add += n
+                    items_add.append({"id":MONEY_BAG_BIG_ID, "num":1})
 
                 if money_add:
                     money += money_add
-            
+
+            # event
+            events = cache["events"]
+            eventid = events.get(poskey)
+            evt_cards = []
+            if eventid:
+                monsterid, itemid1, itemnum1, itemid2, itemnum2, itemid3, itemnum3, cardid1, cardid2, cardid3 = \
+                    evt_tbl.gets(eventid, "monsterID", "item1ID", "amount1", "item2ID", "amount2", "item3ID", "amount3", "card1ID", "card2ID", "card3ID")
+                monsterid = int(monsterid)
+                if monsterid:
+                    monGrpId = monsterid
+                else:
+                    evt_items = [{"id":int(itemid1), "num":int(itemnum1)}, {"id":int(itemid2), "num":int(itemnum2)}, {"id":int(itemid3), "num":int(itemnum3)}]
+                    evt_cards = [int(cardid1), int(cardid2), int(cardid3)]
+                    for item in evt_items:
+                        if item["id"]:
+                            items_add.append(item)
+                    evt_cards = [card for card in evt_cards if card]
+
+            # add items
+            _items_add = []
+            for item in items_add:
+                itemid = item["id"]
+                itemnum = item["num"]
+                if itemid == MONEY_BAG_SMALL_ID:
+                    n = getMoneyNum(MONEY_BAG_SMALL_ID)
+                    money_add += n
+                elif itemid == MONEY_BAG_BIG_ID:
+                    n = getMoneyNum(MONEY_BAG_BIG_ID)
+                    money_add += n
+                elif itemid == RED_CASE_ID:
+                    cache["redCase"] += itemnum
+                    red_case_add += itemnum
+                    continue
+                elif itemid == GOLD_CASE_ID:
+                    cache["goldCase"] += itemnum
+                    gold_case_add += itemnum
+                    continue
+                else:
+                    if itemid in items:
+                        items[itemid] += itemnum
+                    else:
+                        items[itemid] = itemnum
+                _items_add.append(item)
+            items_add = _items_add
+
+            # add cards
+            if evt_cards:
+                cards = yield create_cards(userid, evt_cards, max_card_num, 1)
+
+            # battle
+            if monGrpId:
+                cache["monGrpId"] = monGrpId
+                cache["lastPos"] = last_pos
+                row = mongrp_tbl.get_row(monGrpId)
+                catch_prob = float(mongrp_tbl.get_value(row, "catchable"))
+                for i in xrange(10):
+                    mon_id = int(mongrp_tbl.get_value(row, "order%d"%(i+1)))
+                    if not mon_id:
+                        break
+                    if random() < catch_prob:
+                        catch_mons.append(mon_id)
+                cache["catchMons"] = catch_mons
+            elif evtid:
+                del cache["objs"][poskey]
+
             # update
             cachejs = json.dumps(cache)
-            if item_updated:
-                itemsjs = json.dumps(items)
-                yield util.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s,
-                        money=%s, items=%s
-                            WHERE userid=%s"""
-                    ,(cachejs, ap, last_ap_time, money, itemsjs, session["userid"])
-                )
-            else:
-                yield util.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s,
-                        money=%s
-                            WHERE userid=%s"""
-                    ,(cachejs, ap, last_ap_time, money, session["userid"])
-                )
+            itemsjs = json.dumps(items)
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s,
+                    money=%s, items=%s
+                        WHERE userid=%s"""
+                ,(cachejs, ap, last_ap_time, money, itemsjs, userid)
+            )
 
             # reply
             reply = util.new_reply()
@@ -539,8 +571,9 @@ class Move(tornado.web.RequestHandler):
             reply["redCaseAdd"] = red_case_add
             reply["goldCaseAdd"] = gold_case_add
             reply["items"] = items_add
+            reply["cards"] = evt_cards
             reply["monGrpId"] = monGrpId
-            reply["eventId"] = None
+            reply["eventId"] = eventid
             reply["catchMons"] = catch_mons
             self.write(json.dumps(reply))
 
@@ -619,6 +652,10 @@ class BattleResult(tornado.web.RequestHandler):
                 self.write(reply)
                 return
 
+            # del obj in this tile
+            currpos = cache["currPos"]
+            poskey = "%d,%d" % (currpos[0], currpos[1])
+            del cache["objs"][poskey]
 
             # add exp
             # calc exp
@@ -715,6 +752,52 @@ class BattleResult(tornado.web.RequestHandler):
                     if catched_mons:
                         catched_mons = yield create_cards(userid, catched_mons, max_card_num, 1)
 
+            # event
+            events = cache["events"]
+            eventid = events.get(poskey)
+            evt_cards = []
+            evt_items = []
+            if eventid:
+                itemid1, itemnum1, itemid2, itemnum2, itemid3, itemnum3, cardid1, cardid2, cardid3 = \
+                    evt_tbl.gets(eventid, "monsterID", "item1ID", "amount1", "item2ID", "amount2", "item3ID", "amount3", "card1ID", "card2ID", "card3ID")
+                
+                evt_items = [{"id":int(itemid1), "num":int(itemnum1)}, {"id":int(itemid2), "num":int(itemnum2)}, {"id":int(itemid3), "num":int(itemnum3)}]
+                evt_cards = [int(cardid1), int(cardid2), int(cardid3)]
+                evt_items = [item for item in evt_items if item["id"]]
+                evt_cards = [card for card in evt_cards if card]
+
+            # add items
+            items_add = []
+            money_add = 0
+            red_case_add = 0
+            gold_case_add = 0
+            for item in evt_items:
+                itemid = item["id"]
+                itemnum = item["num"]
+                if itemid == MONEY_BAG_SMALL_ID:
+                    n = getMoneyNum(MONEY_BAG_SMALL_ID)
+                    money_add += n
+                elif itemid == MONEY_BAG_BIG_ID:
+                    n = getMoneyNum(MONEY_BAG_BIG_ID)
+                    money_add += n
+                elif itemid == RED_CASE_ID:
+                    cache["redCase"] += itemnum
+                    red_case_add += itemnum
+                    continue
+                elif itemid == GOLD_CASE_ID:
+                    cache["goldCase"] += itemnum
+                    gold_case_add += itemnum
+                    continue
+                else:
+                    if itemid in items:
+                        items[itemid] += itemnum
+                    else:
+                        items[itemid] = itemnum
+                items_add.append(item)
+
+            # add cards
+            if evt_cards:
+                evt_cards = yield create_cards(userid, evt_cards, max_card_num, 1)
 
             # update db
             ## update cardEntities
@@ -728,9 +811,9 @@ class BattleResult(tornado.web.RequestHandler):
 
             ## update band infos in zoneCache
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET zoneCache=%s, ap=%s
+                """UPDATE playerInfos SET zoneCache=%s, ap=%s, items=%s
                         WHERE userId=%s"""
-                ,(json.dumps(cache), ap, userid)
+                ,(json.dumps(cache), ap, json.dumps(items), userid)
             )
 
             # reply
@@ -745,6 +828,8 @@ class BattleResult(tornado.web.RequestHandler):
             reply["members"] = members
             reply["levelups"] = levelups
             reply["catchedMons"] = catched_mons
+            reply["items"] = evt_items
+            reply["cards"] = evt_cards
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
