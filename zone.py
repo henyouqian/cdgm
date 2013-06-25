@@ -760,7 +760,7 @@ class BattleResult(tornado.web.RequestHandler):
             evt_items = []
             if eventid:
                 itemid1, itemnum1, itemid2, itemnum2, itemid3, itemnum3, cardid1, cardid2, cardid3 = \
-                    evt_tbl.gets(eventid, "monsterID", "item1ID", "amount1", "item2ID", "amount2", "item3ID", "amount3", "card1ID", "card2ID", "card3ID")
+                    evt_tbl.gets(eventid, "item1ID", "amount1", "item2ID", "amount2", "item3ID", "amount3", "card1ID", "card2ID", "card3ID")
                 
                 evt_items = [{"id":int(itemid1), "num":int(itemnum1)}, {"id":int(itemid2), "num":int(itemnum2)}, {"id":int(itemid3), "num":int(itemnum3)}]
                 evt_cards = [int(cardid1), int(cardid2), int(cardid3)]
