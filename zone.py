@@ -649,6 +649,8 @@ class BattleResult(tornado.web.RequestHandler):
                 reply["members"]=[]
                 reply["levelups"]=[]
                 reply["catchedMons"]=[]
+                reply["items"] = []
+                reply["cards"] = []
                 self.write(reply)
                 return
 
