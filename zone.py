@@ -655,7 +655,8 @@ class BattleResult(tornado.web.RequestHandler):
             # del obj in this tile
             currpos = cache["currPos"]
             poskey = "%d,%d" % (currpos[0], currpos[1])
-            del cache["objs"][poskey]
+            if poskey in cache["objs"]:
+                del cache["objs"][poskey]
 
             # add exp
             # calc exp
