@@ -456,7 +456,6 @@ class Move(tornado.web.RequestHandler):
             currpos = cache["currPos"] = path[-1]
 
             # check and triger battles and get items
-            currpos = path[-1]
             poskey = "%d,%d" % (currpos[0], currpos[1])
             evtid = cache["objs"].get(poskey)
             money_add = 0
@@ -550,6 +549,9 @@ class Move(tornado.web.RequestHandler):
                     if random() < catch_prob:
                         catch_mons.append(mon_id)
                 cache["catchMons"] = catch_mons
+
+                cache["battlePos"] = currpos
+                currpos = cache["currPos"] = path[-2]
             elif evtid:
                 del cache["objs"][poskey]
 
@@ -638,6 +640,12 @@ class BattleResult(tornado.web.RequestHandler):
                     if win and inmem["id"] == warlord and inmem["hp"] == 0:
                         raise Exception("Dead warlord")
 
+            # del obj in this tile
+            currpos = cache["currPos"] = cache["battlePos"]
+            poskey = "%d,%d" % (currpos[0], currpos[1])
+            if poskey in cache["objs"]:
+                del cache["objs"][poskey]
+
             # lost
             if not win:
                 yield util.whdb.runOperation(
@@ -651,14 +659,12 @@ class BattleResult(tornado.web.RequestHandler):
                 reply["catchedMons"]=[]
                 reply["items"] = []
                 reply["cards"] = []
+                reply["currPos"] = cache["currPos"]
                 self.write(reply)
                 return
-
-            # del obj in this tile
-            currpos = cache["currPos"]
-            poskey = "%d,%d" % (currpos[0], currpos[1])
-            if poskey in cache["objs"]:
-                del cache["objs"][poskey]
+            else:
+                if poskey in cache["events"]:
+                    del cache["events"][poskey]
 
             # add exp
             # calc exp
@@ -833,6 +839,7 @@ class BattleResult(tornado.web.RequestHandler):
             reply["catchedMons"] = catched_mons
             reply["items"] = evt_items
             reply["cards"] = evt_cards
+            reply["currPos"] = currpos
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
