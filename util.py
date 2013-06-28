@@ -62,6 +62,9 @@ class CsvTbl(object):
         row = self.get_row(rowkey)
         return self.get_values(row, *colnames)
 
+    def iter_rowkeys(self):
+        return tuple(self.body.iterkeys())
+
 
 class CsvTblMulKey(object):
     def __init__(self, csvpath, *keycols):

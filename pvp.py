@@ -9,10 +9,73 @@ import adisp
 import json
 import random
 import datetime
+import traceback
+
+""" 
+    # pvp score rank, you can find band data from H_PVP_BANDS with user_id
+    Redis::SortedSet:
+        key: Z_PVP_BANDS
+        score: pvp_score
+        member: user_id
+
+    # pvp band data
+    Redis::Hashe:
+        key: H_PVP_BANDS
+        field: user_id
+        value: {
+            "userName":string,
+            "score":int,
+            "band":{
+                "protoId":int,
+                "level":int,
+                "hp":int,
+                "atk":int,
+                "def":int,
+                "wis":int,
+                "agi":int,            
+                "skill1Id":int,
+                "skill1Level":int,
+                "skill2Id":int,
+                "skill2Level":int,
+                "skill3Id":int,
+                "skill3Level":int
+            }
+        }
+
+    # pvp foes data, remain 10 minutes each
+    Redis::String:
+        key: S_PVP_FOES,
+        value: [
+            {
+                "userId":int
+                "userName":string,
+                "score":int,
+                "band":{
+                    "protoId":int,
+                    "level":int,
+                    "hp":int,
+                    "atk":int,
+                    "def":int,
+                    "wis":int,
+                    "agi":int,
+                    "skill1Id":int,
+                    "skill1Level":int,
+                    "skill2Id":int,
+                    "skill2Level":int,
+                    "skill3Id":int,
+                    "skill3Level":int
+            } * 3
+        ]
+        seconds: 600
+"""
 
 PVP_ID_SERIAL = "PVP_ID_SERIAL"
 PVP_Z_KEY = "PVP_Z_KEY"
 PVP_H_KEY = "PVP_H_KEY"
+
+Z_PVP_BANDS = "Z_PVP_BANDS"
+H_PVP_BANDS = "H_PVP_BANDS"
+S_PVP_FOES = "S_PVP_FOES"
 
 class AddTestRecord(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -40,22 +103,65 @@ class AddTestRecord(tornado.web.RequestHandler):
 
 def calc_pvp_score(card):
     """
-        card key: protoId, hp, atk, def, agi, wis
+        card: {
+            "protoId":int,
+            "level":int,
+            "hp":int,
+            "atk":int,
+            "def":int,
+            "wis":int,
+            "agi":int,
+            "skill1Id":int,
+            "skill1Level":int,
+            "skill2Id":int,
+            "skill2Level":int,
+            "skill3Id":int,
+            "skill3Level":int
+        }
     """
     card_proto = card_tbl.get_row(card["protoId"])
-    price, skillid1, skillid2, skillid3 = map(int, card_tbl.get_values("price", "skill1Id", "skill2Id", "skill3Id"))
+    price = int(card_tbl.get_value(card_proto, "price"))
 
     skillRaritySum = 0
-    for skillid in [skillid1, skillid2, skillid3]:
+    for skillid in [card["skill1Id"], card["skill2Id"], card["skill3Id"]]:
         if skillid:
-            skillRaritySum += skill_tbl.get(skillid, "rarity")
+            skillRaritySum += int(skill_tbl.get(skillid, "rarity"))
 
-    score = card["hp"] + card["atk"] + card["def"] + card["agi"] + card["wis"]
-    score += int((price * skillRaritySum) * 0.1)
+    score = card["hp"] + card["atk"] + card["def"] + card["wis"] + card["agi"]
+    score += (price * skillRaritySum)
     return score
 
 
 def calc_player_pvp_score(userid, bands, cards):
+    """
+        bands: [
+            {
+                "formation": int,
+                "members": [
+                    <cardEntityId:int>,
+                    ...
+                ]
+            },
+            ...
+        ]
+        cards: {
+            <cardEntityId>: {
+                "protoId":int,
+                "level":int,
+                "hp":int,
+                "atk":int,
+                "def":int,
+                "wis":int,
+                "agi":int,
+                "skill1Id":int,
+                "skill1Level":int,
+                "skill2Id":int,
+                "skill2Level":int,
+                "skill3Id":int,
+                "skill3Level":int
+            }
+        }
+    """
     # calc pvp score
     pvp_score = 0
     for band in bands:
@@ -82,36 +188,164 @@ def calc_player_pvp_score(userid, bands, cards):
 
 @adisp.async
 @adisp.process
-def upload_pvp_band(userid, username, cards, callback):
+def submit_pvp_band(userid, username, band, callback):
     """
-        card key: protoId, level, hp, atk, def, agi, wis, skill1Id, skill1Level, skill2Id, skill2Level, skill3Id, skill3Level
+        "userid":int
+        "username":string
+        "band":[
+            {
+                "protoId":int,
+                "level":int,
+                "hp":int,
+                "atk":int,
+                "def":int,
+                "wis":int,
+                "agi":int,
+                "skill1Id":int,
+                "skill1Level":int,
+                "skill2Id":int,
+                "skill2Level":int,
+                "skill3Id":int,
+                "skill3Level":int
+            },
+            ...
+        ]
     """
     try:
         # calc pvp score
         pvp_score = 0
-        for card in cards:
+        for card in band:
             if card:
                 score = calc_pvp_score(card)
                 pvp_score += score
 
         # update to redis
         pipe = util.redis_pipe()
-        pipe.zadd(PVP_Z_KEY, pvp_score, userid)
+        pipe.zadd(Z_PVP_BANDS, pvp_score, userid)
 
-        pvp_data = {"username": username, "band":cards, "score": pvp_score}
-        pipe.hset(PVP_H_KEY, userid, json.dumps(pvp_data))
+        pvp_data = {"userName": username, "band":band, "score": pvp_score}
+        pipe.hset(H_PVP_BANDS, userid, json.dumps(pvp_data))
         yield util.redis_pipe_execute(pipe)
+        
         callback(None)
 
     except Exception as e:
+        traceback.print_exc()
         callback(e)
 
 
 @adisp.async
 @adisp.process
-def upload_pvp_band(userid, username, cards, callback):
-    pass
+def get_3_bands(userid, pvpscore, winnum, callback):
+    try:
+        win_level = int(winnum/3)
+
+
+    except Exception as e:
+        callback(e)
+
+
+###########################
+class CreateTestData(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            for card_row_key in card_tbl.iter_rowkeys():
+                username = card_tbl.get(card_row_key, "name")
+                proto, price, hp, atk, dfs, wis, agi, maxlv, skillid1= \
+                    map(int, card_tbl.gets(card_row_key, "ID", "price", \
+                    "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "maxlevel", "skillid1"))
+
+                band = [{
+                    "protoId": proto,
+                    "level":maxlv,
+                    "hp":hp,
+                    "atk":atk,
+                    "def":dfs,
+                    "wis":wis,
+                    "agi":agi,
+                    "skill1Id":skillid1,
+                    "skill1Level":20,
+                    "skill2Id":0,
+                    "skill2Level":0,
+                    "skill3Id":0,
+                    "skill3Level":0
+                }] * 5
+                userid = proto
+                yield submit_pvp_band(userid, username, band)
+
+            # reply
+            reply = util.new_reply()
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+class Get3Band(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+
+            # get player pvp score
+            rows = yield util.whdb.runQuery(
+                """SELECT pvpScore, bands FROM playerInfos WHERE userId=%s"""
+                ,(userid, )
+            )
+            row = rows[0]
+            pvp_score = row[0]
+            bands = json.loads(row[1])
+            members = set()
+            for band in bands:
+                for mem in band["members"]:
+                    if mem:
+                        members.add(mem)
+            members = tuple(members)
+            
+            # 
+            if pvp_score == 0:
+                cols = ["id", "protoId", "level", "hp", "atk", "def", "wis", "agi", \
+                    "hpCrystal", "atkCrystal", "defCrystal", "wisCrystal", "agiCrystal", \
+                    "hpExtra", "atkExtra", "defExtra", "wisExtra", "agiExtra", \
+                    "skill1Id", "skill1Level", "skill2Id", "skill2Level", "skill3Id", "skill3Level"
+                ]
+                rows = yield util.whdb.runQuery(
+                    """SELECT {} FROM cardEntities WHERE ownerId=%s and id IN ({})""".format(",".join(cols), ",".join(map(str, members)))
+                    ,(userid, )
+                )
+                cards = {}
+                for row in rows:
+                    card = dict(zip(cols, row))
+                    card["hp"] += card["hpCrystal"] + card["hpExtra"]
+                    card["atk"] += card["atkCrystal"] + card["atkExtra"]
+                    card["def"] += card["defCrystal"] + card["defExtra"]
+                    card["wis"] += card["wisCrystal"] + card["wisExtra"]
+                    card["agi"] += card["agiCrystal"] + card["agiExtra"]
+                    cards[card["id"]] = card
+                score = calc_player_pvp_score(userid, bands, cards)
+
+            # reply
+            reply = util.new_reply()
+            reply["score"] = score
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 
 handlers = [
     (r"/whapi/pvp/addtestrecord", AddTestRecord),
+    (r"/whapi/pvp/createtestdata", CreateTestData),
+    (r"/whapi/pvp/get3band", Get3Band),
 ]

@@ -247,8 +247,8 @@ class Enter(tornado.web.RequestHandler):
             row = rows[0]
             bands = row[0]
             bands = json.loads(bands)
-            zone_id = row[1]
-            if zone_id != 0:
+            in_zone_id = row[1]
+            if in_zone_id != 0:
                 raise Exception("Allready in zone")
             last_zone_id = row[2]
             if zoneid > last_zone_id:
@@ -294,9 +294,14 @@ class Enter(tornado.web.RequestHandler):
                 ,(cachejs, zoneid, bandidx, session["userid"])
             )
 
+            # dialogue
+            enter_diag, complete_diag = map(int, map_tbl.gets(zoneid, "enterzonerdialogueID", "completezonedialogueID"))
+
             # response
             clientCache = trans_cache_to_client(cache)
             clientCache["error"] = no_error
+            clientCache["enterDialogue"] = enter_diag
+            clientCache["completeDialogue"] = complete_diag
             reply = json.dumps(clientCache)
             self.write(reply)
         except:
@@ -662,9 +667,6 @@ class BattleResult(tornado.web.RequestHandler):
                 reply["currPos"] = cache["currPos"]
                 self.write(reply)
                 return
-            else:
-                if poskey in cache["events"]:
-                    del cache["events"][poskey]
 
             # add exp
             # calc exp
@@ -807,6 +809,10 @@ class BattleResult(tornado.web.RequestHandler):
             # add cards
             if evt_cards:
                 evt_cards = yield create_cards(userid, evt_cards, max_card_num, 1)
+
+            # delete events
+            if poskey in cache["events"]:
+                del cache["events"][poskey]
 
             # update db
             ## update cardEntities
