@@ -157,6 +157,8 @@ function move() {
 						alert(json.error)
 					} else {
 						console.log(json)
+						zoneInfo.currPos = json.currPos
+						updateZoneInfo()
 					}
 				}, "json")
 			}

@@ -111,7 +111,7 @@ class WeightedRandom(object):
             idx += 1
         return -1
 
-def gen_cache(zoneid):
+def gen_cache(zoneid, islastZone):
     tiles = plc_tbl.get_zone_data(zoneid)
     maprow = map_tbl.get_row(zoneid)
     itemrate = float(map_tbl.get_value(maprow, "item%"))
@@ -159,7 +159,9 @@ def gen_cache(zoneid):
         elif v > 10:    # event
             try:
                 event_id = int(map_evt_tbl.get((zoneid, v), "eventid"))
-                events[k] = event_id
+                is_repeat = int(evt_tbl.get(event_id, "repeat"))
+                if islastZone or is_repeat:
+                    events[k] = event_id
             except:
                 logging.error("map_evt_tbl error: mapid=%d, tilevalue=%d" % (zoneid, v))
             continue
@@ -168,11 +170,9 @@ def gen_cache(zoneid):
             if itemtype >= 0:
                 objs[k] = itemtype
         elif r == 1:    # battle
-            grpid = choice(mongrpids)
-            # row = mongrp_tbl.get_row(grpid)
-            # img = mongrp_tbl.get_value(row, "image")
-            # objs[k] = -int(img)
-            objs[k] = -int(grpid)
+            if mongrpids:
+                grpid = choice(mongrpids)
+                objs[k] = -int(grpid)
         elif r == 2:    # event
             objs[k] = 10000
 
@@ -255,12 +255,12 @@ class Enter(tornado.web.RequestHandler):
                 raise Exception("Zone not available")
 
             # gen cache
-            cache = gen_cache(zoneid)
+            isLastZone = (zoneid == last_zone_id)
+            cache = gen_cache(zoneid, isLastZone)
 
             # band
             band = bands[bandidx]
             memids = [mem for mem in band["members"] if mem]
-            print memids
 
             sql = """ SELECT id, hp, hpCrystal, hpExtra FROM cardEntities
                         WHERE id IN ({}) AND ownerId=%s""".format(",".join((str(m) for m in memids)))
@@ -432,7 +432,7 @@ class Move(tornado.web.RequestHandler):
             # check start pos
             currpos = cache["currPos"]
             if currpos != path[0]:
-                raise Exception("begin coord not match")
+                raise Exception("begin coord not match: currpos=%s, path=%s" %(str(currpos), str(path)))
 
             # update ap
             dt = curr_time - last_ap_time
@@ -557,7 +557,6 @@ class Move(tornado.web.RequestHandler):
                 cache["catchMons"] = catch_mons
 
                 cache["battlePos"] = currpos
-                print path, "xxxxxxxxxxxx"
                 currpos = cache["currPos"] = path[-2]
 
             elif evtid:
@@ -848,7 +847,7 @@ class BattleResult(tornado.web.RequestHandler):
             reply["catchedMons"] = catched_mons
             reply["items"] = evt_items
             reply["cards"] = evt_cards
-            reply["currPos"] = currpos
+            reply["currPos"] = dict(zip(["x", "y"], currpos))
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
@@ -1125,8 +1124,3 @@ zone_tbl = util.CsvTbl("data/zones.csv", "id")
 mon_card_tbl = util.CsvTbl("data/monstercards.csv", "ID")
 evt_tbl = util.CsvTbl("data/events.csv", "ID")
 map_evt_tbl = util.CsvTblMulKey("data/mapevents.csv", "mapid", "tilevalue")
-
-# =============================================
-if __name__ == "__main__":
-    out = gen_cache("50101")
-    print out

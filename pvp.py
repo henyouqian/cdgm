@@ -77,6 +77,10 @@ Z_PVP_BANDS = "Z_PVP_BANDS"
 H_PVP_BANDS = "H_PVP_BANDS"
 S_PVP_FOES = "S_PVP_FOES"
 
+H_PVP_FORMULA = "H_PVP_FORMULA"
+PRICE_RARITY_MUL = "PRICE_RARITY_MUL"
+g_price_rarity_mul = 1.0
+
 class AddTestRecord(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -128,7 +132,7 @@ def calc_pvp_score(card):
             skillRaritySum += int(skill_tbl.get(skillid, "rarity"))
 
     score = card["hp"] + card["atk"] + card["def"] + card["wis"] + card["agi"]
-    score += (price * skillRaritySum)
+    score += (price * skillRaritySum * g_price_rarity_mul)
     return score
 
 
@@ -174,7 +178,7 @@ def calc_player_pvp_score(userid, bands, cards):
         colnum = memnum / 2
         for col in xrange(colnum):
             score1 = score2 = 0
-            card_id = members[col]        
+            card_id = members[col]
             if card_id:
                 score1 = calc_pvp_score(cards[card_id])
             card_id = members[col+colnum]
@@ -190,8 +194,8 @@ def calc_player_pvp_score(userid, bands, cards):
 @adisp.process
 def submit_pvp_band(userid, username, band, callback):
     """
-        "userid":int
-        "username":string
+        "userId":int
+        "userName":string
         "band":[
             {
                 "protoId":int,
@@ -236,6 +240,62 @@ def submit_pvp_band(userid, username, band, callback):
 
 @adisp.async
 @adisp.process
+def submit_pvp_datas(pvp_datas, callback):
+    """
+        pvp_datas:[
+            {
+                "userId":int,
+                "userName":string,
+                "band":[
+                    {
+                        "protoId":int,
+                        "level":int,
+                        "hp":int,
+                        "atk":int,
+                        "def":int,
+                        "wis":int,
+                        "agi":int,
+                        "skill1Id":int,
+                        "skill1Level":int,
+                        "skill2Id":int,
+                        "skill2Level":int,
+                        "skill3Id":int,
+                        "skill3Level":int
+                    },
+                    ...
+                ]
+            },
+            ...
+        ]
+    """
+    try:
+        pipe = util.redis_pipe()
+
+        for pvp_data in pvp_datas:
+            # calc pvp score
+            pvp_score = 0
+            username = pvp_data["userName"]
+            userid = pvp_data["userId"]
+            for card in pvp_data["band"]:
+                if card:
+                    score = calc_pvp_score(card)
+                    pvp_score += score
+
+            # update to redis
+            pipe.zadd(Z_PVP_BANDS, pvp_score, userid)
+            pvp_data = {"userName": username, "band":band, "score": pvp_score}
+            pipe.hset(H_PVP_BANDS, userid, json.dumps(pvp_data))
+
+        yield util.redis_pipe_execute(pipe)
+        callback(None)
+
+    except Exception as e:
+        traceback.print_exc()
+        callback(e)
+
+
+@adisp.async
+@adisp.process
 def get_3_bands(userid, pvpscore, winnum, callback):
     try:
         win_level = int(winnum/3)
@@ -251,6 +311,10 @@ class CreateTestData(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            g_price_rarity_mul = float(self.get_argument("priceraritymul"))
+            yield util.redis().hset(H_PVP_FORMULA, PRICE_RARITY_MUL, g_price_rarity_mul)
+
+            bands = []
             for card_row_key in card_tbl.iter_rowkeys():
                 username = card_tbl.get(card_row_key, "name")
                 proto, price, hp, atk, dfs, wis, agi, maxlv, skillid1= \
@@ -273,7 +337,10 @@ class CreateTestData(tornado.web.RequestHandler):
                     "skill3Level":0
                 }] * 5
                 userid = proto
-                yield submit_pvp_band(userid, username, band)
+
+                bands.append(band)
+
+            yield submit_pvp_bands(userid, username, bands)
 
             # reply
             reply = util.new_reply()
