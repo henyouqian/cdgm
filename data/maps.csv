@@ -1,5 +1,5 @@
 zoneID,rewardeventID,item%,monster%,onlyitem%,onlymonster%,event%,PVP%,wood%,treasure%,chest%,littlegold%,biggold%,woodprobabilityID,treasureprobabilityID,chestprobabilityID,monster1ID,monster2ID,monster3ID,monster4ID,monster5ID,monster6ID,monster7ID,monster8ID,monster9ID,monster10ID,event1ID,event1%,event2ID,event2%,event3ID,event3%,event4ID,event4%,event5ID,event5%,enterzonerdialogueID,completezonedialogueID
-990101,0,0,0.4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,99010101,0
+990101,0,0,0.3,0,0,0,0,0,0,0,0,0,0,0,0,10101,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,99010101,0
 10101,10101,0.2,0.4,0.6,0.6,0,0.08,0.3,0.2,0.1,0.3,0.1,101,201,301,10101,10102,10103,0,0,0,0,0,0,0,1,0.25,1001,0.25,2,0.5,0,0,0,0,1010105,0
 10102,10102,0.2,0.4,0.6,0.6,0,0.08,0.3,0.2,0.1,0.3,0.1,101,201,301,10104,10105,10106,10107,10108,0,0,0,0,0,1,0.25,1001,0.25,2,0.5,0,0,0,0,0,0
 10103,10103,0.2,0.4,0.6,0.6,0,0.08,0.3,0.2,0.1,0.3,0.1,101,201,301,10109,10110,10111,10112,10113,0,0,0,0,0,1,0.25,1001,0.25,2,0.5,0,0,0,0,0,0
