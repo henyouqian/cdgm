@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Admin</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/datetimepicker.css" rel="stylesheet">
+
+    <script src="js/angular.min.js"></script>
+
+    <style type="text/css">
+      input[type="text"],
+      input[type="datetime"] {
+        margin-bottom: 0px;
+      }
+
+      .affixList {
+        top: 0px;
+        width: 100px;
+        margin-top:30px;
+      }
+
+      .page-header {
+        padding-bottom: 0px;
+        margin: 20px 0 20px;
+        border-top: 1px solid #eee;
+        border-bottom: 0px solid #eee;
+      }
+
+    </style>
+  </head>
+
+  <body ng-app>
+    <div class="container" id="top" ng-controller="Controller">
+      <h1>PVP</h1>
+      <!-- <button class="btn" ng-click="toTop()">
+        <i class="icon-arrow-up"></i>top
+      </button> -->
+      
+      <div class="row">
+        <div class="span2">
+          <div class="well affixList" data-spy="affix" data-offset-top="60">
+            <ul class="nav nav-list" id="server-tab" ng-hide="page">
+              <li><a href="#top">顶部</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="span10">
+          <section id="server-rolling">
+            <div class="page-header">
+              <h2>战等公式</h2>
+            </div>
+            <form>
+              (HP+ATK+DEF+WIS+AGI) + price*rarity*
+              <input type="text" style="width:50px;" ng-model="priceRarityMul" pattern="^[0-9]*\.?[0-9]+$">
+              <button class="btn btn-primary" ng-click="createTestData()">重新生成排名表</button>
+            </form>
+          </section>
+
+          <section id="server-exp">
+            <div class="page-header">
+              <h2>全服经验</h2>
+            </div>
+            <form>
+              <span>Multiplier:{{expMultiplier}}</span>
+              <input type="text" style="width:100px;" ng-model="expMultiplierInput" pattern="^[0-9]*\.?[0-9]+$" placeholder="exp multiplier">
+              <button class="btn btn-primary" ng-click="setExpMultiplier()">立即设置</button>
+              <br><br>
+              <table class="table table-striped">
+                <thead>
+                  <th>time</th>
+                  <th>multiplier</th>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="evt in expMultiEvents">
+                    <td>{{evt.time}}</td>
+                    <td>{{evt.multiplier}}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <input size="16" type="text" readonly class="form_datetime" ng-model="expMultiplierTimeInput">
+              <input type="text" style="width:100px;" ng-model="expMultiplierNumInput" pattern="^[0-9]*\.?[0-9]+$" placeholder="multiplier">
+              <button class="btn btn-primary" ng-click="addExpMultiplier()">添加变更点</button>
+            </form>
+          </section>
+
+          <section id="server-item">
+            <div class="page-header">
+              <h2>全服道具</h2>
+            </div>
+            xxbb<br><br>
+            xxbb<br><br>
+            xxbb<br><br>
+            xxbb<br><br>
+            xxbb<br><br>
+            xxbb<br><br>
+          </section>
+
+          <section id="xyz">
+            <div class="page-header">
+              <h2>xyz</h2>
+            </div>
+            xyz<br><br>
+            xyzxyz<br><br>
+            xyzxyz<br><br>
+            xyzxyzxyz<br><br>
+            xyzxyzxyz<br><br>
+            xyzxyzxyz<br><br>
+            xyzxyzxyz<br><br>
+            xyzxyzxyz<br><br>
+            xyzxyzxyz<br><br>
+            xyzxyzxyz<br><br>
+            xyzxyzxyz<br><br>
+            xyzxyzxyz<br><br>
+          </section>
+        </div>
+          </div>
+    </div> <!-- /container -->
+
+    <script src="js/jquery-1.9.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-datetimepicker.min.js"></script>
+    <script src="util.js"></script>
+    <script src="pvp.js"></script>
+
+  </body>
+</html>

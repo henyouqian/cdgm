@@ -451,11 +451,12 @@ class Move(tornado.web.RequestHandler):
                 send_error(self, "no_ap")
                 return
 
-            path = path[1:]
-            if len(path) > ap:
+            # path = path[1:]
+            step_num = len(path) - 1
+            if step_num > ap:
                 path = path[:ap]
 
-            ap -= len(path)
+            ap -= step_num 
 
             # update curr pos
             currpos = cache["currPos"] = path[-1]
@@ -556,7 +557,9 @@ class Move(tornado.web.RequestHandler):
                 cache["catchMons"] = catch_mons
 
                 cache["battlePos"] = currpos
+                print path, "xxxxxxxxxxxx"
                 currpos = cache["currPos"] = path[-2]
+
             elif evtid:
                 del cache["objs"][poskey]
 
