@@ -478,34 +478,34 @@ class GetRanks(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-import tornadoredis
-import tornado.gen
+# import tornadoredis
+# import tornado.gen
 
-class Test(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @tornado.gen.engine
-    def get(self):
-        try:
-            c = tornadoredis.Client()
-            c.connect()
-            r = redis.StrictRedis(host='localhost', port=6379, db=0)
+# class Test(tornado.web.RequestHandler):
+#     @tornado.web.asynchronous
+#     @tornado.gen.engine
+#     def get(self):
+#         try:
+#             c = tornadoredis.Client()
+#             c.connect()
+#             r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
-            t = time.time()
-            r.zrevrange(Z_PVP_BANDS, 0, -1, withscores=True)
-            print time.time() - t
+#             t = time.time()
+#             r.zrevrange(Z_PVP_BANDS, 0, -1, withscores=True)
+#             print time.time() - t
 
-            t = time.time()
-            foo = yield tornado.gen.Task(c.zrevrange, Z_PVP_BANDS, 0, -1, True)
-            print time.time() - t
+#             t = time.time()
+#             foo = yield tornado.gen.Task(c.zrevrange, Z_PVP_BANDS, 0, -1, True)
+#             print time.time() - t
 
 
-            # reply
-            reply = util.new_reply()
-            self.write(json.dumps(reply))
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
+#             # reply
+#             reply = util.new_reply()
+#             self.write(json.dumps(reply))
+#         except:
+#             send_internal_error(self)
+#         finally:
+#             self.finish()
 
 
 handlers = [
@@ -514,5 +514,5 @@ handlers = [
     (r"/whapi/pvp/get3band", Get3Band),
     (r"/whapi/pvp/getsettings", GetSettings),
     (r"/whapi/pvp/getranks", GetRanks),
-    (r"/whapi/pvp/test", Test),
+    # (r"/whapi/pvp/test", Test),
 ]
