@@ -52,7 +52,10 @@ def calc_card_proto_attr(proto_id, level):
         max = float(max)
         return int(min + (max - min)*f)
 
-    f = (growcurr - growmin) / (growmax - growmin)
+    if growmin == growmax:
+        f = 0
+    else:
+        f = (growcurr - growmin) / (growmax - growmin)
     return tuple(imap(lerp, min_attrs, max_attrs, repeat(f)))
 
 def is_war_lord(proto_id):

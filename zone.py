@@ -677,16 +677,12 @@ class BattleResult(tornado.web.RequestHandler):
                 raise Exception("Not in battle")
 
             row = mongrp_tbl.get_row(str(mon_grp_id))
-            cols = ["order%s"%(i+1) for i in xrange(MONSTER_GROUP_MEMBER_MAX)]
-            monsters = []
-            for col in cols:
-                mon = int(mongrp_tbl.get_value(row, col))
-                if mon:
-                    monsters.append(mon)
-            
+            cols = ["order%slevel"%(i+1) for i in xrange(MONSTER_GROUP_MEMBER_MAX)]
             exp = 0
-            for mon in monsters:
-                exp += int(card_tbl.get(mon, "battleExp"))
+            for col in cols:
+                level = int(mongrp_tbl.get_value(row, col))
+                if level:
+                    exp += level
 
             # get band card entity
             sql = """SELECT id, level, exp, protoId, hp, atk, def, wis, agi, hpCrystal, hpExtra FROM cardEntities

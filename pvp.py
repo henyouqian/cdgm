@@ -11,6 +11,8 @@ import random
 import datetime
 import traceback
 
+import redis
+
 """ 
     # pvp score rank, you can find band data from H_PVP_BANDS with user_id
     Redis::SortedSet:
@@ -132,6 +134,7 @@ def calc_pvp_score(card):
             skillRaritySum += int(skill_tbl.get(skillid, "rarity"))
 
     score = card["hp"] + card["atk"] + card["def"] + card["wis"] + card["agi"]
+    global g_price_rarity_mul
     score += (price * skillRaritySum * g_price_rarity_mul)
     return score
 
@@ -240,9 +243,9 @@ def submit_pvp_band(userid, username, band, callback):
 
 @adisp.async
 @adisp.process
-def submit_pvp_datas(pvp_datas, callback):
+def submit_pvp_bands(pvp_bands, callback):
     """
-        pvp_datas:[
+        pvp_bands:[
             {
                 "userId":int,
                 "userName":string,
@@ -271,20 +274,20 @@ def submit_pvp_datas(pvp_datas, callback):
     try:
         pipe = util.redis_pipe()
 
-        for pvp_data in pvp_datas:
+        for pvp_band in pvp_bands:
             # calc pvp score
             pvp_score = 0
-            username = pvp_data["userName"]
-            userid = pvp_data["userId"]
-            for card in pvp_data["band"]:
+            username = pvp_band["userName"]
+            userid = pvp_band["userId"]
+            for card in pvp_band["band"]:
                 if card:
                     score = calc_pvp_score(card)
                     pvp_score += score
+            pvp_band["score"] = pvp_score
 
             # update to redis
             pipe.zadd(Z_PVP_BANDS, pvp_score, userid)
-            pvp_data = {"userName": username, "band":band, "score": pvp_score}
-            pipe.hset(H_PVP_BANDS, userid, json.dumps(pvp_data))
+            pipe.hset(H_PVP_BANDS, userid, json.dumps(pvp_band))
 
         yield util.redis_pipe_execute(pipe)
         callback(None)
@@ -311,6 +314,8 @@ class CreateTestData(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # param
+            global g_price_rarity_mul
             g_price_rarity_mul = float(self.get_argument("priceraritymul"))
             yield util.redis().hset(H_PVP_FORMULA, PRICE_RARITY_MUL, g_price_rarity_mul)
 
@@ -337,10 +342,15 @@ class CreateTestData(tornado.web.RequestHandler):
                     "skill3Level":0
                 }] * 5
                 userid = proto
+                pvp_band = {
+                    "userId": proto,
+                    "userName": username,
+                    "band": band
+                }
 
-                bands.append(band)
+                bands.append(pvp_band)
 
-            yield submit_pvp_bands(userid, username, bands)
+            yield submit_pvp_bands(bands)
 
             # reply
             reply = util.new_reply()
@@ -350,6 +360,24 @@ class CreateTestData(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
+
+
+class GetSettings(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            price_rarity_mul = yield util.redis().hget(H_PVP_FORMULA, PRICE_RARITY_MUL)
+
+            # reply
+            reply = util.new_reply()
+            reply["priceRarityMul"] = price_rarity_mul
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 
 class Get3Band(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -410,9 +438,81 @@ class Get3Band(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+import time
+class GetRanks(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            t = time.time()
+
+            r = redis.StrictRedis(host='localhost', port=6379, db=0)
+            r.zrevrange(Z_PVP_BANDS, 0, -1, withscores=True)
+            print time.time() - t
+
+            t = time.time()
+            ranks = yield util.redis().zrevrange(Z_PVP_BANDS, 0, -1, True)
+            dt =  time.time() - t
+            ranks = [{"id":rank[0], "score": rank[1]} for rank in ranks]
+
+
+            for idx, rank in enumerate(ranks):
+                name, maxhp, maxdef, maxatk, maxwis, maxagi = \
+                    card_tbl.gets(rank["id"], "name", "maxhp", "maxatk", "maxdef", "maxwis", "maxagi")
+                rank["index"] = idx
+                rank["name"] = name
+                rank["maxhp"] = maxhp
+                rank["maxdef"] = maxdef
+                rank["maxatk"] = maxatk
+                rank["maxwis"] = maxwis
+                rank["maxagi"] = maxagi
+
+
+            # reply
+            reply = util.new_reply()
+            reply["time"] = dt
+            # reply["ranks"] = ranks
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+import tornadoredis
+import tornado.gen
+
+class Test(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @tornado.gen.engine
+    def get(self):
+        try:
+            c = tornadoredis.Client()
+            c.connect()
+            r = redis.StrictRedis(host='localhost', port=6379, db=0)
+
+            t = time.time()
+            r.zrevrange(Z_PVP_BANDS, 0, -1, withscores=True)
+            print time.time() - t
+
+            t = time.time()
+            foo = yield tornado.gen.Task(c.zrevrange, Z_PVP_BANDS, 0, -1, True)
+            print time.time() - t
+
+
+            # reply
+            reply = util.new_reply()
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 
 handlers = [
     (r"/whapi/pvp/addtestrecord", AddTestRecord),
     (r"/whapi/pvp/createtestdata", CreateTestData),
     (r"/whapi/pvp/get3band", Get3Band),
+    (r"/whapi/pvp/getsettings", GetSettings),
+    (r"/whapi/pvp/getranks", GetRanks),
+    (r"/whapi/pvp/test", Test),
 ]

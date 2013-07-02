@@ -68,18 +68,106 @@
 	"buffers":
 	[
 		{
-			"file": "cheat.py",
+			"file": "zone.py",
 			"settings":
 			{
-				"buffer_size": 3042,
+				"buffer_size": 41161,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "zone.py",
+			"file": "util.py",
 			"settings":
 			{
-				"buffer_size": 30719,
+				"buffer_size": 8681,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "pvp_.py",
+			"settings":
+			{
+				"buffer_size": 8281,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "player.py",
+			"settings":
+			{
+				"buffer_size": 19060,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "auth.py",
+			"settings":
+			{
+				"buffer_size": 7494,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "error.py",
+			"settings":
+			{
+				"buffer_size": 1497,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "adisp.py",
+			"settings":
+			{
+				"buffer_size": 5042,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gamedata.py",
+			"settings":
+			{
+				"buffer_size": 692,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "card.py",
+			"settings":
+			{
+				"buffer_size": 27916,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "session.py",
+			"settings":
+			{
+				"buffer_size": 1780,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "pvp.py",
+			"settings":
+			{
+				"buffer_size": 13668,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "www/pvp.html",
+			"settings":
+			{
+				"buffer_size": 3383,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "www/pvp.js",
+			"settings":
+			{
+				"buffer_size": 1025,
 				"line_ending": "Unix"
 			}
 		}
@@ -180,23 +268,36 @@
 	},
 	"file_history":
 	[
+		"/home/liwei/projects/cdgm/www/admin.html",
+		"/home/liwei/projects/cdgm/www/zone.js",
+		"/home/liwei/projects/cdgm/admin.py",
+		"/home/liwei/projects/cdgm/www/admin.js",
+		"/home/liwei/projects/cdgm/auth.py",
+		"/home/liwei/projects/cdgm/wh.py",
+		"/home/liwei/projects/cdgm/error.py",
+		"/home/liwei/projects/cdgm/adb.py",
+		"/home/liwei/projects/cdgm/session.py",
+		"/home/liwei/projects/cdgm/www/login.js",
+		"/home/liwei/projects/cdgm/gamedata.py",
+		"/home/liwei/projects/cdgm/card.py",
+		"/home/liwei/projects/cdgm/config.py",
+		"/home/liwei/projects/asiahero/ver 0.3/map/Zones/10101.json",
+		"/home/liwei/projects/cdgm/install.py",
+		"/home/liwei/projects/cdgm/archive/zone.py",
+		"/home/liwei/projects/cdgm/archive/adb.py",
+		"/home/liwei/projects/cdgm/archive/util.py",
+		"/home/liwei/projects/cdgm/archive/experiment.py",
+		"/home/liwei/projects/cdgm/cheat.py",
 		"/home/liwei/tmp/NdComPlatformSDK_UI_iOS_20130530_3.2.5/readme.txt",
 		"/home/liwei/projects/temp/bjoern/env/lib/python2.7/site-packages/bottle.py",
 		"/home/liwei/projects/temp/bjoern/bottle.py",
-		"/home/liwei/projects/cdgm/archive/zone.py",
-		"/home/liwei/projects/cdgm/config.py",
 		"/home/liwei/projects/cdgm/util.py",
-		"/home/liwei/projects/cdgm/www/admin.html",
 		"/home/liwei/projects/cdgm/config_local.py",
 		"/home/liwei/projects/cdgm/www/index.html",
 		"/home/liwei/projects/cdgm/experiment.py",
-		"/home/liwei/projects/cdgm/gamedata.py",
-		"/home/liwei/projects/cdgm/adb.py",
 		"/home/liwei/projects/cdgm/www/main.js",
 		"/home/liwei/tmp/a.py",
 		"/home/liwei/projects/cdgm/mgr.py",
-		"/home/liwei/projects/cdgm/wh.py",
-		"/home/liwei/projects/cdgm/session.py",
 		"/home/liwei/projects/cdgm/adisp.py",
 		"/home/liwei/projects/cdgm/www/card.html",
 		"/home/liwei/projects/cdgm/www/create_player.html",
@@ -206,7 +307,6 @@
 		"/home/liwei/projects/cdgm/www/register.html",
 		"/home/liwei/projects/cdgm/www/wagon.html",
 		"/home/liwei/projects/cdgm/www/create_player.js",
-		"/home/liwei/projects/cdgm/www/zone.js",
 		"/home/liwei/projects/cdgm/player.py",
 		"/home/liwei/projects/cdgm/install/ganglia/gmetad.py",
 		"/home/liwei/tmp/1362407031.jpg",
@@ -222,9 +322,6 @@
 		"/home/liwei/projects/cdgm/tools/fab/conf.py",
 		"/home/liwei/projects/cdgm/whd.py",
 		"/home/liwei/projects/cdgm/config_aliyun.py",
-		"/home/liwei/projects/cdgm/auth.py",
-		"/home/liwei/projects/cdgm/card.py",
-		"/home/liwei/projects/cdgm/error.py",
 		"/home/liwei/projects/cdgm/tools/fab/deploy.py",
 		"/home/liwei/projects/cdgm/tools/fab/fabfile.py",
 		"/home/liwei/projects/cdgm/tools/fab/conf.py~",
@@ -242,10 +339,8 @@
 		"/home/liwei/projects/cdgm/test/player_test.py",
 		"/home/liwei/projects/cdgm/wagon.py",
 		"/home/liwei/projects/cdgm/zone.py",
-		"/home/liwei/projects/cdgm/install.py",
 		"/home/liwei/projects/cdgm/tools/fab.py",
 		"/home/liwei/projects/cdgm/tools/install.py",
-		"/home/liwei/projects/cdgm/cheat.py",
 		"/home/liwei/projects/cdgm/www/wagon.js",
 		"/home/liwei/projects/cdgm/doc/ServerApi.md",
 		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/redis-2.7.2-py2.7.egg-info/PKG-INFO",
@@ -282,7 +377,6 @@
 		"/home/liwei/projects/test/udps.py",
 		"/home/liwei/projects/test/udpc.py",
 		"/home/liwei/projects/cdgm/lab/db_lab.py",
-		"/home/liwei/projects/cdgm/www/login.js",
 		"/home/liwei/projects/cdgm/www/register.js",
 		"/home/liwei/projects/cdgm/data/cards.csv",
 		"/home/liwei/projects/cdgm/data/cardGrowthMappings.csv",
@@ -301,17 +395,11 @@
 		"/home/liwei/projects/cdgm/tools/zone_trans/zone.py",
 		"/home/liwei/projects/cdgm/tools/zone_trans/zonetrans.py",
 		"/home/liwei/projects/cdgm/map.py",
-		"/home/liwei/projects/test/bj.py",
-		"/home/liwei/projects/asiahero/v1.0/map/Zones/50101.json",
-		"/home/liwei/projects/cdgm/tools/zone_trans/proto.json",
-		"/home/liwei/projects/cdgm/tools/zone_trans/t.py",
-		"/home/liwei/projects/cdgm/tools/zone_trans/output/map.json",
-		"/home/liwei/projects/test/s.py",
-		"/home/liwei/projects/test/bjoern.py"
+		"/home/liwei/projects/test/bj.py"
 	],
 	"find":
 	{
-		"height": 46.0
+		"height": 49.0
 	},
 	"find_in_files":
 	{
@@ -326,134 +414,134 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"GetPvpSettings",
+			"g_price_rarity_mul",
+			"submit_pvp_bands",
+			"submit_pvp_datas",
+			"pvp_data",
+			"print",
+			"gen_cache",
+			"submit_pvp_datas",
+			"xxxxx",
+			"userName",
+			"submit_pvp_band",
+			"redis",
+			"calc_pvp_score",
+			"submit_pvp_band",
+			"price_rarity_mul",
+			"zone_tbl",
+			"top",
+			"path",
+			"submit_pvp_band",
+			"foo",
+			"calc_player_pvp_score",
+			"skillid",
+			"skill",
+			"wis",
+			"\"wis\":int,",
+			"wis",
+			"calc_player_pvp_score",
+			"json.loads",
+			"score",
+			"print",
+			"throw",
+			"Exception",
+			"+=",
+			"skillid1",
+			"submit_pvp_band",
+			"upload_pvp_band",
+			"monsterId",
+			"trans_cache_to_client",
+			"map_tbl",
+			"zone_id",
+			"enter",
+			"cache[\"events\"]",
+			"currpos",
+			"currPos",
+			"move",
+			"SetBand",
+			"monGrpId",
+			"del cache",
+			"currpos",
+			"create_cards",
+			"card",
+			"item_updated",
+			"MONEY_BAG_SMALL_ID",
+			"events",
+			"move",
+			"trans_cache_to_client",
+			"move",
+			"CsvTblMulKey",
+			"mapevent1ID",
+			"13",
+			"15",
+			"14",
+			"13",
+			"gen_cache",
+			"move",
+			"redis_pipe",
+			"pvpStrength",
+			"import logging",
+			"logging",
+			"battle",
+			"catchMons",
+			"ap",
+			"battleres",
+			"IN",
+			"execute",
+			"runQueryMany",
+			"fmt_tbl",
+			"formation",
+			"useitem",
+			"close",
+			"bands",
+			"fmt_tbl",
+			"expMultiplier",
+			"开启地图",
+			"table",
+			"in",
+			"for",
+			"expMultiplier",
+			"alert(err",
+			"set",
+			"redis",
+			"IN",
+			"400",
+			"runQueryMany",
+			"IN",
+			"print",
+			"IN",
+			"IN ",
+			"in ",
+			"runOperationMany",
+			"runQueryMany",
+			"runOperationMany",
+			"beginTransaction",
+			"setItemNum",
+			"window",
+			"location",
+			"new_last_zone_id",
+			"getSmallMoneyNum",
+			"getBigMoneyNum",
+			"money_add",
+			"move",
+			"name",
+			"INSERT INTO",
+			"uin",
+			"adisp.async",
+			"warlord_level_tbl",
+			"is_war_lord",
+			"warlord_level_tbl",
+			"warlord",
+			"calc_card_proto_attr",
+			"max_card_num",
+			"create_cards",
 			"move",
 			"monkey",
 			"move",
 			"last_ap_time",
 			"util.",
-			"formations.csv",
-			"playerInfo",
-			"members",
-			"gen_cache",
-			"Enter",
-			"ng-pattern=\"/[0-9]*/\"",
-			"card_tbl",
-			"cards",
-			"WHERE userid",
-			"update",
-			"player-set-form",
-			"ng",
-			"warlord_level_tbl",
-			">>> ",
-			"post",
-			"get_zone_data",
-			"gen_cache",
-			"result",
-			"debug",
-			"enter",
-			"max_card_num",
-			"create_cards",
-			"lastZoneid",
-			"options.",
-			"options",
-			"bind",
-			"create_cards",
-			"pact_cost_tbl",
-			"pactcost",
-			"create_cards",
-			"reply = {\"error\":no_error}",
-			"reply = ",
-			"monstercards.csv",
-			"monGrpId",
-			"getpact",
-			"trans_cache_to_client",
-			"Get(",
-			"Get",
-			"goalPos",
-			"startPos",
-			"startpos",
-			"currPos",
-			"setband",
-			"json.loads",
-			"move",
-			"complete_upload",
-			"multi_upload_file",
-			"GetInitUploadIdXml",
-			"multi_upload_file",
-			"desc_root",
-			"conf",
-			"proj_root",
-			"_daemonize",
-			"Operation",
-			"start",
-			"server",
-			"logging",
-			"ioloop",
-			"import simplejson as json",
-			"import simplejson",
-			"simplejson",
-			"mongrp_tbl",
-			"make_redis_pvp_list_key",
-			"move",
-			"xp",
-			"nextAddXpTime",
-			"nextAddApTime",
-			"xp",
-			"Ap",
-			"ap",
-			"import simplejson",
-			"simplejson",
-			"psycopg2",
-			"cache error",
-			"time",
-			"eval",
-			"redis",
-			"util.redis()",
-			"redis()",
-			"async",
-			"set",
-			"card.",
-			"card_tbl",
-			"wagon_item_time",
-			"parse_datetime",
-			"sell",
-			"transToDict",
-			"Wagon",
-			"getCard",
-			"getItem",
-			"addCard",
-			"card_num",
-			"redis()",
-			"calc_pvp_level",
-			"member_attrs",
-			"field",
-			"feild",
-			"create_cards",
-			"level",
-			"addCard",
-			"import g",
-			"CsvTbl",
-			"upper_bound",
-			"lower_bound",
-			"CsvTblMulKey",
-			"CsvTbl",
-			"g.whdb",
-			"g.authdb",
-			"threading",
-			"logging",
-			"os",
-			"redistest",
-			"time",
-			"make_redis_pvp_list_key",
-			"g.redis",
-			"KeepAliveThread",
-			"redis_pool",
-			"g.",
-			".",
-			"pvp_win_streak",
-			"dxp",
-			"AP_ADD_DURATION",
-			"last_xp_time"
+			"formations.csv"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -490,23 +578,135 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 11,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "cheat.py",
+					"file": "zone.py",
 					"settings":
 					{
-						"buffer_size": 3042,
+						"buffer_size": 41161,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								455,
-								455
+								10138,
+								10138
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5504.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "util.py",
+					"settings":
+					{
+						"buffer_size": 8681,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1304,
+								1304
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 570.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "pvp_.py",
+					"settings":
+					{
+						"buffer_size": 8281,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7325,
+								7325
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3457.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "player.py",
+					"settings":
+					{
+						"buffer_size": 19060,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1080,
+								1080
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 171.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "auth.py",
+					"settings":
+					{
+						"buffer_size": 7494,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
 							]
 						],
 						"settings":
@@ -522,19 +722,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "zone.py",
+					"buffer": 5,
+					"file": "error.py",
 					"settings":
 					{
-						"buffer_size": 30719,
+						"buffer_size": 1497,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								14905,
-								14905
+								1042,
+								1042
 							]
 						],
 						"settings":
@@ -544,7 +744,200 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 8230.0,
+						"translation.y": 399.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "adisp.py",
+					"settings":
+					{
+						"buffer_size": 5042,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3887,
+								3887
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1539.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "gamedata.py",
+					"settings":
+					{
+						"buffer_size": 692,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								692,
+								692
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "card.py",
+					"settings":
+					{
+						"buffer_size": 27916,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								206,
+								206
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "session.py",
+					"settings":
+					{
+						"buffer_size": 1780,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								813,
+								813
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "pvp.py",
+					"settings":
+					{
+						"buffer_size": 13668,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13191,
+								13191
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 8113.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "www/pvp.html",
+					"settings":
+					{
+						"buffer_size": 3383,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2164,
+								2164
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 827.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "www/pvp.js",
+					"settings":
+					{
+						"buffer_size": 1025,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								275,
+								275
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -594,28 +987,60 @@
 		"selected_items":
 		[
 			[
-				"zon",
-				"zone.py"
+				"admin",
+				"admin.py"
 			],
 			[
-				"uti",
+				"card",
+				"card.py"
+			],
+			[
+				"u",
 				"util.py"
+			],
+			[
+				"session",
+				"session.py"
+			],
+			[
+				"pvp",
+				"pvp.py"
+			],
+			[
+				"util",
+				"util.py"
+			],
+			[
+				"wh.py",
+				"wh.py"
+			],
+			[
+				"sess",
+				"session.py"
 			],
 			[
 				"player",
 				"player.py"
 			],
 			[
-				"admin",
-				"admin.py"
+				"play",
+				"player.py"
+			],
+			[
+				"ply",
+				"player.py"
+			],
+			[
+				"uti",
+				"util.py"
+			],
+			[
+				"zon",
+				"zone.py"
 			],
 			[
 				"player.py",
 				"player.py"
-			],
-			[
-				"pvp",
-				"pvp.py"
 			]
 		],
 		"width": 0.0

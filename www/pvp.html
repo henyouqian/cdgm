@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Admin</title>
+    <title>PVP</title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/datetimepicker.css" rel="stylesheet">
 
@@ -56,64 +56,48 @@
               <input type="text" style="width:50px;" ng-model="priceRarityMul" pattern="^[0-9]*\.?[0-9]+$">
               <button class="btn btn-primary" ng-click="createTestData()">重新生成排名表</button>
             </form>
+            
+
+            <div class="accordion-group">
+              <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+                  pvp ranks
+                </a>
+              </div>
+              <div id="collapseTwo" class="accordion-body collapse">
+                <div class="accordion-inner">
+                  <table class="table table-striped">
+                    <thead>
+                      <th>rank</th>
+                      <th>id</th>
+                      <th>name</th>
+                      <th>score</th>
+                      <th>maxhp</th>
+                      <th>maxatk</th>
+                      <th>maxdef</th>
+                      <th>maxwis</th>
+                      <th>maxagi</th>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="rank in ranks">
+                        <td>{{rank.index}}</td>
+                        <td>{{rank.id}}</td>
+                        <td>{{rank.name}}</td>
+                        <td>{{rank.score}}</td>
+                        <td>{{rank.maxhp}}</td>
+                        <td>{{rank.maxatk}}</td>
+                        <td>{{rank.maxdef}}</td>
+                        <td>{{rank.maxwis}}</td>
+                        <td>{{rank.maxagi}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            
           </section>
 
-          <section id="server-exp">
-            <div class="page-header">
-              <h2>全服经验</h2>
-            </div>
-            <form>
-              <span>Multiplier:{{expMultiplier}}</span>
-              <input type="text" style="width:100px;" ng-model="expMultiplierInput" pattern="^[0-9]*\.?[0-9]+$" placeholder="exp multiplier">
-              <button class="btn btn-primary" ng-click="setExpMultiplier()">立即设置</button>
-              <br><br>
-              <table class="table table-striped">
-                <thead>
-                  <th>time</th>
-                  <th>multiplier</th>
-                </thead>
-                <tbody>
-                  <tr ng-repeat="evt in expMultiEvents">
-                    <td>{{evt.time}}</td>
-                    <td>{{evt.multiplier}}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <input size="16" type="text" readonly class="form_datetime" ng-model="expMultiplierTimeInput">
-              <input type="text" style="width:100px;" ng-model="expMultiplierNumInput" pattern="^[0-9]*\.?[0-9]+$" placeholder="multiplier">
-              <button class="btn btn-primary" ng-click="addExpMultiplier()">添加变更点</button>
-            </form>
-          </section>
-
-          <section id="server-item">
-            <div class="page-header">
-              <h2>全服道具</h2>
-            </div>
-            xxbb<br><br>
-            xxbb<br><br>
-            xxbb<br><br>
-            xxbb<br><br>
-            xxbb<br><br>
-            xxbb<br><br>
-          </section>
-
-          <section id="xyz">
-            <div class="page-header">
-              <h2>xyz</h2>
-            </div>
-            xyz<br><br>
-            xyzxyz<br><br>
-            xyzxyz<br><br>
-            xyzxyzxyz<br><br>
-            xyzxyzxyz<br><br>
-            xyzxyzxyz<br><br>
-            xyzxyzxyz<br><br>
-            xyzxyzxyz<br><br>
-            xyzxyzxyz<br><br>
-            xyzxyzxyz<br><br>
-            xyzxyzxyz<br><br>
-            xyzxyzxyz<br><br>
-          </section>
         </div>
           </div>
     </div> <!-- /container -->
