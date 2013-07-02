@@ -14,6 +14,8 @@ from adisp import async, process
 from datetime import datetime
 from brukva.exceptions import RequestError, ConnectionError, ResponseError, InvalidResponse
 
+import time
+
 log = logging.getLogger('brukva.client')
 
 class ExecutionContext(object):
@@ -191,6 +193,7 @@ class Connection(object):
             raise ConnectionError('Tried to write to non-existent connection')
 
     def read(self, length, callback):
+        t = time.time()
         try:
             if not self._stream:
                 self.disconnect()
@@ -198,8 +201,10 @@ class Connection(object):
             self._stream.read_bytes(length, callback)
         except IOError:
             self.on_disconnect()
+        print time.time() - t, "read"
 
     def readline(self, callback):
+        t = time.time()
         try:
             if not self._stream:
                 self.disconnect()
@@ -207,6 +212,7 @@ class Connection(object):
             self._stream.read_until('\r\n', callback)
         except IOError:
             self.on_disconnect()
+        print time.time() - t, "readline"
 
     def try_to_perform_read(self):
         if not self.in_progress and self.read_queue:
@@ -493,7 +499,9 @@ class Client(object):
         with execution_context(callback) as ctx:
             tokens = []
             while len(tokens) < length:
+                t = time.time()
                 data = yield async(self.connection.readline)()
+                print time.time() - t, "yield async(self.connection.readline)()"
                 if not data:
                     raise ResponseError(
                         'Not enough data in response to %s, accumulated tokens: %s'%
@@ -508,7 +516,9 @@ class Client(object):
     @process
     def consume_bulk(self, length, callback):
         with execution_context(callback) as ctx:
+            t = time.time()
             data = yield async(self.connection.read)(length)
+            print time.time() - t, "yield async(self.connection.read)(length)"
             if isinstance(data, Exception):
                 raise data
             if not data:
