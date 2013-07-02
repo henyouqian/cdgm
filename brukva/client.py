@@ -14,8 +14,6 @@ from adisp import async, process
 from datetime import datetime
 from brukva.exceptions import RequestError, ConnectionError, ResponseError, InvalidResponse
 
-import time
-
 log = logging.getLogger('brukva.client')
 
 class ExecutionContext(object):
@@ -436,9 +434,7 @@ class Client(object):
                 return
 
             try:
-                t = time.time()
                 self.connection.write(self.format(cmd, *args, **kwargs))
-                print time.time() - t, "aaaaaaaa"
             except Exception, e:
                 self.connection.disconnect()
                 raise e
@@ -447,24 +443,15 @@ class Client(object):
                 self._waiting_callbacks[cmd].append(callbacks)
                 return
 
-            t = time.time()
             yield self.connection.queue_wait()
-            print time.time() - t, "bbbbbbbb"
-
-            t = time.time()
             data = yield async(self.connection.readline)()
-            print time.time() - t, "ccccccccc"
             if not data:
                 result = None
                 self.connection.read_done()
                 raise Exception('TODO: [no data from connection->readline')
             else:
-                t = time.time()
                 response = yield self.process_data(data, cmd_line)
-                print time.time() - t, "ddddddddddddd"
-                t = time.time()
                 result = self.format_reply(cmd_line, response)
-                print time.time() - t, "eeeeeeeeeeee"
 
                 self.connection.read_done()
             ctx.ret_call(result)
@@ -485,9 +472,7 @@ class Client(object):
                 head, tail = data[0], data[1:]
 
                 if head == '*':
-                    print int(tail), '4444444'
                     response = yield self.consume_multibulk(int(tail), cmd_line)
-                    print "consume_multibulk"
                 elif head == '$':
                     response = yield self.consume_bulk(int(tail)+2)
                 elif head == '+':
@@ -506,12 +491,9 @@ class Client(object):
     @process
     def consume_multibulk(self, length, cmd_line, callback):
         with execution_context(callback) as ctx:
-            print "aaaaaa"
             tokens = []
             while len(tokens) < length:
-                t = time.time()
                 data = yield async(self.connection.readline)()
-                print time.time() - t, "async_readline"
                 if not data:
                     raise ResponseError(
                         'Not enough data in response to %s, accumulated tokens: %s'%
@@ -526,10 +508,7 @@ class Client(object):
     @process
     def consume_bulk(self, length, callback):
         with execution_context(callback) as ctx:
-            t = time.time()
             data = yield async(self.connection.read)(length)
-            print time.time() - t, "read length"
-
             if isinstance(data, Exception):
                 raise data
             if not data:
