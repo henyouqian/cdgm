@@ -686,16 +686,18 @@ class BattleResult(tornado.web.RequestHandler):
                     exp += level
 
             # get band card entity
+            is_warlord_appended = False
             sql = """SELECT id, level, exp, protoId, hp, atk, def, wis, agi, hpCrystal, hpExtra FROM cardEntities
-                        WHERE ownerId=%s AND id in {}"""
+                        WHERE ownerId=%s AND id in ({})"""
             inmembers_alive = [m["id"] for m in inmembers if m and m["hp"] != 0]
             live_num = len(inmembers_alive)
-            if live_num == 1:
-                sql = sql.format("(%s)"% inmembers_alive[0])
-            elif live_num == 0:
+            if live_num == 0:
                 raise Exception("All dead")
             else:
-                sql = sql.format(str(tuple(inmembers_alive)))
+                if warlord not in inmembers_alive:
+                    inmembers_alive.append(warlord) # append warlord
+                    is_warlord_appended = True
+                sql = sql.format(",".join(map(str, inmembers_alive)))
             rows = yield util.whdb.runQuery(
                 sql
                 ,(userid, )
@@ -704,8 +706,19 @@ class BattleResult(tornado.web.RequestHandler):
                 ,"attrs":[row[4], row[5], row[6], row[7], row[8]]
                 ,"hpCrystal":row[9], "hpExtra":row[10]} for row in rows]
 
+            if is_warlord_appended:
+                warlord_card = cards[-1]
+                cards.pop()
+            else:
+                for card in cards:
+                    if warlord == card["id"]:
+                        warlord_card = card
+
             # levelup
             exp_per_card = int(exp / live_num)
+            if warlord_card["level"] < 20:
+                exp_per_card *= 2
+
             levelups = []
             for card in cards:
                 lvtbl = warlord_level_tbl if card["id"] == warlord else card_level_tbl
