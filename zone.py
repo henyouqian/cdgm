@@ -214,6 +214,12 @@ def trans_cache_to_client(cache):
             logging.error("event parse error: %s", traceback.format_exc())
 
     out["events"] = outevents
+
+    # dialogue
+    enter_diag, complete_diag = map(int, map_tbl.gets(cache["zoneId"], "enterzonerdialogueID", "completezonedialogueID"))
+    out["enterDialogue"] = enter_diag
+    out["completeDialogue"] = complete_diag
+
     return out
 
 class Enter(tornado.web.RequestHandler):
@@ -294,14 +300,9 @@ class Enter(tornado.web.RequestHandler):
                 ,(cachejs, zoneid, bandidx, session["userid"])
             )
 
-            # dialogue
-            enter_diag, complete_diag = map(int, map_tbl.gets(zoneid, "enterzonerdialogueID", "completezonedialogueID"))
-
             # response
             clientCache = trans_cache_to_client(cache)
             clientCache["error"] = no_error
-            clientCache["enterDialogue"] = enter_diag
-            clientCache["completeDialogue"] = complete_diag
             reply = json.dumps(clientCache)
             self.write(reply)
         except:
