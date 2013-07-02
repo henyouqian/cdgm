@@ -439,6 +439,7 @@ class Get3Band(tornado.web.RequestHandler):
             self.finish()
 
 import time
+import profiler
 class GetRanks(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -448,10 +449,10 @@ class GetRanks(tornado.web.RequestHandler):
 
             r = redis.StrictRedis(host='localhost', port=6379, db=0)
             r.zrevrange(Z_PVP_BANDS, 0, -1, withscores=True)
-            print time.time() - t
+            # print time.time() - t
 
             t = time.time()
-            ranks = yield util.redis().zrevrange(Z_PVP_BANDS, 0, 1, True)
+            ranks = yield util.redis().zrevrange(Z_PVP_BANDS, 0, -1, True)
             dt =  time.time() - t
             ranks = [{"id":rank[0], "score": rank[1]} for rank in ranks]
 
@@ -477,6 +478,7 @@ class GetRanks(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
+            profiler.print_all()
 
 # import tornadoredis
 # import tornado.gen
