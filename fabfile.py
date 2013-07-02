@@ -10,7 +10,7 @@ env.password = 'Nmmgb808313'
 root_dir = "/home/wh/cdgm/"
 
 def a():
-    put("zone.py", root_dir)
+    put("data/events.csv", root_dir+"data")
 
 def do_script(filename):
     put(filename, ".")
