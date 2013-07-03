@@ -125,7 +125,7 @@ class GetInfo(tornado.web.RequestHandler):
             fields = fields_str.translate(None, "\n ").split(",")
             try:
                 rows = yield util.whdb.runQuery(
-                    """SELECT {} FROM cardEntities WHERE ownerId=%s""".format(fields_str)
+                    """SELECT {} FROM cardEntities WHERE ownerId=%s and inPackage=1""".format(fields_str)
                     ,(userid, )
                 )
                 cards = [dict(zip(fields, row)) for row in rows]
