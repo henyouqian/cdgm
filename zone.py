@@ -3,7 +3,7 @@ from session import *
 from gamedata import BAND_NUM, AP_ADD_DURATION, \
     XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID
 import util
-from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
+from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr, create_cards
 from player import fmt_tbl
 
 import tornado.web
