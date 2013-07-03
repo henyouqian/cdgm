@@ -14,8 +14,6 @@ from adisp import async, process
 from datetime import datetime
 from brukva.exceptions import RequestError, ConnectionError, ResponseError, InvalidResponse
 
-import profiler
-
 log = logging.getLogger('brukva.client')
 
 class ExecutionContext(object):
@@ -474,13 +472,9 @@ class Client(object):
                 head, tail = data[0], data[1:]
 
                 if head == '*':
-                    profiler.begin("yield consume_multibulk")
                     response = yield self.consume_multibulk(int(tail), cmd_line)
-                    profiler.end("yield consume_multibulk")
                 elif head == '$':
-                    # profiler.begin("yield consume_bulk")
                     response = yield self.consume_bulk(int(tail)+2)
-                    # profiler.end("yield consume_bulk")
                 elif head == '+':
                     response = tail
                 elif head == ':':
@@ -499,9 +493,7 @@ class Client(object):
         with execution_context(callback) as ctx:
             tokens = []
             while len(tokens) < length:
-                # profiler.begin("yield readline")
                 data = yield async(self.connection.readline)()
-                # profiler.end("yield readline")
                 if not data:
                     raise ResponseError(
                         'Not enough data in response to %s, accumulated tokens: %s'%
@@ -516,9 +508,7 @@ class Client(object):
     @process
     def consume_bulk(self, length, callback):
         with execution_context(callback) as ctx:
-            # profiler.begin("yield read")
             data = yield async(self.connection.read)(length)
-            # profiler.end("yield read")
             if isinstance(data, Exception):
                 raise data
             if not data:

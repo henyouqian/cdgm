@@ -885,6 +885,7 @@ class CatchMonster(tornado.web.RequestHandler):
             row = rows[0]
             cache = json.loads(row[0])
             items = json.loads(row[1])
+            items = {int(k):v for k, v in items.iterItems()}
             max_card_num = row[2]
 
             band = cache["band"]
@@ -895,18 +896,21 @@ class CatchMonster(tornado.web.RequestHandler):
             catch_item = input["catchItem"]
 
             # catch
+            ADV_POWDER = 5
+            POWDER = 6
             catched_mons = []
-            if catch_item in [5, 6]:
-                item_num = items.get(str(catch_item), 0)
+            if catch_item in [ADV_POWDER, POWDER]:
+                item_num = items.get(catch_item, 0)
                 if item_num == 0:
                     raise Exception("not enough item")
+                items[catch_item] -= 1
                 catch_mons = cache.get("catchMons")
                 if catch_mons:
+                    probs = {1:0.5, 2:0.3, 3:0.2, 4:0.1}
                     for mon in catch_mons:
                         rarity = mon_card_tbl.get(mon, "rarity")
-                        probs = {1:0.5, 2:0.3, 3:0.2, 4:0.1}
                         prob = probs.get(rarity, 0)
-                        if random() < prob:
+                        if random() < prob or catch_item == ADV_POWDER:
                             catched_mons.append(mon)
 
                     if catched_mons:
@@ -917,14 +921,16 @@ class CatchMonster(tornado.web.RequestHandler):
 
             ## update band infos in zoneCache
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET zoneCache=%s
+                """UPDATE playerInfos SET zoneCache=%s, items=%s
                         WHERE userId=%s"""
-                ,(json.dumps(cache), userid)
+                ,(json.dumps(cache), json.dumps(items), userid)
             )
 
             # reply
             reply = util.new_reply()
             reply["catchedMons"] = catched_mons
+            reply["powder"] = items.get(POWDER, 0)
+            reply["advPowder"] = items.get(ADV_POWDER, 0)
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)

@@ -452,7 +452,9 @@ class GetRanks(tornado.web.RequestHandler):
             # print time.time() - t
 
             t = time.time()
+            print("zrevrange begin")
             ranks = yield util.redis().zrevrange(Z_PVP_BANDS, 0, -1, True)
+            print("zrevrange end")
             dt =  time.time() - t
             ranks = [{"id":rank[0], "score": rank[1]} for rank in ranks]
 

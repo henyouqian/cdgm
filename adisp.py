@@ -121,7 +121,7 @@ class CallbackDispatcher(object):
         self.call_count = len(list(callers))
         results = [None] * self.call_count
         if self.call_count == 0:
-            self._send_result(results, single)
+            self._queue_send_result(results, single)
         else:
             for count, caller in enumerate(callers):
                 caller(callback=partial(self.callback, results, count, single))
@@ -131,7 +131,7 @@ class CallbackDispatcher(object):
         results[index] = arg
         if self.call_count > 0:
             return
-        self._send_result(results, single)
+        self._queue_send_result(results, single)
 
 def process(func):
     def wrapper(*args, **kwargs):
