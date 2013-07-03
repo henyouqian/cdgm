@@ -706,13 +706,12 @@ class BattleResult(tornado.web.RequestHandler):
                 ,"attrs":[row[4], row[5], row[6], row[7], row[8]]
                 ,"hpCrystal":row[9], "hpExtra":row[10]} for row in rows]
 
-            if is_warlord_appended:
-                warlord_card = cards[-1]
-                cards.pop()
-            else:
-                for card in cards:
-                    if warlord == card["id"]:
-                        warlord_card = card
+            for i, card in enumerate(cards):
+                if warlord == card["id"]:
+                    warlord_card = card
+                    if is_warlord_appended:
+                        del cards[i]
+                        break
 
             # levelup
             exp_per_card = int(exp / live_num)
