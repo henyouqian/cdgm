@@ -125,10 +125,13 @@ class GetInfo(tornado.web.RequestHandler):
             fields = fields_str.translate(None, "\n ").split(",")
             try:
                 rows = yield util.whdb.runQuery(
-                    """SELECT {} FROM cardEntities WHERE ownerId=%s and inPackage=1""".format(fields_str)
+                    """SELECT {} FROM cardEntities WHERE ownerId=%s""".format(fields_str)
                     ,(userid, )
                 )
                 cards = [dict(zip(fields, row)) for row in rows]
+                cardsInPackage = [card for card in cards if card["inPackage"]]
+                wagonCardNum = len(cards) - len(cardsInPackage)
+
             except:
                 raise Exception("Get cards error. ownerId=%s" % userid)
 
@@ -191,7 +194,8 @@ class GetInfo(tornado.web.RequestHandler):
             reply["bands"] = [{"index":idx, "formation":band["formation"], "members":band["members"]} for idx, band in enumerate(bands)]
             items = json.loads(infos["items"])
             reply["items"] = [{"id": int(k), "num": v} for k, v in items.iteritems()]
-            reply["cards"] = cards
+            reply["cards"] = cardsInPackage
+            reply["wagonCardNum"] = wagonCardNum
             self.write(json.dumps(reply))
             
         except:

@@ -325,7 +325,7 @@ class Sell(tornado.web.RequestHandler):
             # query all cards info and check owner
             rows = yield util.whdb.runQueryMany(
                 """SELECT protoId FROM cardEntities
-                        WHERE id=%s AND ownerId=%s"""
+                        WHERE id=%s AND ownerId=%s AND inPackage=1"""
                 ,((card_id, user_id) for card_id in card_ids)
             )
 
