@@ -885,7 +885,7 @@ class CatchMonster(tornado.web.RequestHandler):
             row = rows[0]
             cache = json.loads(row[0])
             items = json.loads(row[1])
-            items = {int(k):v for k, v in items.iterItems()}
+            items = {int(k):v for k, v in items.iteritems()}
             max_card_num = row[2]
 
             band = cache["band"]
