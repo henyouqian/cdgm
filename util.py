@@ -270,13 +270,13 @@ def init_db():
     global authdb, whdb, ar
     authdb = adb.Database(**config.auth_db)
     whdb = adb.Database(**config.wh_db)
-    ar = aredis.Redis()
+    # ar = aredis.Redis()
 
 def stop_db():
     global authdb, whdb, ar
     authdb.stop()
     whdb.stop()
-    ar.stop()
+    # ar.stop()
 
 # logging
 def init_logger(debug):
