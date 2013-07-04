@@ -29,7 +29,7 @@ if __name__ == "__main__":
     install_app("python-dev")
     os.system("sudo apt-get build-dep python-mysqldb")
     install_app("python-pip")
-    install_mdl("virtualenv")
+    os.system("sudo pip install virtualenv")
 
     if not os.path.exists("env"):
         os.system("virtualenv env")

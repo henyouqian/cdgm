@@ -2,6 +2,7 @@
 import brukva
 import adb
 import adisp
+import aredis
 import time
 import csv
 import random
@@ -264,15 +265,18 @@ def redis_pipe_execute(pipe):
 # database
 authdb = None
 whdb = None
+ar = None
 def init_db(): 
-    global authdb, whdb
+    global authdb, whdb, ar
     authdb = adb.Database(**config.auth_db)
     whdb = adb.Database(**config.wh_db)
+    ar = aredis.Redis()
 
 def stop_db():
-    global authdb, whdb
+    global authdb, whdb, ar
     authdb.stop()
     whdb.stop()
+    ar.stop()
 
 # logging
 def init_logger(debug):

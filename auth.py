@@ -19,6 +19,9 @@ class Register(tornado.web.RequestHandler):
                 username = self.get_argument("username")
                 password = self.get_argument("password")
                 callback = self.get_argument("callback", None)
+
+                if len(username)==0 or len(password)==0:
+                    raise Exception("username or password too short")
             except:
                 send_error(self, err_param)
                 return;
