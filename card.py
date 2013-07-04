@@ -368,7 +368,7 @@ class Sell(tornado.web.RequestHandler):
             for band in bands:
                 for idx, member in enumerate(band["members"]):
                     if member in card_ids:
-                        band[idx] = None
+                        band["members"][idx] = None
                         inband = True
                         break
 
