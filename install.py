@@ -38,3 +38,5 @@ if __name__ == "__main__":
     install_mdl("tornado")
     os.system("sudo easy_install -U distribute")
     install_mdl("mysql-python")
+    install_mdl("redis")
+    install_mdl("hiredis")

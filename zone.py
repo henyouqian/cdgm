@@ -683,7 +683,7 @@ class BattleResult(tornado.web.RequestHandler):
             for col in cols:
                 level = int(mongrp_tbl.get_value(row, col))
                 if level:
-                    exp += level
+                    exp += level * 1.5 # designed by zhibing
 
             # get band card entity
             is_warlord_appended = False
@@ -715,8 +715,8 @@ class BattleResult(tornado.web.RequestHandler):
 
             # levelup
             exp_per_card = int(exp / live_num)
-            if warlord_card["level"] < 20:
-                exp_per_card *= 2
+            # if warlord_card["level"] < 20:
+            #     exp_per_card *= 2
 
             levelups = []
             for card in cards:
