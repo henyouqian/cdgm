@@ -145,7 +145,7 @@ def create_cards(owner_id, proto_ids, max_card_num, level, callback):
 
         cols = ",".join(cards[0].keys())
         yield util.whdb.runOperationMany(
-            """ INSERT INTO cardEntities
+            """INSERT INTO cardEntities
                     ({}) VALUES({})
             """.format(cols, ",".join(("%s",)*len(cards[0])))
             , tuple((card.values() for card in cards))
@@ -153,8 +153,20 @@ def create_cards(owner_id, proto_ids, max_card_num, level, callback):
         # append key "id" to fetch
         cols += ",id"
         
-        rows = yield util.whdb.callProc("get_new_cards", (owner_id, cols))
+        # rows = yield util.whdb.callProc("get_new_cards", (owner_id, cols))
+        rows = yield util.whdb.runQuery(
+            """SELECT {} FROM cardEntities
+                WHERE ownerId=%s AND _newInsert=1
+            """.format(cols),
+            (owner_id,)
+        )
 
+        yield util.whdb.runOperation(
+            """UPDATE cardEntities SET _newInsert = 0 
+                WHERE ownerId = %s AND _newInsert = 1
+            """,
+            (owner_id,)
+        )
 
         reply = []
         keys = cards[0].keys()

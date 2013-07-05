@@ -488,6 +488,7 @@ class Test(tornado.web.RequestHandler):
     def get(self):
         try:
             foo = yield util.ar.exe("zrevrange", Z_PVP_BANDS, 0, -1)
+            # foo = yield util.ar.exe("get", "foo")
 
             # reply
             reply = util.new_reply()
