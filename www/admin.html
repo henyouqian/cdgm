@@ -202,6 +202,20 @@
                   <h2>道具</h2>
                 </div>
                 <span>{{playerInfo.items}}</span><br><br>
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>id</th>
+                      <th>name</th>
+                      <th>count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="item in playerInfo.items">
+                      <th>{{item}}</th>
+                    </tr>
+                  </tbody>
+                </table>
                 <form>
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="id" ng-model="itemIdInput">
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="数量" ng-model="itemNumInput">
@@ -234,11 +248,11 @@
                         </thead>
                         <tbody>
                           <tr ng-repeat="card in cards">
-                            <th>{{card.id}}</th>
-                            <th>{{card.name}}</th>
-                            <th>{{card.level}}</th>
-                            <th>{{card.rarity}}</th>
-                            <th>{{card.evolution}}</th>
+                            <td>{{card.id}}</td>
+                            <td>{{card.name}}</td>
+                            <td>{{card.level}}</td>
+                            <td>{{card.rarity}}</td>
+                            <td>{{card.evolution}}</td>
                           </tr>
                         </tbody>
                         <thead>
