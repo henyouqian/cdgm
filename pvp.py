@@ -499,6 +499,23 @@ class Test(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+class Test1(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            foo = yield util.redis().zrevrange(Z_PVP_BANDS, 0, -1, False)
+            # foo = yield util.ar.exe("get", "foo")
+
+            # reply
+            reply = util.new_reply()
+            reply["foo"] = foo
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 
 handlers = [
     (r"/whapi/pvp/addtestrecord", AddTestRecord),
@@ -507,4 +524,5 @@ handlers = [
     (r"/whapi/pvp/getsettings", GetSettings),
     (r"/whapi/pvp/getranks", GetRanks),
     (r"/whapi/pvp/test", Test),
+    (r"/whapi/pvp/test1", Test1),
 ]

@@ -2,6 +2,7 @@ from session import *
 from error import *
 import util
 from wagon import Wagon
+import wagon
 
 import tornado.web
 import adisp
@@ -168,11 +169,22 @@ def create_cards(owner_id, proto_ids, max_card_num, level, callback):
             (owner_id,)
         )
 
+        # reply
         reply = []
+        wagon_cards = []
         keys = cards[0].keys()
         keys.append("id")
         for row in rows:
-            reply.append(dict(zip(keys, row)))
+            d = dict(zip(keys, row))
+            reply.append(d)
+            if not d["inPackage"]:
+                wagon_cards.append(d)
+
+        # add to wagon
+        if wagon_cards:
+            yield wagon.add_cards(1, owner_id, wagon_cards)
+
+        # return
         callback(reply)
     except Exception as e:
         traceback.print_exc()

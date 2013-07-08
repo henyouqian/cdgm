@@ -22,6 +22,27 @@ function Controller($scope, $http) {
 	}
 	checkAccount()
 
+	// items
+	$scope.items = [
+		{"id":1, "name":"邪惡葫蘆", "commet":"回復全部體力值"},
+		{"id":2, "name":"治療草藥", "commet":"回復全部HP"},
+		{"id":3, "name":"復活聖水", "commet":"復活一名隊員"},
+		{"id":4, "name":"高級治療草藥", "commet":"回復全體隊員"},
+		{"id":5, "name":"高級誘惑粉末", "commet":"100%抓取打到的怪物"},
+		{"id":6, "name":"誘惑粉末", "commet":"一定幾率抓取"},
+		{"id":7, "name":"初級魔石", "commet":"抽怪物"},
+		{"id":8, "name":"中級魔石", "commet":"抽怪物"},
+		{"id":9, "name":"高級魔石", "commet":"抽怪物"},
+		{"id":10, "name":"小海螺", "commet":"回復一點戰力"},
+		{"id":11, "name":"海螺號角", "commet":"回滿戰力"},
+		{"id":12, "name":"任務幣", "commet":"抽怪物"},
+		{"id":13, "name":"HP水晶", "commet":"增加50點HP"},
+		{"id":14, "name":"ATK水晶", "commet":"增加50點ATK"},
+		{"id":15, "name":"AGI水晶", "commet":"增加50點AGI"},
+		{"id":16, "name":"DEF水晶", "commet":"增加50點DEF"},
+		{"id":17, "name":"WIS水晶", "commet":"增加50點WIS"},
+	]
+
 	function errProc(err) {
 		alert(err)
 		if (err == "err_auth") {

@@ -10,6 +10,20 @@ import adisp
 import json
 import datetime
 
+@adisp.async
+@adisp.process
+def add_cards(wagontype, userid, cards, callback):
+    try:
+        yield util.whdb.runOperationMany(
+            """INSERT INTO wagons
+                    (userId, type, count, cardEntity, cardProto) VALUES(%s, %s, %s, %s, %s)
+            """
+            , tuple(((userid, wagontype, 1, card["id"], card["protoId"]) for card in cards))
+        )
+        callback(None)
+    except Exception as e:
+        callback(e)
+
 class Wagon(object):
     """
     [key, itemId, itemNum, time]
@@ -40,7 +54,7 @@ class Wagon(object):
         return "cardEntity" in obj
 
 
-class List(tornado.web.RequestHandler):
+class _List(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -81,15 +95,30 @@ class List(tornado.web.RequestHandler):
                 out_wagon["wagonIdx"] = wagon_idxs[i]
                 
                 out_items = []
-                for item_idx, item in enumerate(wagon):
-                    out_item = Wagon.transToDict(item)
-                    wagon_item_time = util.parse_datetime(out_item["time"])
-                    if wagon_idxs[i] == WAGON_TYPE_TEMP:
+
+                if wagon_idxs[i] == WAGON_TYPE_TEMP:
+                    wagon_expired_removed = []
+                    has_expired = False
+                    for item_idx, item in enumerate(wagon):
+                        out_item = Wagon.transToDict(item)
+                        wagon_item_time = util.parse_datetime(out_item["time"])
                         time_delta = datetime.timedelta(seconds=WAGON_TEMP_DURATION)
                         if util.utc_now() > wagon_item_time + time_delta:
+                            has_expired = True
                             continue
+                        out_items.append(out_item)
+                        wagon_expired_removed.append(item)
 
-                    out_items.append(out_item)
+                    if has_expired:
+                        yield util.whdb.runOperation(
+                            """UPDATE playerInfos SET wagonTemp=%s
+                                    WHERE userId=%s"""
+                            ,(json.dumps(wagon_expired_removed), user_id)
+                        )
+                else:
+                    for item_idx, item in enumerate(wagon):
+                        out_item = Wagon.transToDict(item)
+                        out_items.append(out_item)
 
                 out_wagon["items"] = out_items
                 out_wagons.append(out_wagon)
@@ -97,6 +126,67 @@ class List(tornado.web.RequestHandler):
             # reply
             reply = util.new_reply()
             reply["wagons"] = out_wagons
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
+class List(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def post(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            user_id = session["userid"]
+
+            # post input
+            post_input = json.loads(self.request.body)
+            wagon_idx = post_input["wagonIdx"]
+            start_idx = post_input["startIdx"]
+            count = post_input["count"]
+
+            if wagon_idx not in (0, 1, 2):
+                raise Exception("wrong wagonIdx: %s" % wagon_idx)
+            if start_idx < 0:
+                raise Exception("wrong startIdx: %s" % start_idx)
+            if count <= 0 or count > 20:
+                raise Exception("wrong count: %s" % start_idx)
+
+            # query wagon data
+            cols = ["id", "count", "cardEntity", "cardProto", "itemId", "descText", "time"]
+            rows = yield util.whdb.runQuery(
+                """SELECT {} FROM wagons
+                        WHERE userId=%s AND type=%s LIMIT %s,%s""".format(",".join(cols))
+                ,(user_id, wagon_idx, start_idx, count)
+            )
+
+            wagon_entries = [dict(zip(cols, row)) for row in rows]
+            items = []
+            cards = []
+            for entry in wagon_entries:
+                d = {"key":entry["id"], "desc":entry["descText"], "time":util.datetime_to_str(entry["time"])}
+                if entry["itemId"]:
+                    d["itemId"] = entry["itemId"]
+                    d["itemNum"] = entry["count"]
+                    items.append(d)
+                else:
+                    d["cardEntity"] = entry["cardEntity"]
+                    d["cardProto"] = entry["cardProto"]
+                    cards.append(d)
+
+            # reply
+            reply = util.new_reply()
+            reply["waginIdx"] = wagon_idx
+            reply["totalCount"] = 0
+            reply["items"] = items
+            reply["cards"] = cards
             self.write(json.dumps(reply))
 
         except:
