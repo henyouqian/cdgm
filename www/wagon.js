@@ -15,19 +15,26 @@ function listWagon(wagonIdx)
 	gWagonIdx = wagonIdx
 	$("#wagon_items").empty()
 
-	$.getJSON('/whapi/wagon/list', {"wagonidx":wagonIdx}, function(json){
+	input = {"wagonIdx":wagonIdx, "startIdx":0, "count":20}
+	$.post('/whapi/wagon/list', JSON.stringify(input), function(json){
 		var err = json.error
 		if (err){
 			alert(err)
 		}else{
-			var items = json.wagons[0].items
-			console.log(json)
+			var items = json.items
+			js = json
 			for (var i in items) {
 				var item = items[i]
 				$("#wagon_items").append("<li>" + item.key + "  " + JSON.stringify(item) +"</li>")
 			}
+			var cards = json.cards
+			for (var i in cards) {
+				var card = cards[i]
+				$("#wagon_items").append("<li>" + card.key + "  " + JSON.stringify(card) +"</li>")
+
+			}
 		}
-	})
+	}, "json")
 }
 
 function back()

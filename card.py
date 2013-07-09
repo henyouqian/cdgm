@@ -182,7 +182,7 @@ def create_cards(owner_id, proto_ids, max_card_num, level, callback):
 
         # add to wagon
         if wagon_cards:
-            yield wagon.add_cards(1, owner_id, wagon_cards)
+            yield wagon.add_cards(1, owner_id, wagon_cards, "") #fixme: desc text
 
         # return
         callback(reply)
