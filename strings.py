@@ -1,0 +1,1 @@
+﻿WAGON_CREATE_TEMP_CARD = "临时"

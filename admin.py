@@ -4,6 +4,7 @@ import util
 from card import card_tbl, create_cards, calc_card_proto_attr, warlord_level_tbl, card_level_tbl, is_war_lord, skill_level_tbl, skill_tbl
 from zone import zone_tbl
 from player import fmt_tbl
+import wagon
 
 import tornado.web
 import adisp
@@ -151,6 +152,34 @@ class SetItemNum(tornado.web.RequestHandler):
             reply = util.new_reply()
             reply["items"] = items
             reply["change"] = {"id": itemid, "from": oldnum, "to": itemnum}
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
+class AddItemToWagon(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
+            # param
+            userid = int(self.get_argument("userId"))
+            itemid = int(self.get_argument("itemId"))
+            itemnum = int(self.get_argument("itemNum"))
+
+            # add to wagon
+            items = [{"id":itemid, "num":itemnum}]
+            yield wagon.add_items(0, userid, items, "From admin")
+
+            # reply
+            reply = util.new_reply()
             self.write(json.dumps(reply))
 
         except:
@@ -663,6 +692,7 @@ class SetExpMultiplier(tornado.web.RequestHandler):
 handlers = [
     (r"/whapi/admin/checkAccount", CheckAccount),
     (r"/whapi/admin/setItemNum", SetItemNum),
+    (r"/whapi/admin/addItemToWagon", AddItemToWagon),
     (r"/whapi/admin/getPlayerInfo", GetPlayerInfo),
     (r"/whapi/admin/setLastZoneId", SetLastZoneId),
     (r"/whapi/admin/setMaxCardNum", SetMaxCardNum),

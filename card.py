@@ -10,6 +10,7 @@ import json
 from itertools import repeat, imap
 from random import randint, uniform
 import csv
+import strings
 
 card_tbl = util.CsvTbl("data/cards.csv", "ID")
 grow_tbl = util.CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
@@ -181,7 +182,7 @@ def create_cards(owner_id, proto_ids, max_card_num, level, callback):
 
         # add to wagon
         if wagon_cards:
-            yield wagon.add_cards(1, owner_id, wagon_cards, "临时") #fixme: desc text
+            yield wagon.add_cards(1, owner_id, wagon_cards, strings.WAGON_CREATE_TEMP_CARD) #fixme: desc text
 
         # return
         callback(reply)

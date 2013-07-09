@@ -238,6 +238,12 @@
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="数量" ng-model="itemNumInput">
                   <button class="btn btn-primary" ng-click="setItem()">设置</button>
                 </form>
+                <form>
+                  <span>Add to wagon:</span><br>
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="id" ng-model="wagonItemIdInput">
+                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="数量" ng-model="wagonItemNumInput">
+                  <button class="btn btn-primary" ng-click="addItemToWagon()">添加</button>
+                </form>
               </section>
 
               <section id="player-card">

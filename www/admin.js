@@ -97,6 +97,30 @@ function Controller($scope, $http) {
 		})
 	}
 
+	$scope.addItemToWagon = function() {
+		try {
+			var userId = $scope.playerInfo.userId
+		} catch(err) {
+			alert("select user first")
+			return
+		}
+		var itemId = $scope.wagonItemIdInput
+		var itemNum = $scope.wagonItemNumInput
+
+		if (!itemId || !itemNum) {
+			alert("need itemId and itemNum")
+			return
+		}
+		$.getJSON('/whapi/admin/addItemToWagon', {"userId": userId, "itemId": itemId, "itemNum": itemNum}, function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}else{
+				alert("add item to wagon succeed:\n")
+			}
+		})
+	}
+
 	$scope.setLastZoneId = function() {
 		try {
 			var userId = $scope.playerInfo.userId

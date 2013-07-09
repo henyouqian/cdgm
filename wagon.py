@@ -34,6 +34,30 @@ def add_cards(wagonidx, userid, cards, desc, callback):
         callback(e)
 
 
+@adisp.async
+@adisp.process
+def add_items(wagonidx, userid, items, desc, callback):
+    try:
+        if not items:
+            raise Exception("empty items")
+
+        yield util.whdb.runOperationMany(
+            """INSERT INTO wagons
+                    (userId, wagonIdx, count, itemId, descText) VALUES(%s, %s, %s, %s, %s)
+            """
+            , tuple(((userid, wagonidx, item["num"], item["id"], desc) for item in items))
+        )
+        cols = ["wagonGeneral", "wagonTemp", "wagonSocial"]
+        yield util.whdb.runOperation(
+            """UPDATE playerInfos SET {0}={0}+%s
+                    WHERE userId=%s""".format(cols[wagonidx])
+            ,(len(items), userid)
+        )
+        callback(None)
+    except Exception as e:
+        callback(e)
+
+
 class GetCount(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -362,10 +386,11 @@ class Accept(tornado.web.RequestHandler):
             for item in accepted_items:
                 itemId = item["itemId"]
                 itemNum = item["count"]
-                if itemId in items:
-                    items[itemId] += itemNum
+                strItemId = str(itemId)
+                if strItemId in items:
+                    items[strItemId] += itemNum
                 else:
-                    items[itemId] = itemNum
+                    items[strItemId] = itemNum
                 out_items.append({"id":itemId, "num":itemNum})
 
             if accepted_items:
