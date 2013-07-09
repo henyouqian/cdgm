@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.31-0ubuntu0.12.04.2)
 # Database: wh_db
-# Generation Time: 2013-07-08 08:05:23 +0000
+# Generation Time: 2013-07-09 12:47:11 +0000
 # ************************************************************
 
 
@@ -57,6 +57,7 @@ CREATE TABLE `cardEntities` (
   `wisExtra` smallint(5) unsigned NOT NULL DEFAULT '0',
   `agiExtra` smallint(5) unsigned NOT NULL DEFAULT '0',
   `_newInsert` tinyint(1) unsigned NOT NULL DEFAULT '1',
+  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `owner_id` (`ownerId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -89,9 +90,9 @@ CREATE TABLE `playerInfos` (
   `zoneCache` text,
   `items` text NOT NULL,
   `bands` text NOT NULL,
-  `wagonGeneral` text NOT NULL,
-  `wagonTemp` text NOT NULL,
-  `wagonSocial` text NOT NULL,
+  `wagonGeneral` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `wagonTemp` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `wagonSocial` smallint(5) unsigned NOT NULL DEFAULT '0',
   `pvpScore` int(10) unsigned NOT NULL DEFAULT '0',
   `pvpWinNum` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`userId`)
@@ -106,40 +107,22 @@ DROP TABLE IF EXISTS `wagons`;
 
 CREATE TABLE `wagons` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `type` tinyint(4) unsigned NOT NULL COMMENT '0:general 1:temp 2:social',
-  `count` int(11) NOT NULL,
-  `cardEntity` bigint(11) DEFAULT NULL,
-  `cardProto` int(11) DEFAULT NULL,
-  `itemId` bigint(11) DEFAULT NULL,
+  `userId` int(11) unsigned NOT NULL,
+  `wagonIdx` tinyint(4) unsigned NOT NULL COMMENT '0:general 1:temp 2:social',
+  `count` int(11) unsigned NOT NULL,
+  `cardEntity` bigint(11) unsigned DEFAULT NULL,
+  `cardProto` int(11) unsigned DEFAULT NULL,
+  `itemId` bigint(11) unsigned DEFAULT NULL,
   `descText` varchar(40) NOT NULL DEFAULT '',
-  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `userId` (`userId`),
+  KEY `time` (`time`),
+  KEY `type` (`wagonIdx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
-
---
--- Dumping routines (PROCEDURE) for database 'wh_db'
---
-DELIMITER ;;
-
-# Dump of PROCEDURE get_new_cards
-# ------------------------------------------------------------
-
-/*!50003 DROP PROCEDURE IF EXISTS `get_new_cards` */;;
-/*!50003 SET SESSION SQL_MODE=""*/;;
-/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `get_new_cards`(IN user_id BIGINT, IN col_list VARCHAR(512))
-BEGIN
-    SET @sql = CONCAT("SELECT ", col_list, " FROM cardEntities WHERE ownerId = ", user_id, " AND _newInsert = 1;");
-    PREPARE stmt from @sql;
-    execute stmt;
-
-    UPDATE cardEntities SET _newInsert = 0 WHERE ownerId = user_id AND _newInsert = 1; 
-END */;;
-
-/*!50003 SET SESSION SQL_MODE=@OLD_SQL_MODE */;;
-DELIMITER ;
 
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
