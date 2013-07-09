@@ -179,13 +179,30 @@ class GetInfo(tornado.web.RequestHandler):
                 last_ap_time = curr_time - timedelta(seconds = t)
             reply["ap"] = ap
 
+            # update wagon objs count
+            rows = yield util.whdb.runQuery(
+                """SELECT (SELECT COUNT(*) FROM wagons WHERE userId=%s AND wagonIdx=0),
+                        (SELECT COUNT(*) FROM wagons WHERE userId=%s AND wagonIdx=1),
+                        (SELECT COUNT(*) FROM wagons WHERE userId=%s AND wagonIdx=2)
+                """,
+                (userid, userid, userid)
+            )
+            wagonObjNums = rows[0]
+            oldWagonObjNums = [infos["wagonGeneral"], infos["wagonTemp"], infos["wagonSocial"]]
+            reply["wagonGeneral"] = wagonObjNums[0]
+            reply["wagonTemp"] = wagonObjNums[1]
+            reply["wagonSocial"] = wagonObjNums[2]
+
             # update to db
-            if (oldap != ap) or (oldxp != xp):
+            if (oldap != ap) or (oldxp != xp) or (wagonObjNums != oldWagonObjNums):
                 yield util.whdb.runOperation(
-                    """UPDATE playerInfos SET ap=%s, lastApTime=%s, xp=%s, lastXpTime=%s
+                    """UPDATE playerInfos SET ap=%s, lastApTime=%s, xp=%s, lastXpTime=%s,
+                            wagonGeneral=%s, wagonTemp=%s, wagonSocial=%s
                             WHERE userId=%s"""
-                    ,(ap, last_ap_time, xp, last_xp_time, userid)
+                    ,(ap, last_ap_time, xp, last_xp_time, wagonObjNums[0], wagonObjNums[1], wagonObjNums[2], userid)
                 )
+
+            
 
 
             del reply["lastXpTime"]
