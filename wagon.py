@@ -34,7 +34,7 @@ def add_cards(wagonidx, userid, cards, desc, callback):
         callback(e)
 
 
-class _List(tornado.web.RequestHandler):
+class GetCount(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -46,66 +46,18 @@ class _List(tornado.web.RequestHandler):
                 return
             user_id = session["userid"]
 
-            # params
-            try:
-                wagon_idxs = list(set([int(s) for s in self.get_argument("wagonidx").split(",")]))
-                for idx in wagon_idxs:
-                    if idx not in xrange(3):
-                        raise Exception("invalid wagon_type")
-            except:
-                send_error(self, err_param)
-                return
-
-            # query wagon data
-            field_strs = ["wagonGeneral", "wagonTemp", "wagonSocial"]
-            fields = [field_strs[idx] for idx in wagon_idxs]
-
             rows = yield util.whdb.runQuery(
-                """SELECT {} FROM playerInfos
-                        WHERE userId=%s""".format(",".join(fields))
+                """SELECT wagonGeneral, wagonTemp, wagonSocial FROM playerInfos
+                        WHERE userId=%s"""
                 ,(user_id,)
             )
-
-            wagons = rows[0]
-            out_wagons = []
-            for i, wagon in enumerate(wagons):
-                wagon = json.loads(wagon)
-
-                out_wagon = {}
-                out_wagon["wagonIdx"] = wagon_idxs[i]
-                
-                out_items = []
-
-                if wagon_idxs[i] == WAGON_TYPE_TEMP:
-                    wagon_expired_removed = []
-                    has_expired = False
-                    for item_idx, item in enumerate(wagon):
-                        out_item = Wagon.transToDict(item)
-                        wagon_item_time = util.parse_datetime(out_item["time"])
-                        time_delta = datetime.timedelta(seconds=WAGON_TEMP_DURATION)
-                        if util.utc_now() > wagon_item_time + time_delta:
-                            has_expired = True
-                            continue
-                        out_items.append(out_item)
-                        wagon_expired_removed.append(item)
-
-                    if has_expired:
-                        yield util.whdb.runOperation(
-                            """UPDATE playerInfos SET wagonTemp=%s
-                                    WHERE userId=%s"""
-                            ,(json.dumps(wagon_expired_removed), user_id)
-                        )
-                else:
-                    for item_idx, item in enumerate(wagon):
-                        out_item = Wagon.transToDict(item)
-                        out_items.append(out_item)
-
-                out_wagon["items"] = out_items
-                out_wagons.append(out_wagon)
+            row = rows[0]
 
             # reply
             reply = util.new_reply()
-            reply["wagons"] = out_wagons
+            reply["general"] = row[0]
+            reply["temp"] = row[1]
+            reply["social"] = row[2]
             self.write(json.dumps(reply))
 
         except:
@@ -477,9 +429,9 @@ class Accept(tornado.web.RequestHandler):
             reply["items"] = out_items
             reply["cards"] = out_cards
             reply["info"] = info
-            reply["genaral"] = wagon_obj_num[0]
-            reply["temp"] = wagon_obj_num[1]
-            reply["social"] = wagon_obj_num[2]
+            reply["genaralCount"] = wagon_obj_num[0]
+            reply["tempCount"] = wagon_obj_num[1]
+            reply["socialCount"] = wagon_obj_num[2]
             self.write(json.dumps(reply))
 
         except:
@@ -557,6 +509,7 @@ class SellAll(tornado.web.RequestHandler):
             self.finish()
 
 handlers = [
+    (r"/whapi/wagon/getcount", GetCount),
     (r"/whapi/wagon/list", List),
     (r"/whapi/wagon/accept", Accept),
     (r"/whapi/wagon/sellall", SellAll),
