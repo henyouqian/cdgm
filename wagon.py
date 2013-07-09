@@ -454,7 +454,7 @@ class Accept(tornado.web.RequestHandler):
             reply["items"] = out_items
             reply["cards"] = out_cards
             reply["info"] = info
-            reply["genaralCount"] = wagon_obj_num[0]
+            reply["generalCount"] = wagon_obj_num[0]
             reply["tempCount"] = wagon_obj_num[1]
             reply["socialCount"] = wagon_obj_num[2]
             self.write(json.dumps(reply))
