@@ -12,46 +12,26 @@ import datetime
 
 @adisp.async
 @adisp.process
-def add_cards(wagontype, userid, cards, desc, callback):
+def add_cards(wagonidx, userid, cards, desc, callback):
     try:
+        if not cards:
+            raise Exception("empty cards")
+
         yield util.whdb.runOperationMany(
             """INSERT INTO wagons
                     (userId, wagonIdx, count, cardEntity, cardProto, descText) VALUES(%s, %s, %s, %s, %s, %s)
             """
-            , tuple(((userid, wagontype, 1, card["id"], card["protoId"], desc) for card in cards))
+            , tuple(((userid, wagonidx, 1, card["id"], card["protoId"], desc) for card in cards))
+        )
+        cols = ["wagonGeneral", "wagonTemp", "wagonSocial"]
+        yield util.whdb.runOperation(
+            """UPDATE playerInfos SET {0}={0}+%s
+                    WHERE userId=%s""".format(cols[wagonidx])
+            ,(len(cards), userid)
         )
         callback(None)
     except Exception as e:
         callback(e)
-
-class Wagon(object):
-    """
-    [key, itemId, itemNum, time]
-    [key, cardEntity, cardProto, time]
-    """
-    def __init__(self, json_str):
-        self.data = json.loads(json_str)
-
-    def addItem(self, item_id, item_num):
-        # self.data.append([itemId, itemNum, util.datetime_to_str(util.utc_now())])
-        self.data.append(["item:%d,%d"%(item_id, item_num), item_id, item_num, util.datetime_to_str(util.utc_now())])
-
-    def addCard(self, proto_id, card_entityId):
-        # self.data.append([-protoId, cardNum, util.datetime_to_str(util.utc_now()), cardEntityId])
-        self.data.append(["card:%d"%card_entityId, card_entityId, proto_id, util.datetime_to_str(util.utc_now())])
-
-    @staticmethod
-    def transToDict(obj):
-        if obj[0].startswith("item"):
-            return {"key":obj[0], "itemId":obj[1], "itemNum":obj[2], "time":obj[3]}
-        elif obj[0].startswith("card"):
-            return {"key":obj[0], "cardEntity":obj[1], "cardProto":obj[2], "time":obj[3]}
-        else:
-            raise Exception("key error")
-
-    @staticmethod
-    def isCard(obj):
-        return "cardEntity" in obj
 
 
 class _List(tornado.web.RequestHandler):
@@ -373,13 +353,14 @@ class Accept(tornado.web.RequestHandler):
             wagon_objs = [dict(zip(cols, row)) for row in rows]
 
             rows = yield util.whdb.runQuery(
-                """SELECT items, maxCardNum FROM playerInfos
+                """SELECT items, maxCardNum, wagonGeneral, wagonTemp, wagonSocial FROM playerInfos
                         WHERE userId=%s"""
                 ,(user_id,)
             )
             row = rows[0]
             items = json.loads(row[0])
             max_card_num = row[1]
+            wagon_obj_num = [row[2], row[3], row[4]]
 
             # 
             del_objs = []
@@ -387,6 +368,7 @@ class Accept(tornado.web.RequestHandler):
             accepted_cards = []
             card_accept_remain = None
             info = ""
+            del_nums = [0, 0, 0]
 
             for obj in wagon_objs:
                 # check if expired
@@ -395,11 +377,13 @@ class Accept(tornado.web.RequestHandler):
                     if util.utc_now() > obj["time"] + time_delta:
                         del_objs.append(obj)
                         info = "expired"
+                        del_nums[obj["wagonIdx"]] += 1
                         continue
                 # item
                 if obj["itemId"]:
                     accepted_items.append(obj)
                     del_objs.append(obj)
+                    del_nums[obj["wagonIdx"]] += 1
                 # card
                 else:
                     if card_accept_remain == None:
@@ -417,9 +401,9 @@ class Accept(tornado.web.RequestHandler):
                         continue
                     else:
                         card_accept_remain -= 1
-
-                    accepted_cards.append(obj)
-                    del_objs.append(obj)
+                        accepted_cards.append(obj)
+                        del_objs.append(obj)
+                        del_nums[obj["wagonIdx"]] += 1
                     
             # add items
             out_items = []
@@ -476,12 +460,26 @@ class Accept(tornado.web.RequestHandler):
                     ,(user_id,)
                 )
 
+            # wagon obj count
+            for i in xrange(3):
+                wagon_obj_num[i] -= del_nums[i]
+
+            cols = ["wagonGeneral", "wagonTemp", "wagonSocial"]
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET wagonGeneral=%s, wagonTemp=%s, wagonSocial=%s
+                        WHERE userId=%s"""
+                ,(wagon_obj_num[0], wagon_obj_num[1], wagon_obj_num[2], user_id)
+            )
+
             # reply
             reply = util.new_reply()
             reply["acceptedKeys"] = [obj["id"] for obj in del_objs]
             reply["items"] = out_items
             reply["cards"] = out_cards
             reply["info"] = info
+            reply["genaral"] = wagon_obj_num[0]
+            reply["temp"] = wagon_obj_num[1]
+            reply["social"] = wagon_obj_num[2]
             self.write(json.dumps(reply))
 
         except:

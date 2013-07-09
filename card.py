@@ -1,7 +1,6 @@
 from session import *
 from error import *
 import util
-from wagon import Wagon
 import wagon
 
 import tornado.web
@@ -271,7 +270,7 @@ class GetPact(tornado.web.RequestHandler):
 
             # get player info
             rows = yield util.whdb.runQuery(
-                    """SELECT items, whCoin, maxCardNum, wagonTemp FROM playerInfos
+                    """SELECT items, whCoin, maxCardNum FROM playerInfos
                             WHERE userId=%s"""
                     ,(user_id, )
                 )
@@ -279,7 +278,6 @@ class GetPact(tornado.web.RequestHandler):
             items = json.loads(row[0])
             wh_coin = row[1]
             max_card_num = row[2]
-            wagon_temp = Wagon(row[3])
 
             # check and calc payment
             # only item (include bronze coin and silver coin, not wh coin) can mulitply numbers
@@ -305,16 +303,11 @@ class GetPact(tornado.web.RequestHandler):
             # create cards
             cards = yield create_cards(user_id, card_ids, max_card_num, 1)
 
-            # wagon
-            for card in cards:
-                if not card["inPackage"]:
-                    wagon_temp.addCard(card["protoId"], card["id"])
-
             # real pay and set wagon
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET whCoin=%s, items=%s, wagonTemp=%s
+                """UPDATE playerInfos SET whCoin=%s, items=%s
                         WHERE userId=%s"""
-                ,(wh_coin, json.dumps(items), json.dumps(wagon_temp.data), user_id )
+                ,(wh_coin, json.dumps(items), user_id )
             )
 
             # reply

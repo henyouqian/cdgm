@@ -44,8 +44,10 @@ function back()
 
 function accept()
 {
-	var key = $("#ipt_accept").val()
-	$.getJSON('/whapi/wagon/accept', {"wagonidx":gWagonIdx, "key":key}, function(json){
+	var keys = $("#ipt_accept").val()
+	keys = "[" + keys + "]"
+	post_data ='{"keys":'+keys+'}' 
+	$.post('/whapi/wagon/accept', post_data, function(json){
 		var err = json.error
 		if (err){
 			alert(err)
@@ -53,7 +55,7 @@ function accept()
 			alert(JSON.stringify(json))
 			listWagon(gWagonIdx)
 		}
-	})
+	}, "json")
 }
 
 function acceptAll()
