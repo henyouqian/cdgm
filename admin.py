@@ -5,6 +5,7 @@ from card import card_tbl, create_cards, calc_card_proto_attr, warlord_level_tbl
 from zone import zone_tbl
 from player import fmt_tbl
 import wagon
+import gamedata
 
 import tornado.web
 import adisp
@@ -513,7 +514,7 @@ class AddCard(tornado.web.RequestHandler):
 
             # update db
             proto_ids = [protoid]
-            cards = yield create_cards(userid, proto_ids, max_card_num, level)
+            cards = yield create_cards(userid, proto_ids, max_card_num, level, gamedata.WAGON_INDEX_GENERAL, "From admin")
             card = cards[0]
             card["name"], card["rarity"], card["evolution"] = card_tbl.gets(protoid, "name", "rarity", "evolution")
 
@@ -526,6 +527,38 @@ class AddCard(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
+
+
+class AddCardToWagon(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
+            # param
+            userid = int(self.get_argument("userId"))
+            protoid = int(self.get_argument("protoId"))
+            level = int(self.get_argument("level"))
+
+            # update db
+            proto_ids = [protoid]
+            cards = yield create_cards(userid, proto_ids, 0, level, gamedata.WAGON_INDEX_GENERAL, "From admin")
+            card = cards[0]
+            card["name"], card["rarity"], card["evolution"] = card_tbl.gets(protoid, "name", "rarity", "evolution")
+
+            # reply
+            reply = util.new_reply()
+            reply["card"] = card
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 
 class SetCardLevel(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -702,6 +735,7 @@ handlers = [
     (r"/whapi/admin/setAp", SetAp),
     (r"/whapi/admin/setXp", SetXp),
     (r"/whapi/admin/addCard", AddCard),
+    (r"/whapi/admin/addCardToWagon", AddCardToWagon),
     (r"/whapi/admin/setCardLevel", SetCardLevel),
     (r"/whapi/admin/setCardSkillLevel", SetCardSkillLevel),
 

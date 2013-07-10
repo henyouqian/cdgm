@@ -11,6 +11,7 @@ from itertools import repeat, imap
 from random import randint, uniform
 import csv
 import strings
+import os
 
 card_tbl = util.CsvTbl("data/cards.csv", "ID")
 grow_tbl = util.CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
@@ -20,18 +21,6 @@ skill_tbl = util.CsvTbl("data/skills.csv", "id")
 skill_level_tbl = util.CsvTblMulKey("data/skillLevels.csv", "rarity", "level")
 warlord_level_tbl = util.CsvTbl("data/levels.csv", "level")
 card_level_tbl = util.CsvTbl("data/cardLevels.csv", "level")
-
-# # test
-# row = grow_tbl.get_row("1", "11")
-# print row
-# print grow_tbl.get_value(row, "curve")
-# print grow_tbl.get(("1", "3"),"curve")
-
-# row = card_tbl.get_row("1")
-# print tuple(card_tbl.get_values(row, "name", "cardtype"))
-
-# for __ in xrange(10000):
-#   grow_tbl.get(("1", "11"),"curve")
 
 # calc for hp, atk, def, wis, agi
 def calc_card_proto_attr(proto_id, level):
@@ -62,57 +51,9 @@ def calc_card_proto_attr(proto_id, level):
 def is_war_lord(proto_id):
     return 119 <= proto_id <= 226
 
-
-# @adisp.async
-# @adisp.process
-# def create(owner_id, proto_id, level, callback):
-#     try:
-#         hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
-#         skill_1_id, skill_2_id = card_tbl.gets(proto_id, "skillid1", "skillid2")
-#         lvtbl = warlord_level_tbl if is_war_lord(proto_id) else card_level_tbl
-#         exp = lvtbl.get(level, "exp")
-#         card = {"protoId":proto_id, "ownerId":owner_id, "level":level, "exp":exp}
-#         card.update({"hp":hp, "atk":atk, "def":_def, "wis":wis, "agi":agi})
-#         card.update({"hpCrystal":0, "atkCrystal":0, "defCrystal":0, "wisCrystal":0, "agiCrystal":0})
-#         card.update({"hpExtra":0, "atkExtra":0, "defExtra":0, "wisExtra":0, "agiExtra":0})
-#         card.update({"skill1Id":skill_1_id, "skill2Id":skill_2_id, "skill2Id":0})
-#         card.update({"skill1Level":1, "skill2Level":1, "skill2Level":1})
-#         card.update({"skill1Exp":0, "skill2Exp":0, "skill2Exp":0})
-
-#         # fixme: check cards limit and put into wagon
-#         conn = yield util.whdb.beginTransaction()
-#         try:
-#             rows = yield util.whdb.runQuery(
-#                 """SELECT COUNT(1) from cardEntities
-#                         WHERE ownerId=%s AND inPackage=%s"""
-#                 , (owner_id, 1), conn
-#             )
-
-
-#             row_nums = yield util.whdb.runOperation(
-#                 """ INSERT INTO cardEntities
-#                         ({}) VALUES({})
-#                 """.format(",".join(card.keys()), ",".join(("%s",)*len(card)))
-#                 , card.values()
-#                 , conn
-#             )
-#             rows = yield util.whdb.runQuery("SELECT LAST_INSERT_ID()", None, conn)
-#         finally:
-#             yield util.whdb.commitTransaction(conn)
-
-#         if row_nums != 1:
-#             raise Exception("db insert error")
-#         card["id"] = rows[0][0]
-
-#         callback(card)
-#     except Exception as e:
-#         callback(e)
-
-import os
-
 @adisp.async
 @adisp.process
-def create_cards(owner_id, proto_ids, max_card_num, level, callback):
+def create_cards(owner_id, proto_ids, max_card_num, level, wagonIdx, desc="", callback=None):
     try:
         cards = []
         for proto_id in proto_ids:
@@ -182,7 +123,7 @@ def create_cards(owner_id, proto_ids, max_card_num, level, callback):
 
         # add to wagon
         if wagon_cards:
-            yield wagon.add_cards(1, owner_id, wagon_cards, strings.WAGON_CREATE_TEMP_CARD) #fixme: desc text
+            yield wagon.add_cards(wagonIdx, owner_id, wagon_cards, desc)
 
         # return
         callback(reply)
@@ -233,10 +174,6 @@ def get_card_from_pact(pact_id):
     # print sub_pact_id, card_id
     return card_id
 
-# # test
-# for i in xrange(50):
-#     get_card_from_pact("1")
-
 # ====================================================
 class GetPact(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -261,10 +198,8 @@ class GetPact(tornado.web.RequestHandler):
 
             # pact cost table
             try:
-                pact_id, cost_item_id, cost_num, pact_num = pact_cost_tbl.gets(pact_cost_id, 
-                    "pactid", "itemid", "costnum", "pactnum")
-                cost_num = int(cost_num)
-                pact_num = int(pact_num)
+                pact_id, cost_item_id, cost_num, pact_num, wagon_index = map(int, pact_cost_tbl.gets(pact_cost_id, 
+                    "pactid", "itemid", "costnum", "pactnum", "wagonindex"))
 
             except:
                 raise Exception("get pact cost error: pack_id=%s" % pact_cost_id)
@@ -277,6 +212,7 @@ class GetPact(tornado.web.RequestHandler):
                 )
             row = rows[0]
             items = json.loads(row[0])
+            items = {int(k):v for k, v in items.iteritems()}
             wh_coin = row[1]
             max_card_num = row[2]
 
@@ -302,7 +238,7 @@ class GetPact(tornado.web.RequestHandler):
                 items[cost_item_id] -= cost_num
 
             # create cards
-            cards = yield create_cards(user_id, card_ids, max_card_num, 1)
+            cards = yield create_cards(user_id, card_ids, max_card_num, wagon_index)
 
             # real pay and set wagon
             yield util.whdb.runOperation(
@@ -710,67 +646,12 @@ class Sacrifice(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-class Create(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @adisp.process
-    def get(self):
-        try:
-            # session
-            session = yield find_session(self)
-            if not session:
-                send_error(self, err_auth)
-                return
-            user_id = session["userid"]
-
-            # param
-            try:
-                proto = int(self.get_argument("proto"))
-                level = int(self.get_argument("level"))
-            except:
-                send_error(self, err_param)
-                return
-
-            # get player's max card number and wagonTemp
-            rows = yield util.whdb.runQuery(
-                """SELECT maxCardNum, wagonTemp FROM playerInfos
-                        WHERE userId=%s"""
-                ,(user_id, )
-                )
-            row = rows[0]
-            max_card_num = row[0]
-            wagon_temp = Wagon(row[1])
-
-            cards = yield create_cards(user_id, [proto], max_card_num, level)
-
-            # wagon
-            for card in cards:
-                if not card["inPackage"]:
-                    wagon_temp.addCard(card["protoId"], card["id"])
-
-            # real pay and set wagon
-            yield util.whdb.runOperation(
-                """UPDATE playerInfos SET wagonTemp=%s
-                        WHERE userId=%s"""
-                ,(json.dumps(wagon_temp.data), user_id)
-            )
-
-            # reply
-            reply = util.new_reply()
-            reply["card"] = cards[0]
-            self.write(json.dumps(reply))
-
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
 
 handlers = [
     (r"/whapi/card/getpact", GetPact),
     (r"/whapi/card/sell", Sell),
     (r"/whapi/card/evolution", Evolution),
     (r"/whapi/card/sacrifice", Sacrifice),
-
-    (r"/whapi/card/create", Create),
 ]
 
 # test

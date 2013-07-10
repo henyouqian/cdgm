@@ -1,6 +1,6 @@
 ﻿from session import *
 from error import *
-from gamedata import WAGON_TYPE_TEMP, WAGON_TEMP_DURATION
+from gamedata import WAGON_TEMP_DURATION
 import util
 import card as mdl_card
 

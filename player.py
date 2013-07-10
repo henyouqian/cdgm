@@ -42,7 +42,7 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # add war lord card
-            cards = yield card.create_cards(userid, [warlord_proto_id]+INIT_CARDS, INIT_MAX_CARD, 1)
+            cards = yield card.create_cards(userid, [warlord_proto_id]+INIT_CARDS, INIT_MAX_CARD, 1, WAGON_INDEX_GENERAL)
             warlord_card = cards[0]
             warlord_id = warlord_card["id"]
 
@@ -201,9 +201,6 @@ class GetInfo(tornado.web.RequestHandler):
                             WHERE userId=%s"""
                     ,(ap, last_ap_time, xp, last_xp_time, wagonObjNums[0], wagonObjNums[1], wagonObjNums[2], userid)
                 )
-
-            
-
 
             del reply["lastXpTime"]
             del reply["lastApTime"]

@@ -205,11 +205,11 @@
                 
                 <div class="accordion-group">
                   <div class="accordion-heading">
-                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseItem">
                       道具信息
                     </a>
                   </div>
-                  <div id="collapseTwo" class="accordion-body collapse">
+                  <div id="collapseItem" class="accordion-body collapse">
                     <div class="accordion-inner">
                       <table class="table table-striped">
                         <thead>
@@ -237,12 +237,7 @@
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="id" ng-model="itemIdInput">
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="数量" ng-model="itemNumInput">
                   <button class="btn btn-primary" ng-click="setItem()">设置</button>
-                </form>
-                <form>
-                  <span>Add to wagon:</span><br>
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="id" ng-model="wagonItemIdInput">
-                  <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="数量" ng-model="wagonItemNumInput">
-                  <button class="btn btn-primary" ng-click="addItemToWagon()">添加</button>
+                  <button class="btn btn-primary" ng-click="addItemToWagon()">添加到仓库</button>
                 </form>
               </section>
 
@@ -253,11 +248,11 @@
 
                 <div class="accordion-group">
                   <div class="accordion-heading">
-                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseCard">
                       卡牌信息
                     </a>
                   </div>
-                  <div id="collapseTwo" class="accordion-body collapse">
+                  <div id="collapseCard" class="accordion-body collapse">
                     <div class="accordion-inner">
                       <table class="table table-striped">
                         <thead>
@@ -297,6 +292,7 @@
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="prototype id" ng-model="addCardProto">
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="level" ng-model="addCardLevel">
                   <button class="btn btn-primary" ng-click="addCard()">送卡</button>
+                  <button class="btn btn-primary" ng-click="addCardToWagon()">添加到仓库</button>
                 </form>
                 <form>
                   <input type="text" style="width:100px;" pattern="[0-9]*" placeholder="card id" ng-model="setCardLevelId">

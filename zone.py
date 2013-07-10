@@ -2,6 +2,7 @@ from error import *
 from session import *
 from gamedata import BAND_NUM, AP_ADD_DURATION, \
     XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID
+import gamedata
 import util
 from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr, create_cards
 from player import fmt_tbl
@@ -23,8 +24,6 @@ TILE_START = 2      # start tile
 TILE_GOAL = 3       # goal tile
 
 TILE_EVENT_RANGE = xrange(11, 21)
-
-
 
 class PlacementTbl(object):
     def __init__(self):
@@ -541,7 +540,7 @@ class Move(tornado.web.RequestHandler):
 
             # add cards
             if evt_cards:
-                cards = yield create_cards(userid, evt_cards, max_card_num, 1)
+                cards = yield create_cards(userid, evt_cards, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
 
             # battle
             if monGrpId:
@@ -772,7 +771,7 @@ class BattleResult(tornado.web.RequestHandler):
                             catched_mons.append(mon)
 
                     if catched_mons:
-                        catched_mons = yield create_cards(userid, catched_mons, max_card_num, 1)
+                        catched_mons = yield create_cards(userid, catched_mons, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
 
             # event
             events = cache["events"]
@@ -819,7 +818,7 @@ class BattleResult(tornado.web.RequestHandler):
 
             # add cards
             if evt_cards:
-                evt_cards = yield create_cards(userid, evt_cards, max_card_num, 1)
+                evt_cards = yield create_cards(userid, evt_cards, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
 
             # delete events
             if poskey in cache["events"]:
@@ -914,7 +913,7 @@ class CatchMonster(tornado.web.RequestHandler):
                             catched_mons.append(mon)
 
                     if catched_mons:
-                        catched_mons = yield create_cards(userid, catched_mons, max_card_num, 1)
+                        catched_mons = yield create_cards(userid, catched_mons, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
 
                     del cache["catchMons"]
 
@@ -1052,7 +1051,7 @@ class Complete(tornado.web.RequestHandler):
                     if cardid:
                         rwdcards.append(cardid)
                 if rwdcards:
-                    rwdcards = yield create_cards(userid, rwdcards, max_card_num, 1)
+                    rwdcards = yield create_cards(userid, rwdcards, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
 
                 ## reward max card number
                 num = int(evt_tbl.get_value(evtrow, "maxcardnum"))

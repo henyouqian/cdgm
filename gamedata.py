@@ -15,9 +15,9 @@ INIT_BANDS = [{"formation":1, "members":[None, None, None, None, None, None]} fo
 INIT_ITEMS = {1:10, 2:50, 3:50, 9:20}	# {3:5, 5:34} => id:count		7:bronzeCoin, 8:silverCoin
 INIT_WAGON = []
 
-WAGON_TYPE_GENERAL = 0
-WAGON_TYPE_TEMP = 1
-WAGON_TYPE_SOCIAL = 2
+WAGON_INDEX_GENERAL = 0
+WAGON_INDEX_TEMP = 1
+WAGON_INDEX_SOCIAL = 2
 WAGON_TEMP_DURATION = 60*60*24
 
 MONSTER_GROUP_MEMBER_MAX = 5

@@ -104,8 +104,8 @@ function Controller($scope, $http) {
 			alert("select user first")
 			return
 		}
-		var itemId = $scope.wagonItemIdInput
-		var itemNum = $scope.wagonItemNumInput
+		var itemId = $scope.itemIdInput
+		var itemNum = $scope.itemNumInput
 
 		if (!itemId || !itemNum) {
 			alert("need itemId and itemNum")
@@ -317,6 +317,30 @@ function Controller($scope, $http) {
 				$scope.$apply(function(){
 					$scope.cards.push(json.card)
 				})
+			}
+		})
+	}
+
+	$scope.addCardToWagon = function() {
+		try {
+			var userId = $scope.playerInfo.userId
+		} catch(err) {
+			alert("select user first")
+			return
+		}
+
+		var cardId = $scope.addCardProto
+		var cardLevel = $scope.addCardLevel
+		if ((!cardId) && (!cardLevel)) {
+			alert("fill the blank")
+			return
+		}
+		$.getJSON('/whapi/admin/addCardToWagon', {"userId": userId, "protoId": cardId, "level": cardLevel}, function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}else{
+				alert("addCardToWagon succeed: \n" + json.card.name)
 			}
 		})
 	}
