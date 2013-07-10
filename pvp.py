@@ -79,10 +79,6 @@ Z_PVP_BANDS = "Z_PVP_BANDS"
 H_PVP_BANDS = "H_PVP_BANDS"
 S_PVP_FOES = "S_PVP_FOES"
 
-H_PVP_FORMULA = "H_PVP_FORMULA"
-PRICE_RARITY_MUL = "PRICE_RARITY_MUL"
-g_price_rarity_mul = 1.0
-
 class AddTestRecord(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -134,8 +130,7 @@ def calc_pvp_score(card):
             skillRaritySum += int(skill_tbl.get(skillid, "rarity"))
 
     score = card["hp"] + card["atk"] + card["def"] + card["wis"] + card["agi"]
-    global g_price_rarity_mul
-    score += (price * skillRaritySum * g_price_rarity_mul)
+    score += (price * skillRaritySum)
     return score
 
 
@@ -314,11 +309,6 @@ class CreateTestData(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
-            # param
-            global g_price_rarity_mul
-            g_price_rarity_mul = float(self.get_argument("priceraritymul"))
-            yield util.redis().hset(H_PVP_FORMULA, PRICE_RARITY_MUL, g_price_rarity_mul)
-
             bands = []
             for card_row_key in card_tbl.iter_rowkeys():
                 username = card_tbl.get(card_row_key, "name")
@@ -356,23 +346,6 @@ class CreateTestData(tornado.web.RequestHandler):
             reply = util.new_reply()
             self.write(json.dumps(reply))
 
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
-
-
-class GetSettings(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @adisp.process
-    def get(self):
-        try:
-            price_rarity_mul = yield util.redis().hget(H_PVP_FORMULA, PRICE_RARITY_MUL)
-
-            # reply
-            reply = util.new_reply()
-            reply["priceRarityMul"] = price_rarity_mul
-            self.write(json.dumps(reply))
         except:
             send_internal_error(self)
         finally:
@@ -445,36 +418,25 @@ class GetRanks(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
-            t = time.time()
-
             r = redis.StrictRedis(host='localhost', port=6379, db=0)
-            r.zrevrange(Z_PVP_BANDS, 0, -1, withscores=True)
-            # print time.time() - t
-
-            t = time.time()
-            print("zrevrange begin")
-            ranks = yield util.redis().zrevrange(Z_PVP_BANDS, 0, -1, True)
-            print("zrevrange end")
-            dt =  time.time() - t
+            ranks = r.zrevrange(Z_PVP_BANDS, 0, -1, withscores=True)
             ranks = [{"id":rank[0], "score": rank[1]} for rank in ranks]
 
-
             for idx, rank in enumerate(ranks):
-                name, maxhp, maxdef, maxatk, maxwis, maxagi = \
-                    card_tbl.gets(rank["id"], "name", "maxhp", "maxatk", "maxdef", "maxwis", "maxagi")
+                name, maxhp, maxdef, maxatk, maxwis, maxagi, price = \
+                    card_tbl.gets(rank["id"], "name", "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "price")
                 rank["index"] = idx
                 rank["name"] = name
-                rank["maxhp"] = maxhp
-                rank["maxdef"] = maxdef
-                rank["maxatk"] = maxatk
-                rank["maxwis"] = maxwis
-                rank["maxagi"] = maxagi
-
+                rank["maxhp"] = int(maxhp)
+                rank["maxdef"] = int(maxdef)
+                rank["maxatk"] = int(maxatk)
+                rank["maxwis"] = int(maxwis)
+                rank["maxagi"] = int(maxagi)
+                rank["price"] = int(price)
 
             # reply
             reply = util.new_reply()
-            reply["time"] = dt
-            # reply["ranks"] = ranks
+            reply["ranks"] = ranks
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
@@ -516,13 +478,30 @@ class Test1(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+import redis
+class Test2(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        try:
+            r = redis.StrictRedis(host='localhost', port=6379, db=0)
+            foo = r.zrevrange(Z_PVP_BANDS, 0, -1)
+
+            # reply
+            reply = util.new_reply()
+            reply["foo"] = foo
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 
 handlers = [
     (r"/whapi/pvp/addtestrecord", AddTestRecord),
     (r"/whapi/pvp/createtestdata", CreateTestData),
     (r"/whapi/pvp/get3band", Get3Band),
-    (r"/whapi/pvp/getsettings", GetSettings),
     (r"/whapi/pvp/getranks", GetRanks),
     (r"/whapi/pvp/test", Test),
     (r"/whapi/pvp/test1", Test1),
+    (r"/whapi/pvp/test2", Test2),
 ]

@@ -1,17 +1,4 @@
 function Controller($scope, $http) {
-	function getPvpSettings() {
-		$.getJSON('/whapi/pvp/getsettings', function(json){
-			var err = json.error;
-			if (err){
-				errProc(err)
-			}else{
-				$scope.$apply(function(){
-					$scope.priceRarityMul = json.priceRarityMul
-				})
-			}
-		})
-	}
-	getPvpSettings()
 
 	function getPvpRanks() {
 		$.getJSON('/whapi/pvp/getranks', function(json){
@@ -35,16 +22,13 @@ function Controller($scope, $http) {
 	}
 
 	$scope.createTestData = function() {
-		if (!$scope.priceRarityMul) {
-			alert("need priceRarityMul")
-			return
-		}
-		$.getJSON('/whapi/pvp/createtestdata', {"priceraritymul": $scope.priceRarityMul}, function(json){
+		$.getJSON('/whapi/pvp/createtestdata', function(json){
 			var err = json.error;
 			if (err){
 				errProc(err)
 			}else{
 				$scope.$apply(function(){
+					getPvpRanks()
 					alert("ok")
 				});
 			}

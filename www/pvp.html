@@ -49,12 +49,10 @@
         <div class="span10">
           <section id="server-rolling">
             <div class="page-header">
-              <h2>战等公式</h2>
+              <h2>战等排名</h2>
             </div>
             <form>
-              (HP+ATK+DEF+WIS+AGI) + price*rarity*
-              <input type="text" style="width:50px;" ng-model="priceRarityMul" pattern="^[0-9]*\.?[0-9]+$">
-              <button class="btn btn-primary" ng-click="createTestData()">重新生成排名表</button>
+              <button class="btn btn-primary" ng-click="createTestData()">重新计算排名表</button>
             </form>
             
 
@@ -77,6 +75,7 @@
                       <th>maxdef</th>
                       <th>maxwis</th>
                       <th>maxagi</th>
+                      <th>price</th>
                     </thead>
                     <tbody>
                       <tr ng-repeat="rank in ranks">
@@ -89,6 +88,7 @@
                         <td>{{rank.maxdef}}</td>
                         <td>{{rank.maxwis}}</td>
                         <td>{{rank.maxagi}}</td>
+                        <td>{{rank.price}}</td>
                       </tr>
                     </tbody>
                   </table>
