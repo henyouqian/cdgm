@@ -9,6 +9,7 @@ import adisp
 
 import json
 import datetime
+import traceback
 
 @adisp.async
 @adisp.process
@@ -31,6 +32,7 @@ def add_cards(wagonidx, userid, cards, desc, callback):
         )
         callback(None)
     except Exception as e:
+        traceback.print_exc()
         callback(e)
 
 
@@ -55,6 +57,46 @@ def add_items(wagonidx, userid, items, desc, callback):
         )
         callback(None)
     except Exception as e:
+        traceback.print_exc()
+        callback(e)
+
+
+@adisp.async
+@adisp.process
+def check_expired(userid, callback):
+    try:
+        rows = yield util.whdb.runQuery(
+            """SELECT id, cardEntity FROM wagons
+                    WHERE userId=%s AND wagonIdx=%s AND time + INTERVAL 1 DAY < CURRENT_TIMESTAMP()"""
+            ,(userid, WAGON_INDEX_TEMP)
+        )
+        expired_ids = [row[0] for row in rows]
+        card_entity_ids = [row[1] for row in rows if row[1]]
+
+        # del from wagons
+        if expired_ids:
+            yield util.whdb.runOperationMany(
+                "DELETE FROM wagons WHERE id=%s",
+                ((eid, ) for eid in expired_ids)
+            )
+
+            # update badge
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET wagonTemp=wagonTemp-%s
+                        WHERE userId=%s"""
+                ,(len(expired_ids), userid)
+            )
+
+        # del from cardEntities
+        if card_entity_ids:
+            yield util.whdb.runOperationMany(
+                "DELETE FROM cardEntities WHERE id=%s",
+                ((cid, ) for cid in card_entity_ids)
+            )
+
+        callback(None)
+    except Exception as e:
+        traceback.print_exc()
         callback(e)
 
 
@@ -70,6 +112,10 @@ class GetCount(tornado.web.RequestHandler):
                 return
             user_id = session["userid"]
 
+            # check expired
+            yield check_expired(user_id)
+
+            # query data
             rows = yield util.whdb.runQuery(
                 """SELECT wagonGeneral, wagonTemp, wagonSocial FROM playerInfos
                         WHERE userId=%s"""
@@ -101,6 +147,9 @@ class List(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
             user_id = session["userid"]
+
+            # check expired
+            yield check_expired(user_id)
 
             # post input
             post_input = json.loads(self.request.body)
