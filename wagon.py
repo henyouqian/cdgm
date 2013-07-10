@@ -1,6 +1,6 @@
 ﻿from session import *
 from error import *
-from gamedata import WAGON_TEMP_DURATION
+from gamedata import WAGON_TEMP_DURATION, WAGON_INDEX_TEMP
 import util
 import card as mdl_card
 
@@ -151,157 +151,6 @@ class List(tornado.web.RequestHandler):
             self.finish()
 
 
-class _Accept(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @adisp.process
-    def get(self):
-        try:
-            # session
-            session = yield find_session(self)
-            if not session:
-                send_error(self, err_auth)
-                return
-            user_id = session["userid"]
-
-            # params
-            try:
-                wagon_idx = int(self.get_argument("wagonidx"))
-                key = self.get_argument("key", None)
-            except:
-                send_error(self, err_param)
-                return
-
-            # query
-            field_strs = ["wagonGeneral", "wagonTemp", "wagonSocial"]
-            rows = yield util.whdb.runQuery(
-                """SELECT {}, items, maxCardNum FROM playerInfos
-                        WHERE userId=%s""".format(field_strs[wagon_idx])
-                ,(user_id,)
-            )
-            row = rows[0]
-            wagon_items = json.loads(row[0])
-            items = json.loads(row[1])
-            max_card_num = row[2]
-
-            # 
-            del_objs = []
-            add_items = []
-            add_cards = []
-
-            card_accept_remain = None
-            find_key = False
-            for raw_item in wagon_items:
-                wagon_item = Wagon.transToDict(raw_item)
-                wagon_item_time = util.parse_datetime(wagon_item["time"])
-
-                # if key specified
-                if key:
-                    if key != wagon_item["key"]:
-                        continue
-                    else:
-                        find_key = True
-
-                # check expired
-                if wagon_idx == WAGON_TYPE_TEMP:
-                    time_delta = datetime.timedelta(seconds=WAGON_TEMP_DURATION)
-                    if util.utc_now() > wagon_item_time + time_delta:
-                        del_objs.append(wagon_item)
-                        continue
-
-                # card
-                if Wagon.isCard(wagon_item):
-                    if card_accept_remain == None:
-                        rows = yield util.whdb.runQuery(
-                            """SELECT COUNT(1) FROM cardEntities
-                                    WHERE ownerId=%s AND inPackage=1"""
-                            ,(user_id,)
-                        )
-                        card_num = rows[0][0]
-                        card_accept_remain = max_card_num - card_num
-
-                    # check if full
-                    if card_accept_remain <= 0:
-                        continue
-                    else:
-                        card_accept_remain -= 1
-
-                    del_objs.append(raw_item)
-                    add_cards.append(wagon_item)
-                    
-                # item
-                else:
-                    del_objs.append(raw_item)
-                    add_items.append(wagon_item)
-
-                if find_key:
-                    break
-
-            # del from wagon
-            if del_objs:
-                wagon_items = [item for item in wagon_items if item not in del_objs]
-
-            # add items
-            out_items = []
-            if add_items:
-                for wagon_item in add_items:
-                    wagon_item_id = wagon_item["itemId"]
-                    wagon_item_num = wagon_item["itemNum"]
-                    if wagon_item_id in items:
-                        items[wagon_item_id] += wagon_item_num
-                    else:
-                        items[wagon_item_id] = wagon_item_num
-                    out_items.append({"id": wagon_item_id, "num": wagon_item_num})
-
-            # update player info
-            if add_items or del_objs:
-                yield util.whdb.runOperation(
-                    """UPDATE playerInfos SET items=%s, {}=%s
-                            WHERE userId=%s""".format(field_strs[wagon_idx])
-                    ,(json.dumps(items), json.dumps(wagon_items), user_id)
-                )
-
-            # add cards
-            out_cards = []
-            if add_cards:
-                ids = ",".join([str(card["cardEntity"]) for card in add_cards])
-                fields = ["id", "protoId", "level", "exp", "inPackage", 
-                            "skill1Id", "skill1Level", "skill1Exp", 
-                            "skill2Id", "skill2Level", "skill2Exp", 
-                            "skill3Id", "skill3Level", "skill3Exp", 
-                            "hp", "atk", "def", "wis", "agi",
-                            "hpCrystal", "atkCrystal", "defCrystal", "wisCrystal", "agiCrystal",
-                            "hpExtra", "atkExtra", "defExtra", "wisExtra", "agiExtra"]
-
-                rows = yield util.whdb.runQuery(
-                    """SELECT {} FROM cardEntities 
-                            WHERE id IN ({}) AND ownerId=%s AND inPackage=0""".format(",".join(fields), ids)
-                    ,(user_id,)
-                )
-                
-                for row in rows:
-                    card = dict(zip(fields, row))
-                    out_cards.append(card)
-
-                yield util.whdb.runOperation(
-                    """UPDATE cardEntities SET inPackage = 1
-                            WHERE id IN ({}) AND ownerId=%s""".format(ids)
-                    ,(user_id,)
-                )
-
-            # reply
-            reply = util.new_reply()
-            reply["wagonIdx"] = wagon_idx
-            reply["keys"] = [obj[0] for obj in del_objs]
-            reply["items"] = out_items
-            reply["cards"] = out_cards
-            self.write(json.dumps(reply))
-
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
-
-
 class Accept(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -342,18 +191,20 @@ class Accept(tornado.web.RequestHandler):
             del_objs = []
             accepted_items = []
             accepted_cards = []
+            expired_cards = []
             card_accept_remain = None
             info = ""
             del_nums = [0, 0, 0]
 
             for obj in wagon_objs:
                 # check if expired
-                if obj["wagonIdx"] == WAGON_TYPE_TEMP:
+                if obj["wagonIdx"] == WAGON_INDEX_TEMP:
                     time_delta = datetime.timedelta(seconds=WAGON_TEMP_DURATION)
                     if util.utc_now() > obj["time"] + time_delta:
                         del_objs.append(obj)
                         info = "expired"
                         del_nums[obj["wagonIdx"]] += 1
+                        expired_cards.append(obj)
                         continue
                 # item
                 if obj["itemId"]:
@@ -433,6 +284,15 @@ class Accept(tornado.web.RequestHandler):
                 ids = ",".join([str(obj["id"]) for obj in del_objs]) 
                 yield util.whdb.runOperation(
                     """DELETE FROM wagons
+                            WHERE id IN ({}) AND userId=%s""".format(ids)
+                    ,(user_id,)
+                )
+
+            # del expired cards
+            if expired_cards:
+                ids = ",".join([str(obj["cardEntity"]) for obj in del_objs])
+                yield util.whdb.runOperation(
+                    """DELETE FROM cardEntities
                             WHERE id IN ({}) AND userId=%s""".format(ids)
                     ,(user_id,)
                 )
