@@ -196,7 +196,7 @@ class List(tornado.web.RequestHandler):
 
             # reply
             reply = util.new_reply()
-            reply["waginIdx"] = wagon_idx
+            reply["wagonIdx"] = wagon_idx
             reply["totalCount"] = row[wagon_idx]
             reply["items"] = items
             reply["cards"] = cards
