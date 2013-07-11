@@ -186,10 +186,18 @@ class List(tornado.web.RequestHandler):
                     d["cardProto"] = entry["cardProto"]
                     cards.append(d)
 
+            # get this wagon's obj count
+            rows = yield util.whdb.runQuery(
+                """SELECT wagonGeneral, wagonTemp, wagonSocial FROM playerInfos
+                        WHERE userId=%s"""
+                ,(user_id,)
+            )
+            row = rows[0]
+
             # reply
             reply = util.new_reply()
             reply["waginIdx"] = wagon_idx
-            reply["totalCount"] = 0
+            reply["totalCount"] = row[wagon_idx]
             reply["items"] = items
             reply["cards"] = cards
             self.write(json.dumps(reply))

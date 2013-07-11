@@ -411,8 +411,7 @@ class Get3Band(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-import time
-import profiler
+
 class GetRanks(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -442,7 +441,6 @@ class GetRanks(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
-            profiler.print_all()
 
 class Test(tornado.web.RequestHandler):
     @tornado.web.asynchronous

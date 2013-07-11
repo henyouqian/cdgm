@@ -238,7 +238,7 @@ class GetPact(tornado.web.RequestHandler):
                 items[cost_item_id] -= cost_num
 
             # create cards
-            cards = yield create_cards(user_id, card_ids, max_card_num, wagon_index)
+            cards = yield create_cards(user_id, card_ids, max_card_num, wagon_index, 1)
 
             # real pay and set wagon
             yield util.whdb.runOperation(
