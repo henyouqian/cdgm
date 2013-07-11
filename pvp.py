@@ -312,9 +312,9 @@ class CreateTestData(tornado.web.RequestHandler):
             bands = []
             for card_row_key in card_tbl.iter_rowkeys():
                 username = card_tbl.get(card_row_key, "name")
-                proto, price, hp, atk, dfs, wis, agi, maxlv, skillid1= \
+                proto, price, hp, atk, dfs, wis, agi, maxlv, skillid1, skillid2= \
                     map(int, card_tbl.gets(card_row_key, "ID", "price", \
-                    "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "maxlevel", "skillid1"))
+                    "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "maxlevel", "skillid1", "skillid2"))
 
                 band = [{
                     "protoId": proto,
@@ -326,8 +326,8 @@ class CreateTestData(tornado.web.RequestHandler):
                     "agi":agi,
                     "skill1Id":skillid1,
                     "skill1Level":20,
-                    "skill2Id":0,
-                    "skill2Level":0,
+                    "skill2Id":skillid2,
+                    "skill2Level":20,
                     "skill3Id":0,
                     "skill3Level":0
                 }] * 5
@@ -414,7 +414,7 @@ class Get3Band(tornado.web.RequestHandler):
 
 class GetRanks(tornado.web.RequestHandler):
     @tornado.web.asynchronous
-    @adisp.process
+    # @adisp.process
     def get(self):
         try:
             r = redis.StrictRedis(host='localhost', port=6379, db=0)
