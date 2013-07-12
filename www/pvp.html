@@ -52,6 +52,15 @@
               (HP+ATK+DEF+WIS+AGI) + (price*skillRaritySum) * 
               <input type="text" style="width:80px;" ng-model="formula.priceSkillMul" pattern="^[0-9]*\.?[0-9]+$" placeholder="multiplier">
               <button class="btn btn-primary" ng-click="createTestData()">重新计算排名表</button>
+              <br><br>
+              <input type="text" style="width:60px;" ng-model="card1" pattern="[0-9]*" placeholder="card1">
+              <input type="text" style="width:60px;" ng-model="card2" pattern="[0-9]*" placeholder="card2">
+              <input type="text" style="width:60px;" ng-model="card3" pattern="[0-9]*" placeholder="card3">
+              <input type="text" style="width:60px;" ng-model="card4" pattern="[0-9]*" placeholder="card4">
+              <input type="text" style="width:60px;" ng-model="card5" pattern="[0-9]*" placeholder="card5">
+              &nbsp;&nbsp;&nbsp;
+              <input type="text" style="width:60px;" ng-model="matchNo" pattern="[0-9]*" placeholder="match No.">
+              <button class="btn btn-primary" ng-click="pvpMatch()">匹配</button>
             </form>
             
             <div class="accordion-group">

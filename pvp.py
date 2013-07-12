@@ -471,6 +471,56 @@ class GetRanks(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class Match(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def post(self):
+        try:
+            # post data
+            post_input = json.loads(self.request.body)
+            cards = post_input["cards"]
+            matchNo = post_input["matchNo"]
+
+            priceSkillMul = yield util.redis().hget(H_PVP_FORMULA, "priceSkillMul")
+            priceSkillMul = float(priceSkillMul)
+
+            score = 0
+            for proto in cards:
+                username = card_tbl.get(proto, "name")
+                price, hp, atk, dfs, wis, agi, maxlv, skillid1, skillid2= \
+                    map(int, card_tbl.gets(proto, "price", \
+                    "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "maxlevel", "skillid1", "skillid2"))
+
+                card = {
+                    "protoId": proto,
+                    "level":maxlv,
+                    "hp":hp,
+                    "atk":atk,
+                    "def":dfs,
+                    "wis":wis,
+                    "agi":agi,
+                    "skill1Id":skillid1,
+                    "skill1Level":20,
+                    "skill2Id":skillid2,
+                    "skill2Level":20,
+                    "skill3Id":0,
+                    "skill3Level":0
+                }
+                
+                score += calc_pvp_score(card, priceSkillMul)
+            
+            # reply
+            reply = util.new_reply()
+            reply["score"] = score
+            reply["matchBands"] = []
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
 class Test(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -568,6 +618,7 @@ handlers = [
     (r"/whapi/pvp/get3band", Get3Band),
     (r"/whapi/pvp/getranks", GetRanks),
     (r"/whapi/pvp/getformula", GetFormula),
+    (r"/whapi/pvp/match", Match),
     (r"/whapi/pvp/test", Test),
     (r"/whapi/pvp/test1", Test1),
     (r"/whapi/pvp/test2", Test2),
