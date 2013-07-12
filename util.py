@@ -9,6 +9,7 @@ import random
 import logging
 import os
 from tornado import options
+import toredis
 import __builtin__
 
 
@@ -266,17 +267,25 @@ def redis_pipe_execute(pipe):
 authdb = None
 whdb = None
 ar = None
+tr = None
 def init_db(): 
-    global authdb, whdb, ar
+    global authdb, whdb, ar, tr
     authdb = adb.Database(**config.auth_db)
     whdb = adb.Database(**config.wh_db)
     ar = aredis.Redis()
+    tr = toredis.Client()
+
+    def onConnect():
+        pass
+    tr.connect(callback=onConnect)
+
 
 def stop_db():
-    global authdb, whdb, ar
+    global authdb, whdb, ar, tr
     authdb.stop()
     whdb.stop()
     ar.stop()
+    tr.close()
 
 # logging
 def init_logger(debug):
@@ -298,6 +307,6 @@ def init_logger(debug):
     FORMAT = '[%(levelname)s %(asctime)-15s %(filename)s:%(levelno)s] %(message)s'
     formatter = logging.Formatter(fmt=FORMAT)
 
-    handler = logging.handlers.TimedRotatingFileHandler("log/wh.log", when='midnight', interval=1)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    # handler = logging.handlers.TimedRotatingFileHandler("log/wh.log", when='midnight', interval=1)
+    # handler.setFormatter(formatter)
+    # logger.addHandler(handler)

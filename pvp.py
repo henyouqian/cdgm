@@ -3,7 +3,7 @@ from error import *
 import util
 from card import card_tbl, skill_tbl
 
-import tornado.web
+import tornado.web, tornado.gen
 import adisp
 
 import json
@@ -490,9 +490,48 @@ class Test2(tornado.web.RequestHandler):
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
+        
+import toredis
+class Toredis(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        util.tr.zrevrange(Z_PVP_BANDS, 0, -1, callback=self.onResult)
+        
+    def onResult(self, result):
+        # reply
+        reply = util.new_reply()
+        reply["result"] = result
+        self.write(json.dumps(reply))
+
+        self.finish()
+
+class ToredisAdisp(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            foo = yield adisp.async(util.tr.zrevrange)(Z_PVP_BANDS, 0, -1)
+            reply = util.new_reply()
+            reply["foo"] = foo
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
         finally:
             self.finish()
 
+class ToredisGen(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @tornado.gen.engine
+    def get(self):
+        try:
+            foo = yield tornado.gen.Task(util.tr.zrevrange, Z_PVP_BANDS, 0, -1)
+            reply = util.new_reply()
+            reply["foo"] = foo
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
 
 handlers = [
     (r"/whapi/pvp/addtestrecord", AddTestRecord),
@@ -502,4 +541,7 @@ handlers = [
     (r"/whapi/pvp/test", Test),
     (r"/whapi/pvp/test1", Test1),
     (r"/whapi/pvp/test2", Test2),
+    (r"/whapi/pvp/toredis", Toredis),
+    (r"/whapi/pvp/toredisa", ToredisAdisp),
+    (r"/whapi/pvp/toredisg", ToredisGen),
 ]
