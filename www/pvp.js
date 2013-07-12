@@ -1,5 +1,19 @@
 function Controller($scope, $http) {
 
+	function getFormula() {
+		$.getJSON('/whapi/pvp/getformula', function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.formula = json.formula
+				})
+			}
+		})
+	}
+	getFormula()
+
 	function getPvpRanks() {
 		$.getJSON('/whapi/pvp/getranks', function(json){
 			var err = json.error;
@@ -22,7 +36,12 @@ function Controller($scope, $http) {
 	}
 
 	$scope.createTestData = function() {
-		$.getJSON('/whapi/pvp/createtestdata', function(json){
+		var priceSkillMul = $scope.formula.priceSkillMul
+		if (!priceSkillMul) {
+			alert("need priceSkillMul")
+			return
+		}
+		$.getJSON('/whapi/pvp/createtestdata', {"priceSkillMul": priceSkillMul}, function(json){
 			var err = json.error;
 			if (err){
 				errProc(err)

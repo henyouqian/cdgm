@@ -33,9 +33,6 @@
   <body ng-app>
     <div class="container" id="top" ng-controller="Controller">
       <h1>PVP</h1>
-      <!-- <button class="btn" ng-click="toTop()">
-        <i class="icon-arrow-up"></i>top
-      </button> -->
       
       <div class="row">
         <div class="span2">
@@ -52,10 +49,11 @@
               <h2>战等排名</h2>
             </div>
             <form>
+              (HP+ATK+DEF+WIS+AGI) + (price*skillRaritySum) * 
+              <input type="text" style="width:80px;" ng-model="formula.priceSkillMul" pattern="^[0-9]*\.?[0-9]+$" placeholder="multiplier">
               <button class="btn btn-primary" ng-click="createTestData()">重新计算排名表</button>
             </form>
             
-
             <div class="accordion-group">
               <div class="accordion-heading">
                 <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">

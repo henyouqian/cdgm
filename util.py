@@ -307,6 +307,6 @@ def init_logger(debug):
     FORMAT = '[%(levelname)s %(asctime)-15s %(filename)s:%(levelno)s] %(message)s'
     formatter = logging.Formatter(fmt=FORMAT)
 
-    # handler = logging.handlers.TimedRotatingFileHandler("log/wh.log", when='midnight', interval=1)
-    # handler.setFormatter(formatter)
-    # logger.addHandler(handler)
+    handler = logging.handlers.TimedRotatingFileHandler("log/wh.log", when='midnight', interval=1)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)

@@ -79,6 +79,9 @@ Z_PVP_BANDS = "Z_PVP_BANDS"
 H_PVP_BANDS = "H_PVP_BANDS"
 S_PVP_FOES = "S_PVP_FOES"
 
+H_PVP_FORMULA = "H_PVP_FORMULA"
+
+
 class AddTestRecord(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -103,7 +106,7 @@ class AddTestRecord(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-def calc_pvp_score(card):
+def calc_pvp_score(card, priceSkillMul):
     """
         card: {
             "protoId":int,
@@ -130,11 +133,11 @@ def calc_pvp_score(card):
             skillRaritySum += int(skill_tbl.get(skillid, "rarity"))
 
     score = card["hp"] + card["atk"] + card["def"] + card["wis"] + card["agi"]
-    score += (price * skillRaritySum)
+    score += (price * skillRaritySum * priceSkillMul)
     return score
 
 
-def calc_player_pvp_score(userid, bands, cards):
+def calc_player_pvp_score(userid, bands, cards, priceSkillMul):
     """
         bands: [
             {
@@ -166,6 +169,7 @@ def calc_player_pvp_score(userid, bands, cards):
     """
     # calc pvp score
     pvp_score = 0
+
     for band in bands:
         band_score = 0
         formation = int(band["formation"])
@@ -178,10 +182,10 @@ def calc_player_pvp_score(userid, bands, cards):
             score1 = score2 = 0
             card_id = members[col]
             if card_id:
-                score1 = calc_pvp_score(cards[card_id])
+                score1 = calc_pvp_score(cards[card_id], priceSkillMul)
             card_id = members[col+colnum]
             if card_id:
-                score2 = calc_pvp_score(cards[card_id])
+                score2 = calc_pvp_score(cards[card_id], priceSkillMul)
             band_score += max(score1, score2)
         pvp_score = max(pvp_score, band_score)
 
@@ -216,9 +220,10 @@ def submit_pvp_band(userid, username, band, callback):
     try:
         # calc pvp score
         pvp_score = 0
+        priceSkillMul = yield util.redis().hget(H_PVP_FORMULA, "priceSkillMul")
         for card in band:
             if card:
-                score = calc_pvp_score(card)
+                score = calc_pvp_score(card, priceSkillMul)
                 pvp_score += score
 
         # update to redis
@@ -269,6 +274,9 @@ def submit_pvp_bands(pvp_bands, callback):
     try:
         pipe = util.redis_pipe()
 
+        priceSkillMul = yield util.redis().hget(H_PVP_FORMULA, "priceSkillMul")
+        priceSkillMul = float(priceSkillMul)
+
         for pvp_band in pvp_bands:
             # calc pvp score
             pvp_score = 0
@@ -276,7 +284,7 @@ def submit_pvp_bands(pvp_bands, callback):
             userid = pvp_band["userId"]
             for card in pvp_band["band"]:
                 if card:
-                    score = calc_pvp_score(card)
+                    score = calc_pvp_score(card, priceSkillMul)
                     pvp_score += score
             pvp_band["score"] = pvp_score
 
@@ -309,6 +317,10 @@ class CreateTestData(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # param
+            priceSkillMul = float(self.get_argument("priceSkillMul"))
+            yield util.redis().hset(H_PVP_FORMULA, "priceSkillMul", priceSkillMul)
+
             bands = []
             for card_row_key in card_tbl.iter_rowkeys():
                 username = card_tbl.get(card_row_key, "name")
@@ -411,6 +423,23 @@ class Get3Band(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+class GetFormula(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            formula = yield util.redis().hgetall(H_PVP_FORMULA)
+            for k, v in formula.iteritems():
+                formula[k] = float(v)
+
+            # reply
+            reply = util.new_reply()
+            reply["formula"] = formula
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
 
 class GetRanks(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -538,6 +567,7 @@ handlers = [
     (r"/whapi/pvp/createtestdata", CreateTestData),
     (r"/whapi/pvp/get3band", Get3Band),
     (r"/whapi/pvp/getranks", GetRanks),
+    (r"/whapi/pvp/getformula", GetFormula),
     (r"/whapi/pvp/test", Test),
     (r"/whapi/pvp/test1", Test1),
     (r"/whapi/pvp/test2", Test2),
