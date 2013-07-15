@@ -626,6 +626,13 @@ class Sacrifice(tornado.web.RequestHandler):
                     master_card["id"], user_id)
             )
 
+            master_card["skill1Level"] = skills[0]["level"]
+            master_card["skill2Level"] = skills[1]["level"]
+            master_card["skill3Level"] = skills[2]["level"]
+            master_card["skill1Exp"] = skills[0]["exp"]
+            master_card["skill2Exp"] = skills[1]["exp"]
+            master_card["skill3Exp"] = skills[2]["exp"]
+
             # delete sacrificed cards
             sacrifice_ids = [str(card["id"]) for card in sacrifice_cards]
             yield util.whdb.runOperation(
