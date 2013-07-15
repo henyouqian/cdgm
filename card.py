@@ -539,8 +539,7 @@ class Sacrifice(tornado.web.RequestHandler):
 
             # ensure sacrificers no repeat
             cards_len = len(card_ids)
-            card_ids = list(set(card_ids))
-            if len(card_ids) != cards_len:
+            if len(set(card_ids)) != cards_len:
                 raise Exception("cards repeated")
 
             # query cardEntities
