@@ -516,13 +516,14 @@ class Sacrifice(tornado.web.RequestHandler):
             user_id = session["userid"]
 
             # post input
-            cards = json.loads(self.request.body)
-            card_num = len(cards)
-            if card_num < 2 or card_num > 9:
-                raise Exception("card_num < 2 or card_num > 9")
-            for card in cards:
-                if type(card) != int:
-                    raise Exception("id must be int")
+            input_data = json.loads(self.request.body)
+            master = input_data["master"]
+            sacrificers = input_data["sacrificers"]
+
+            # validation sacrificers
+            sf_num = len(sacrificers)
+            if sf_num < 1 or sf_num > 8:
+                raise Exception("wrong sacrificers count: %d" % sf_num)
 
             # get player info
             rows = yield util.whdb.runQuery(
@@ -534,26 +535,35 @@ class Sacrifice(tornado.web.RequestHandler):
             warlord = rows[0][1]
 
             # get cards info
+            card_ids = [master] + sacrificers
+
+            # ensure sacrificers no repeat
+            cards_len = len(card_ids)
+            card_ids = list(set(card_ids))
+            if len(card_ids) != cards_len:
+                raise Exception("cards repeated")
+
+            # query cardEntities
             fields = ["id", "protoId", "skill1Id", "skill1Level", "skill1Exp", 
                 "skill2Id", "skill2Level", "skill2Exp", "skill3Id", "skill3Level", "skill3Exp"]
-            rows = yield util.whdb.runQueryMany(
+            rows = yield util.whdb.runQuery(
                 """SELECT {} FROM cardEntities
-                        WHERE id=%s AND ownerId = %s""".format(",".join(fields))
-                ,((card, user_id) for card in cards)
+                        WHERE id IN ({}) AND ownerId = %s""".format(",".join(fields), ",".join(map(str, card_ids)))
+                ,(user_id,)
             )
-            if len(rows) != len(cards):
-                raise Exception("error card id")
+            if len(rows) != len(card_ids):
+                raise Exception("error card id, maybe some of cards not yours or not exists.")
 
             # make query result to dict
             master_card = None
             sacrifice_cards = []
             for row in rows:
                 card = dict(zip(fields, row))
-                if warlord == card["id"]:
-                    raise Exception("found warlord")
-                if row[0] == cards[0]:
+                if card["id"] == card_ids[0]:
                     master_card = card
                 else:
+                    if warlord == card["id"]:
+                        raise Exception("warlord cannot be sacrificed")
                     sacrifice_cards.append(card)
 
             if (not master_card) or (not sacrifice_cards):
@@ -574,33 +584,24 @@ class Sacrifice(tornado.web.RequestHandler):
             ]
             skillids = card_tbl.gets(master_card["protoId"], "skillid1", "skillid2")
             skillids = [int(skill) for skill in skillids]
-            rarities = [int(skill_tbl.get(sid, "rarity")) if sid else 0 for sid in skillids]
             total_cost = 0
             for skill in skills:
                 sid = skill["id"]
                 level = skill["level"]
-                if sid:
+                if sid and level < 20:
                     skill["exp"] += exp_add
                     rarity = int(skill_tbl.get(sid, "rarity"))
-                    first_try = True
-                    exp_alread_full = False
+                    total_cost += int(skill_level_tbl.get((rarity, level), "costMoney")) * sf_num
+
                     while 1:
-                        try:
-                            next_exp = skill_level_tbl.get((rarity, level + 1, "exp"))
-                            if skill["exp"] < next_exp:
-                                break
-                            else:
-                                level += 1
-                        except:
-                            skill["exp"] = skill_level_tbl.get((rarity, level, "exp"))
-                            if first_try:   # exp full
-                                exp_alread_full = True
+                        if level == 20:
                             break
-
+                        next_exp = int(skill_level_tbl.get((rarity, level + 1), "exp"))
+                        if skill["exp"] < next_exp:
+                            break
+                        else:
+                            level += 1
                     skill["level"] = level
-
-                    if not exp_full:
-                        total_cost += skill_level_tbl.get((rarity, level), "costMoney")
 
             # check and spend money
             money -= total_cost
@@ -611,15 +612,6 @@ class Sacrifice(tornado.web.RequestHandler):
                 """UPDATE playerInfos SET money=%s
                         WHERE userId=%s"""
                 ,(money, user_id)
-            )
-
-            # delete absorbed cards
-            sacrifice_ids = [str(card["id"]) for card in sacrifice_cards]
-
-            yield util.whdb.runOperation(
-                """DELETE FROM cardEntities WHERE id ({}) AND ownerId=%s
-                    """.format(",".join(sacrifice_ids))
-                ,(user_id, )
             )
 
             # update card
@@ -633,6 +625,14 @@ class Sacrifice(tornado.web.RequestHandler):
                     skills[1]["level"], skills[1]["exp"], 
                     skills[2]["level"], skills[2]["exp"], 
                     master_card["id"], user_id)
+            )
+
+            # delete sacrificed cards
+            sacrifice_ids = [str(card["id"]) for card in sacrifice_cards]
+            yield util.whdb.runOperation(
+                """DELETE FROM cardEntities WHERE id IN ({}) AND ownerId=%s
+                    """.format(",".join(sacrifice_ids))
+                ,(user_id, )
             )
 
             # reply
