@@ -574,7 +574,7 @@ import toredis
 class Toredis(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
-        util.tr.zrevrange(Z_PVP_BANDS, 0, -1, callback=self.onResult)
+        util.tr().zrevrange(Z_PVP_BANDS, 0, -1, callback=self.onResult)
         
     def onResult(self, result):
         # reply
@@ -589,7 +589,7 @@ class ToredisAdisp(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
-            foo = yield adisp.async(util.tr.zrevrange)(Z_PVP_BANDS, 0, -1)
+            foo = yield adisp.async(util.tr().zrevrange)(Z_PVP_BANDS, 0, -1)
             reply = util.new_reply()
             reply["foo"] = foo
             self.write(json.dumps(reply))
@@ -603,7 +603,8 @@ class ToredisGen(tornado.web.RequestHandler):
     @tornado.gen.engine
     def get(self):
         try:
-            foo = yield tornado.gen.Task(util.tr.zrevrange, Z_PVP_BANDS, 0, -1)
+            for i in xrange(10):
+                foo = yield tornado.gen.Task(util.tr().zrevrange, Z_PVP_BANDS, 0, -1)
             reply = util.new_reply()
             reply["foo"] = foo
             self.write(json.dumps(reply))

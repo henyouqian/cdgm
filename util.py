@@ -267,25 +267,27 @@ def redis_pipe_execute(pipe):
 authdb = None
 whdb = None
 ar = None
-tr = None
+toredis_pool = None
+
 def init_db(): 
-    global authdb, whdb, ar, tr
+    global authdb, whdb, ar, toredis_pool
     authdb = adb.Database(**config.auth_db)
     whdb = adb.Database(**config.wh_db)
     ar = aredis.Redis()
-    tr = toredis.Client()
-
-    def onConnect():
-        pass
-    tr.connect(callback=onConnect)
+    toredis_pool = toredis.client.ClientPool()
 
 
 def stop_db():
-    global authdb, whdb, ar, tr
+    global authdb, whdb, ar, toredis_pool
     authdb.stop()
     whdb.stop()
     ar.stop()
-    tr.close()
+
+    del toredis_pool
+
+def tr():
+    global toredis_pool
+    return toredis_pool.get_client()
 
 # logging
 def init_logger(debug):

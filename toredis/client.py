@@ -2,6 +2,7 @@ import logging
 import socket
 
 from collections import deque
+from functools import wraps
 
 import hiredis
 
@@ -13,6 +14,12 @@ from toredis.commands import RedisCommandsMixin
 
 
 logger = logging.getLogger(__name__)
+
+
+try:
+    string = unicode
+except NameError:
+    string = str
 
 
 class Client(RedisCommandsMixin):
@@ -33,7 +40,7 @@ class Client(RedisCommandsMixin):
         self.reader = None
         self.callbacks = deque()
 
-        self._sub_callback = False
+        self._sub_callback = None
 
     def connect(self, host='localhost', port=6379, callback=None):
         """
@@ -93,9 +100,15 @@ class Client(RedisCommandsMixin):
 
         # Send command
         self._stream.write(self.format_message(args))
+        cb = callback
         if callback is not None:
-            callback = stack_context.wrap(callback)
-        self.callbacks.append(callback)
+            @stack_context.wrap
+            @wraps(callback)
+            def cb(resp):
+                if isinstance(resp, Exception):
+                    raise resp
+                callback(resp)
+        self.callbacks.append(cb)
 
     def format_message(self, args):
         """
@@ -107,9 +120,10 @@ class Client(RedisCommandsMixin):
         l = "*%d" % len(args)
         lines = [l.encode('utf-8')]
         for arg in args:
-            if not isinstance(arg, basestring):
-                arg = str(arg)
-            arg = arg.encode('utf-8')
+            if not isinstance(arg, (bytes, string)):
+                arg = string(arg)
+            if not isinstance(arg, bytes):
+                arg = arg.encode('utf-8')
             l = "$%d" % len(arg)
             lines.append(l.encode('utf-8'))
             lines.append(arg)
@@ -169,7 +183,7 @@ class Client(RedisCommandsMixin):
         resp = self.reader.gets()
 
         while resp is not False:
-            if self._sub_callback:
+            if self._sub_callback is not None:
                 try:
                     self._sub_callback(resp)
                 except:
@@ -182,6 +196,8 @@ class Client(RedisCommandsMixin):
                             callback(resp)
                         except:
                             logger.exception('Callback failed')
+                    elif isinstance(resp, Exception):
+                        logger.error(resp)
                 else:
                     logger.debug('Ignored response: %s' % repr(resp))
 
@@ -216,3 +232,47 @@ class Client(RedisCommandsMixin):
     def _reset(self):
         self.reader = hiredis.Reader()
         self._sub_callback = None
+
+
+class ClientPool(RedisCommandsMixin):
+
+    client_cls = Client
+
+    def __init__(self, db=0, password=None, host='localhost', port=6379,
+                    unix_socket=None, max_clients=20, io_loop=None):
+        self._db = db
+        self._password = password
+        self._host = host
+        self._port = port
+        self._unix_socket = unix_socket
+        self._max_clients = max_clients
+        self._pool = []
+        self._io_loop = io_loop or IOLoop.instance()
+
+    def send_message(self, args, callback=None):
+        self.get_client().send_message(args, callback)
+
+    def make_client(self):
+        cli = self.client_cls(self._io_loop)
+        self._pool.insert(0, cli)
+        if self._unix_socket is not None:
+            cli.connect_usocket(self._unix_socket)
+        else:
+            cli.connect(self._host, self._port)
+        if self._password is not None:
+            cli.auth(self._password)
+        cli.select(self._db)
+        return cli
+
+    def get_client(self):
+        if not self._pool:
+            return self.make_client()
+        self._pool.sort(key=lambda c: len(c.callbacks))
+        cli = self._pool[0]
+        if not cli.is_idle() and len(self._pool) < self._max_clients:
+            return self.make_client()
+        if not cli.is_connected():
+            self._pool.pop(0)
+            return self.make_client()
+        return cli
+
