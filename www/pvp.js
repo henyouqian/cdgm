@@ -57,15 +57,15 @@ function Controller($scope, $http) {
 	$scope.pvpMatch = function() {
 		cards = []
 		if ($scope.card1)
-			cards.push($scope.card1)
+			cards.push(parseInt($scope.card1))
 		if ($scope.card2)
-			cards.push($scope.card2)
+			cards.push(parseInt($scope.card2))
 		if ($scope.card3)
-			cards.push($scope.card3)
+			cards.push(parseInt($scope.card3))
 		if ($scope.card4)
-			cards.push($scope.card4)
+			cards.push(parseInt($scope.card4))
 		if ($scope.card5)
-			cards.push($scope.card5)
+			cards.push(parseInt($scope.card5))
 
 		if (cards.length == 0) {
 			alert("empty cards!")
@@ -76,7 +76,7 @@ function Controller($scope, $http) {
 			return
 		}
 
-		var post_data = {"cards":cards, "matchNo":$scope.matchNo}
+		var post_data = {"cards":cards, "matchNo":parseInt($scope.matchNo)}
 		post_data = JSON.stringify(post_data)
 
 		$.post('/whapi/pvp/match', post_data, function(json){
@@ -86,7 +86,7 @@ function Controller($scope, $http) {
 			}else{
 				$scope.$apply(function(){
 					$scope.matchBands = json.bands
-					alert(json.score)
+					alert(JSON.stringify(json))
 				})
 			}
 		}, "json")
