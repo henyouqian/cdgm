@@ -27,7 +27,7 @@ import redis
         value: {
             "userName":string,
             "score":int,
-            "band":{
+            "card":{
                 "protoId":int,
                 "level":int,
                 "hp":int,
@@ -52,7 +52,7 @@ import redis
                 "userId":int
                 "userName":string,
                 "score":int,
-                "band":{
+                "card":{
                     "protoId":int,
                     "level":int,
                     "hp":int,
@@ -81,30 +81,6 @@ S_PVP_FOES = "S_PVP_FOES"
 
 H_PVP_FORMULA = "H_PVP_FORMULA"
 
-
-class AddTestRecord(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @adisp.process
-    def get(self):
-        try:
-            n = 1
-            curr_id = yield util.redis().incrby(PVP_ID_SERIAL, n)
-            records = []
-            pipe = util.redis_pipe()
-            for d in xrange(n):
-                curr_id += 1
-                score = random.random()*10000
-                pipe.zadd(PVP_Z_KEY, score, curr_id)
-            yield util.redis_pipe_execute(pipe)
-
-            # reply
-            reply = util.new_reply()
-            self.write(json.dumps(reply))
-
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
 
 def calc_pvp_score(card, price_skill_mul):
     """
@@ -135,70 +111,15 @@ def calc_pvp_score(card, price_skill_mul):
     score = card["hp"] + card["atk"] + card["def"] + card["wis"] + card["agi"]
     score += (price * skillRaritySum * price_skill_mul)
     return score
-
-
-def calc_player_pvp_score(userid, bands, cards, price_skill_mul):
-    """
-        bands: [
-            {
-                "formation": int,
-                "members": [
-                    <cardEntityId:int>,
-                    ...
-                ]
-            },
-            ...
-        ]
-        cards: {
-            <cardEntityId>: {
-                "protoId":int,
-                "level":int,
-                "hp":int,
-                "atk":int,
-                "def":int,
-                "wis":int,
-                "agi":int,
-                "skill1Id":int,
-                "skill1Level":int,
-                "skill2Id":int,
-                "skill2Level":int,
-                "skill3Id":int,
-                "skill3Level":int
-            }
-        }
-    """
-    # calc pvp score
-    pvp_score = 0
-
-    for band in bands:
-        band_score = 0
-        formation = int(band["formation"])
-        members = band["members"]
-        memnum = len(members)
-        if (memnum % 2) != 0:
-            raise Exception("member number is odd")
-        colnum = memnum / 2
-        for col in xrange(colnum):
-            score1 = score2 = 0
-            card_id = members[col]
-            if card_id:
-                score1 = calc_pvp_score(cards[card_id], price_skill_mul)
-            card_id = members[col+colnum]
-            if card_id:
-                score2 = calc_pvp_score(cards[card_id], price_skill_mul)
-            band_score += max(score1, score2)
-        pvp_score = max(pvp_score, band_score)
-
-    return pvp_score
         
 
 @adisp.async
 @adisp.process
-def submit_pvp_band(userid, username, band, callback):
+def submit_pvp_band(userid, username, cards, callback):
     """
         "userId":int
         "userName":string
-        "band":[
+        "cards":[
             {
                 "protoId":int,
                 "level":int,
@@ -230,7 +151,7 @@ def submit_pvp_band(userid, username, band, callback):
         pipe = util.redis_pipe()
         pipe.zadd(Z_PVP_BANDS, pvp_score, userid)
 
-        pvp_data = {"userName": username, "band":band, "score": pvp_score}
+        pvp_data = {"userName": username, "cards":cards, "score": pvp_score}
         pipe.hset(H_PVP_BANDS, userid, json.dumps(pvp_data))
         yield util.redis_pipe_execute(pipe)
         
@@ -249,7 +170,8 @@ def submit_pvp_bands(pvp_bands, callback):
             {
                 "userId":int,
                 "userName":string,
-                "band":[
+                "formation":int,
+                "cards":[
                     {
                         "protoId":int,
                         "level":int,
@@ -282,7 +204,7 @@ def submit_pvp_bands(pvp_bands, callback):
             pvp_score = 0
             username = pvp_band["userName"]
             userid = pvp_band["userId"]
-            for card in pvp_band["band"]:
+            for card in pvp_band["cards"]:
                 if card:
                     score = calc_pvp_score(card, price_skill_mul)
                     pvp_score += score
@@ -328,7 +250,7 @@ class CreateTestData(tornado.web.RequestHandler):
                     map(int, card_tbl.gets(card_row_key, "ID", "price", \
                     "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "maxlevel", "skillid1", "skillid2"))
 
-                band = [{
+                cards = [{
                     "protoId": proto,
                     "level":maxlv,
                     "hp":hp,
@@ -347,7 +269,8 @@ class CreateTestData(tornado.web.RequestHandler):
                 pvp_band = {
                     "userId": proto,
                     "userName": username,
-                    "band": band
+                    "cards": cards,
+                    "formation":14,
                 }
 
                 bands.append(pvp_band)
@@ -363,65 +286,6 @@ class CreateTestData(tornado.web.RequestHandler):
         finally:
             self.finish()
 
-
-class Get3Band(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    @adisp.process
-    def get(self):
-        try:
-            # session
-            session = yield find_session(self)
-            if not session:
-                send_error(self, err_auth)
-                return
-            userid = session["userid"]
-
-            # get player pvp score
-            rows = yield util.whdb.runQuery(
-                """SELECT pvpScore, bands FROM playerInfos WHERE userId=%s"""
-                ,(userid, )
-            )
-            row = rows[0]
-            pvp_score = row[0]
-            bands = json.loads(row[1])
-            members = set()
-            for band in bands:
-                for mem in band["members"]:
-                    if mem:
-                        members.add(mem)
-            members = tuple(members)
-            
-            # 
-            if pvp_score == 0:
-                cols = ["id", "protoId", "level", "hp", "atk", "def", "wis", "agi", \
-                    "hpCrystal", "atkCrystal", "defCrystal", "wisCrystal", "agiCrystal", \
-                    "hpExtra", "atkExtra", "defExtra", "wisExtra", "agiExtra", \
-                    "skill1Id", "skill1Level", "skill2Id", "skill2Level", "skill3Id", "skill3Level"
-                ]
-                rows = yield util.whdb.runQuery(
-                    """SELECT {} FROM cardEntities WHERE ownerId=%s and id IN ({})""".format(",".join(cols), ",".join(map(str, members)))
-                    ,(userid, )
-                )
-                cards = {}
-                for row in rows:
-                    card = dict(zip(cols, row))
-                    card["hp"] += card["hpCrystal"] + card["hpExtra"]
-                    card["atk"] += card["atkCrystal"] + card["atkExtra"]
-                    card["def"] += card["defCrystal"] + card["defExtra"]
-                    card["wis"] += card["wisCrystal"] + card["wisExtra"]
-                    card["agi"] += card["agiCrystal"] + card["agiExtra"]
-                    cards[card["id"]] = card
-                score = calc_player_pvp_score(userid, bands, cards)
-
-            # reply
-            reply = util.new_reply()
-            reply["score"] = score
-            self.write(json.dumps(reply))
-
-        except:
-            send_internal_error(self)
-        finally:
-            self.finish()
 
 class GetFormula(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -472,6 +336,94 @@ class GetRanks(tornado.web.RequestHandler):
             self.finish()
 
 
+@adisp.async
+@adisp.process
+def match(score, match_no, user_id, callback):
+    try:
+        ## win streak level
+        match_level = (match_no-1)/3 + 1
+        if match_level < 1 or match_level > 10:
+            raise Exception("wrong matchNo: %s" % match_no) 
+
+        ## score level
+        score_level = -1
+        k = 0
+        for k in map(int, pvp_match_tbl.iter_rowkeys()): 
+            score_in_tbl = pvp_match_tbl.get(k, "pvpstrength")
+            if score < score_in_tbl:
+                score_level = k - 1
+                break
+        if score_level == -1:
+            score_level = k
+
+        ## pvp foes score range
+        colmin = "pvp%dmin" % match_level
+        colmax = "pvp%dmax" % match_level
+        score_min, score_max = map(int, pvp_match_tbl.gets(score_level, colmin, colmax))
+        score_min += score
+        score_max += score
+
+        BAND_NUM = 4
+
+        ## get matched rank
+        for i in xrange(10):
+            pipe = util.redis_pipe()
+            pipe.zrevrangebyscore(Z_PVP_BANDS, score_max, score_min, offset = 0, limit=1)
+            pipe.zrangebyscore(Z_PVP_BANDS, score_min, score_max, offset = 0, limit=1)
+            keyminmax = yield util.redis_pipe_execute(pipe)
+            if (not keyminmax[0]) or (not keyminmax[1]) or int(keyminmax[1][0])==int(keyminmax[0][0]):
+                match_level -= 1
+                if match_level == 0:
+                    total_rank = yield util.redis().zcard(Z_PVP_BANDS)
+                    rankrange = [total_rank-101, total_rank-1]
+                    break
+                colmin = "pvp%dmin" % match_level
+                score_min = int(pvp_match_tbl.get(score_level, colmin)) + score
+                continue
+
+            pipe = util.redis_pipe()
+            pipe.zrevrank(Z_PVP_BANDS, keyminmax[0][0])
+            pipe.zrevrank(Z_PVP_BANDS, keyminmax[1][0])
+            rankrange = yield util.redis_pipe_execute(pipe)
+            if rankrange[1] - rankrange[0] < BAND_NUM:
+                match_level -= 1
+                if match_level == 0:
+                    total_rank = yield util.redis().zcard(Z_PVP_BANDS)
+                    rankrange = [total_rank-101, total_rank-1]
+                    break
+                colmin = "pvp%dmin" % match_level
+                score_min = int(pvp_match_tbl.get(score_level, colmin)) + score
+                continue
+
+        # get band
+        ranks = random.sample(xrange(rankrange[0], rankrange[1]+1), BAND_NUM)
+        if len(ranks) != BAND_NUM:
+            raise Exception("len(ranks) != %s" % BAND_NUM)
+
+        pipe = util.redis_pipe()
+        for i in xrange(BAND_NUM):
+            pipe.zrevrange(Z_PVP_BANDS, ranks[i], ranks[i], True)
+        members = yield util.redis_pipe_execute(pipe)
+        # 
+        pipe = util.redis_pipe()
+        for i in xrange(BAND_NUM):
+            pipe.hget(H_PVP_BANDS, members[i][0][0])
+        matched_bands = yield util.redis_pipe_execute(pipe)
+
+        bands = []
+        for band in matched_bands:
+            band = json.loads(band)
+            if band["userId"] != user_id:
+                bands.append(band)
+        matched_bands = bands[:3]
+
+        callback((matched_bands, rankrange, score_min, score_max))
+
+    except Exception as e:
+        traceback.print_exc()
+        callback(e)
+
+
 class Match(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -511,85 +463,22 @@ class Match(tornado.web.RequestHandler):
                 score += calc_pvp_score(card, price_skill_mul)
 
             # match
-            ## win streak level
-            match_level = (match_no-1)/3 + 1
-            if match_level < 1 or match_level > 10:
-                raise Exception("wrong matchNo: %s" % match_no) 
+            matched_bands, rankrange, score_min, score_max = yield match(score, match_no, 0)
 
-            ## score level
-            score_level = -1
-            k = 0
-            for k in map(int, pvp_match_tbl.iter_rowkeys()): 
-                score_in_tbl = pvp_match_tbl.get(k, "pvpstrength")
-                if score < score_in_tbl:
-                    score_level = k - 1
-                    break
-            if score_level == -1:
-                score_level = k
+            for band in matched_bands:
+                for i, card in enumerate(band["cards"]):
+                    band["cards"][i] = card_tbl.get(card["protoId"], "name")
+                    # card["name"] = card_tbl.get(card["protoId"], "name")
+                    card.clear()
+                    # card = {"name":card_tbl.get(card["protoId"], "name"), ""]
 
-            ## pvp foes score range
-            colmin = "pvp%dmin" % match_level
-            colmax = "pvp%dmax" % match_level
-            score_min, score_max = map(int, pvp_match_tbl.gets(score_level, colmin, colmax))
-            score_min += score
-            score_max += score
-
-            ## get matched rank
-            for i in xrange(10):
-                pipe = util.redis_pipe()
-                pipe.zrevrangebyscore(Z_PVP_BANDS, score_max, score_min, offset = 0, limit=1)
-                pipe.zrangebyscore(Z_PVP_BANDS, score_min, score_max, offset = 0, limit=1)
-                keyminmax = yield util.redis_pipe_execute(pipe)
-                if (not keyminmax[0]) or (not keyminmax[1]) or int(keyminmax[1][0])==int(keyminmax[0][0]):
-                    match_level -= 1
-                    if match_level == 0:
-                        total_rank = yield util.redis().zcard(Z_PVP_BANDS)
-                        rankrange = [total_rank-101, total_rank-1]
-                        break
-                    colmin = "pvp%dmin" % match_level
-                    score_min = int(pvp_match_tbl.get(score_level, colmin)) + score
-                    continue
-
-                pipe = util.redis_pipe()
-                pipe.zrevrank(Z_PVP_BANDS, keyminmax[0][0])
-                pipe.zrevrank(Z_PVP_BANDS, keyminmax[1][0])
-                rankrange = yield util.redis_pipe_execute(pipe)
-                if rankrange[1] - rankrange[0] < 3:
-                    match_level -= 1
-                    if match_level == 0:
-                        total_rank = yield util.redis().zcard(Z_PVP_BANDS)
-                        rankrange = [total_rank-101, total_rank-1]
-                        break
-                    colmin = "pvp%dmin" % match_level
-                    score_min = int(pvp_match_tbl.get(score_level, colmin)) + score
-                    continue
-
-            # get band
-            ranks = random.sample(xrange(rankrange[0], rankrange[1]+1), 3)
-            if len(ranks) != 3:
-                raise Exception("len(ranks) != 3")
-            pipe = util.redis_pipe()
-            pipe.zrevrange(Z_PVP_BANDS, ranks[0], ranks[0], True)
-            pipe.zrevrange(Z_PVP_BANDS, ranks[1], ranks[1], True)
-            pipe.zrevrange(Z_PVP_BANDS, ranks[2], ranks[2], True)
-            members = yield util.redis_pipe_execute(pipe)
-            # 
-            pipe = util.redis_pipe()
-            pipe.hget(H_PVP_BANDS, members[0][0][0])
-            pipe.hget(H_PVP_BANDS, members[1][0][0])
-            pipe.hget(H_PVP_BANDS, members[2][0][0])
-            matched_bands = yield util.redis_pipe_execute(pipe)
-            matched_bands = [json.loads(band) for band in matched_bands]
-            print matched_bands
-            
-            
             # reply
             reply = util.new_reply()
             reply["score"] = score
             reply["rankrange"] = rankrange
             reply["scorerange"] = [score_min, score_max]
             reply["matchedBands"] = matched_bands
-            reply["members"] = members
+            # reply["members"] = members
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
@@ -690,9 +579,7 @@ class ToredisGen(tornado.web.RequestHandler):
             self.finish()
 
 handlers = [
-    (r"/whapi/pvp/addtestrecord", AddTestRecord),
     (r"/whapi/pvp/createtestdata", CreateTestData),
-    (r"/whapi/pvp/get3band", Get3Band),
     (r"/whapi/pvp/getranks", GetRanks),
     (r"/whapi/pvp/getformula", GetFormula),
     (r"/whapi/pvp/match", Match),

@@ -97,7 +97,7 @@ class GetInfo(tornado.web.RequestHandler):
             # query user info
             cols = "userId,name,warlord,money,inZoneId,lastZoneId,maxCardNum," \
                     "xp,maxXp,lastXpTime,ap,maxAp,lastApTime,currentBand," \
-                    "lastFormation,bands,items,wagonGeneral,wagonTemp,wagonSocial,UTC_TIMESTAMP()"
+                    "lastFormation,bands,items,wagonGeneral,wagonTemp,wagonSocial,pvpWinStreak,UTC_TIMESTAMP()"
 
             sql = "SELECT {} FROM playerInfos WHERE userId=%s".format(cols)
             rows = yield util.whdb.runQuery(

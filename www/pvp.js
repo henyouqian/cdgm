@@ -85,8 +85,7 @@ function Controller($scope, $http) {
 				errProc(err)
 			}else{
 				$scope.$apply(function(){
-					$scope.matchBands = json.bands
-					alert(JSON.stringify(json))
+					$scope.matchedBands = json
 				})
 			}
 		}, "json")

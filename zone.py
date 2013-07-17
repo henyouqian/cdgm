@@ -175,6 +175,11 @@ def gen_cache(zoneid, islastZone):
         elif r == 2:    # event
             objs[k] = 10000
 
+        else:
+            # pvp
+            # fixme: need probablity
+            objs[k] = 6
+
 
     cache = {"zoneId":zoneid, "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos, 
                "lastPos":startpos, "redCase":0, "goldCase":0, "monGrpId":-1, "events":events}
@@ -400,7 +405,7 @@ class Move(tornado.web.RequestHandler):
 
             # db get cache
             rows = yield util.whdb.runQuery(
-                """SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, money, maxCardNum FROM playerInfos 
+                """SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, money, maxCardNum, pvpScore, pvpWinStreak FROM playerInfos 
                         WHERE userid=%s"""
                 ,(userid,)
             )
@@ -413,6 +418,8 @@ class Move(tornado.web.RequestHandler):
             items = row[5]
             money = row[6]
             max_card_num = row[7]
+            pvp_score = row[8]
+            pvp_win_streak = row[9]
 
             if not last_ap_time:
                 last_ap_time = datetime(2013, 1, 1)
@@ -470,6 +477,7 @@ class Move(tornado.web.RequestHandler):
             items_add = []
             monGrpId = None
             catch_mons = []
+            hasPvp = False
             if evtid:
                 zoneid = cache["zoneId"]
                 maprow = map_tbl.get_row(zoneid)
@@ -489,6 +497,8 @@ class Move(tornado.web.RequestHandler):
                     items_add.append({"id":MONEY_BAG_SMALL_ID, "num":1})
                 elif evtid == 5:    # big money bag
                     items_add.append({"id":MONEY_BAG_BIG_ID, "num":1})
+                elif evtid == 6:
+                    hasPvp = True
 
                 if money_add:
                     money += money_add
@@ -562,6 +572,12 @@ class Move(tornado.web.RequestHandler):
             elif evtid:
                 del cache["objs"][poskey]
 
+            # pvp
+            pvp_bands = []
+            if hasPvp:
+                if pvp_score == 0:
+                    pass
+
             # update
             cachejs = json.dumps(cache)
             itemsjs = json.dumps(items)
@@ -584,6 +600,7 @@ class Move(tornado.web.RequestHandler):
             reply["monGrpId"] = monGrpId
             reply["eventId"] = eventid
             reply["catchMons"] = catch_mons
+            reply["pvpBands"] = pvp_bands
             self.write(json.dumps(reply))
 
         except:
