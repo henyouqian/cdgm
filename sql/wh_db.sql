@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.31-0ubuntu0.12.04.2)
 # Database: wh_db
-# Generation Time: 2013-07-09 12:47:11 +0000
+# Generation Time: 2013-07-17 06:06:42 +0000
 # ************************************************************
 
 
@@ -94,7 +94,7 @@ CREATE TABLE `playerInfos` (
   `wagonTemp` smallint(5) unsigned NOT NULL DEFAULT '0',
   `wagonSocial` smallint(5) unsigned NOT NULL DEFAULT '0',
   `pvpScore` int(10) unsigned NOT NULL DEFAULT '0',
-  `pvpWinNum` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `pvpWinStreak` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -123,6 +123,28 @@ CREATE TABLE `wagons` (
 
 
 
+
+--
+-- Dumping routines (PROCEDURE) for database 'wh_db'
+--
+DELIMITER ;;
+
+# Dump of PROCEDURE get_new_cards
+# ------------------------------------------------------------
+
+/*!50003 DROP PROCEDURE IF EXISTS `get_new_cards` */;;
+/*!50003 SET SESSION SQL_MODE=""*/;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `get_new_cards`(IN user_id BIGINT, IN col_list VARCHAR(512))
+BEGIN
+    SET @sql = CONCAT("SELECT ", col_list, " FROM cardEntities WHERE ownerId = ", user_id, " AND _newInsert = 1;");
+    PREPARE stmt from @sql;
+    execute stmt;
+
+    UPDATE cardEntities SET _newInsert = 0 WHERE ownerId = user_id AND _newInsert = 1; 
+END */;;
+
+/*!50003 SET SESSION SQL_MODE=@OLD_SQL_MODE */;;
+DELIMITER ;
 
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
