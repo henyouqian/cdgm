@@ -6,6 +6,7 @@ import gamedata
 import util
 from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr, create_cards
 from player import fmt_tbl
+import pvp
 
 import tornado.web
 import adisp
@@ -575,7 +576,7 @@ class Move(tornado.web.RequestHandler):
             # pvp
             pvp_bands = []
             if hasPvp:
-                matched_bands, rankrange, score_min, score_max = yield match(pvp_score, pvp_win_streak+1, userid)
+                matched_bands, rankrange, score_min, score_max = yield pvp.match(pvp_score, pvp_win_streak+1, userid)
                 pvp_bands = matched_bands
                 
 
