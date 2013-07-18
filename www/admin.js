@@ -396,6 +396,7 @@ function Controller($scope, $http) {
 			if (err){
 				errProc(err)
 			}else{
+				alert("Set skill level succeed")
 				$scope.$apply(function(){
 					for (var i = 0; i < $scope.cards.length; ++i) {
 						if ($scope.cards[i].id == json.cardId) {

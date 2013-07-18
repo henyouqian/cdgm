@@ -2,6 +2,7 @@
 from error import *
 import util
 import wagon
+import gamedata
 
 import tornado.web
 import adisp
@@ -49,7 +50,7 @@ def calc_card_proto_attr(proto_id, level):
     return tuple(imap(lerp, min_attrs, max_attrs, repeat(f)))
 
 def is_war_lord(proto_id):
-    return 119 <= proto_id <= 226
+    return gamedata.WARLORD_MIN <= proto_id <= gamedata.WARLORD_MAX
 
 @adisp.async
 @adisp.process

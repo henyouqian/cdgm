@@ -7,7 +7,9 @@ import tornado.web
 import adisp
 import brukva
 import json
-import card
+from card import card_tbl
+import pvp
+
 from datetime import datetime, timedelta
 
 class Create(tornado.web.RequestHandler):
@@ -229,6 +231,7 @@ class SetBand(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
             userid = session["userid"]
+            username = session["username"]
 
             # query player info
             rows = yield util.whdb.runQuery(
@@ -270,7 +273,6 @@ class SetBand(tornado.web.RequestHandler):
                 if len(members) != max_num * 2:
                     raise Exception("member_num error")
                 mems_not_none = [int(mem) for mem in members if mem or mem==0]
-                print members
                 ms = set(members)
                 ms.discard(None)
                 if len(ms) != len(mems_not_none):
@@ -281,22 +283,59 @@ class SetBand(tornado.web.RequestHandler):
 
             # check member
             mem_proto_num = len(member_set)
+            cols = ["id", "protoId", "level", "skill1Id", "skill1Level", "skill2Id", "skill2Level", "skill3Id", "skill3Level"]
             if mem_proto_num:
                 rows = yield util.whdb.runQuery(
-                    """ SELECT COUNT(1) FROM cardEntities
-                            WHERE ownerId = %s AND id IN ({})""".format(",".join(("%s",)*len(member_set)))
-                    ,(userid,) + tuple(member_set)
+                    """ SELECT {} FROM cardEntities
+                            WHERE ownerId = %s AND id IN ({})""".format(",".join(cols), ",".join(map(str, member_set)))
+                    ,(userid,)
                 )
-                count = rows[0][0]
-
+                count = len(rows)
                 if count != mem_proto_num:
                     raise Exception("May be one or some cards is not yours")
 
+            card_entities = {row[0]:dict(zip(cols, row)) for row in rows}
+
+            # update pvp band
+            pvp_bands = []
+            for band in bands:
+                pvp_band = {}
+                pvp_band["formation"] = band["formation"]
+                pvp_cards = []
+                for card_entity_id in band["members"]:
+                    if card_entity_id == None:
+                        pvp_cards.append(None)
+                        continue
+
+                    card_entity = card_entities[card_entity_id]
+                    hp, atk, dfc, wis, agi, skill1id, sill2id = \
+                        map(int, card_tbl.gets(card_entity["protoId"], "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "skillid1", "skillid2"))
+                    card = {}
+                    card["protoId"] = card_entity["protoId"]
+                    card["level"] = card_entity["level"]
+                    card["hp"] = hp
+                    card["atk"] = atk
+                    card["def"] = dfc
+                    card["wis"] = wis
+                    card["agi"] = agi
+                    card["skill1Id"] = card_entity["skill1Id"]
+                    card["skill1Level"] = card_entity["skill1Level"]
+                    card["skill2Id"] = card_entity["skill2Id"]
+                    card["skill2Level"] = card_entity["skill2Level"]
+                    card["skill3Id"] = card_entity["skill3Id"]
+                    card["skill3Level"] = card_entity["skill3Level"]
+                    pvp_cards.append(card)
+
+                pvp_band["cards"] = pvp_cards
+                pvp_bands.append(pvp_band)
+
+            pvp_score = yield pvp.update_pvp_band(userid, username, pvp_bands)
+
             # store db
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET bands=%s
+                """UPDATE playerInfos SET bands=%s, pvpScore=%s
                         WHERE userId=%s"""
-                ,(json.dumps(db_bands), userid)
+                ,(json.dumps(db_bands), pvp_score, userid)
             )
             
             # reply

@@ -91,25 +91,15 @@
                       <th>id</th>
                       <th>name</th>
                       <th>score</th>
-                      <th>maxhp</th>
-                      <th>maxatk</th>
-                      <th>maxdef</th>
-                      <th>maxwis</th>
-                      <th>maxagi</th>
-                      <th>price</th>
+                      
                     </thead>
                     <tbody>
                       <tr ng-repeat="rank in ranks">
                         <td>{{rank.index}}</td>
-                        <td>{{rank.id}}</td>
-                        <td>{{rank.name}}</td>
+                        <td>{{rank.userId}}</td>
+                        <td>{{rank.userName}}</td>
                         <td>{{rank.score}}</td>
-                        <td>{{rank.maxhp}}</td>
-                        <td>{{rank.maxatk}}</td>
-                        <td>{{rank.maxdef}}</td>
-                        <td>{{rank.maxwis}}</td>
-                        <td>{{rank.maxagi}}</td>
-                        <td>{{rank.price}}</td>
+                        
                       </tr>
                     </tbody>
                   </table>

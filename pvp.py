@@ -1,7 +1,7 @@
 from session import find_session
 from error import *
 import util
-from card import card_tbl, skill_tbl
+from card import card_tbl, skill_tbl, is_war_lord
 
 import tornado.web, tornado.gen
 import adisp
@@ -27,21 +27,23 @@ import redis
         value: {
             "userName":string,
             "score":int,
-            "card":{
-                "protoId":int,
-                "level":int,
-                "hp":int,
-                "atk":int,
-                "def":int,
-                "wis":int,
-                "agi":int,            
-                "skill1Id":int,
-                "skill1Level":int,
-                "skill2Id":int,
-                "skill2Level":int,
-                "skill3Id":int,
-                "skill3Level":int
-            }
+            "cards":[
+                {
+                    "protoId":int,
+                    "level":int,
+                    "hp":int,
+                    "atk":int,
+                    "def":int,
+                    "wis":int,
+                    "agi":int,            
+                    "skill1Id":int,
+                    "skill1Level":int,
+                    "skill2Id":int,
+                    "skill2Level":int,
+                    "skill3Id":int,
+                    "skill3Level":int
+                }
+            ]
         }
 
     # pvp foes data, remain 10 minutes each
@@ -111,7 +113,151 @@ def calc_pvp_score(card, price_skill_mul):
     score = card["hp"] + card["atk"] + card["def"] + card["wis"] + card["agi"]
     score += (price * skillRaritySum * price_skill_mul)
     return score
+
+
+def calc_player_pvp_score(userid, bands, cards, price_skill_mul):
+    """
+        bands: [
+            {
+                "formation": int,
+                "members": [
+                    <cardEntityId:int>,
+                    ...
+                ]
+            },
+            ...
+        ]
+        cards: {
+            <cardEntityId>: {
+                "protoId":int,
+                "level":int,
+                "hp":int,
+                "atk":int,
+                "def":int,
+                "wis":int,
+                "agi":int,
+                "skill1Id":int,
+                "skill1Level":int,
+                "skill2Id":int,
+                "skill2Level":int,
+                "skill3Id":int,
+                "skill3Level":int
+            }
+        }
+    """
+    # calc pvp score
+    pvp_score = 0
+
+    for band in bands:
+        band_score = 0
+        formation = int(band["formation"])
+        members = band["members"]
+        memnum = len(members)
+        if (memnum % 2) != 0:
+            raise Exception("member number is odd")
+        colnum = memnum / 2
+        for col in xrange(colnum):
+            score1 = score2 = 0
+            card_id = members[col]
+            if card_id:
+                score1 = calc_pvp_score(cards[card_id], price_skill_mul)
+            card_id = members[col+colnum]
+            if card_id:
+                score2 = calc_pvp_score(cards[card_id], price_skill_mul)
+            band_score += max(score1, score2)
+        pvp_score = max(pvp_score, band_score)
+
+    return pvp_score
+
+
+@adisp.async
+@adisp.process
+def update_pvp_band(userid, username, bands, callback):
+    """
+        "userId":int
+        "userName":string
+        "bands":[
+            {
+                "formation": {INT}, 
+                "cards": [
+                    {
+                        "protoId":int,
+                        "level":int,
+                        "hp":int,
+                        "atk":int,
+                        "def":int,
+                        "wis":int,
+                        "agi":int,
+                        "skill1Id":int,
+                        "skill1Level":int,
+                        "skill2Id":int,
+                        "skill2Level":int,
+                        "skill3Id":int,
+                        "skill3Level":int
+                    },
+                    ...
+                ]
+            }
+            ...
+        ]
+    """
+    try:
+        # calc pvp score
+        pvp_score = 0
+        price_skill_mul = yield util.redis().hget(H_PVP_FORMULA, "priceSkillMul")
+        price_skill_mul = float(price_skill_mul)
+
+        max_band_score = 0
+        max_score_band = None
+        for band in bands:
+            # calc pvp score
+            band_score = 0
+            cards = band["cards"]
+            cardnum = len(cards)
+            if (cardnum % 2) != 0:
+                raise Exception("card number is odd")
+            colnum = cardnum / 2
+
+            better_cards = []
+            for col in xrange(colnum):
+                score1 = score2 = 0
+                card1 = cards[col]
+                if card1:
+                    score1 = calc_pvp_score(card1, price_skill_mul)
+                card2 = cards[col+colnum]
+                if card2:
+                    score2 = calc_pvp_score(card2, price_skill_mul)
+
+                if (score2 > score1):
+                    band_score += score2
+                    better_cards.append(card2)
+                else:
+                    band_score += score1
+                    better_cards.append(card1)
+
+            if band_score > max_band_score:
+                max_band_score = band_score
+                max_score_band = {}
+                max_score_band["formation"] = band["formation"]
+                max_score_band["cards"] = better_cards
+                max_score_band["userId"] = userid
+                max_score_band["userName"] = username
+                max_score_band["score"] = max_band_score
+                
+
+        # update to redis
+        pipe = util.redis_pipe()
+        print json.dumps(max_score_band)
+        pipe.zadd(Z_PVP_BANDS, max_band_score, userid)
+        pipe.hset(H_PVP_BANDS, userid, json.dumps(max_score_band))
+        yield util.redis_pipe_execute(pipe)
         
+        callback(max_band_score)
+
+    except Exception as e:
+        traceback.print_exc()
+        callback(e)
+
 
 @adisp.async
 @adisp.process
@@ -142,7 +288,8 @@ def submit_pvp_band(userid, username, cards, callback):
         # calc pvp score
         pvp_score = 0
         price_skill_mul = yield util.redis().hget(H_PVP_FORMULA, "priceSkillMul")
-        for card in band:
+        price_skill_mul = float(price_skill_mul)
+        for card in cards:
             if card:
                 score = calc_pvp_score(card, price_skill_mul)
                 pvp_score += score
@@ -222,17 +369,6 @@ def submit_pvp_bands(pvp_bands, callback):
         callback(e)
 
 
-@adisp.async
-@adisp.process
-def get_3_bands(userid, pvpscore, winnum, callback):
-    try:
-        win_level = int(winnum/3)
-
-
-    except Exception as e:
-        callback(e)
-
-
 ###########################
 class CreateTestData(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -265,9 +401,9 @@ class CreateTestData(tornado.web.RequestHandler):
                     "skill3Id":0,
                     "skill3Level":0
                 }] * 5
-                userid = proto
+
                 pvp_band = {
-                    "userId": proto,
+                    "userId": -proto,
                     "userName": username,
                     "cards": cards,
                     "formation":14,
@@ -307,28 +443,34 @@ class GetFormula(tornado.web.RequestHandler):
 
 class GetRanks(tornado.web.RequestHandler):
     @tornado.web.asynchronous
-    # @adisp.process
+    @adisp.process
     def get(self):
         try:
             r = redis.StrictRedis(host='localhost', port=6379, db=0)
             ranks = r.zrevrange(Z_PVP_BANDS, 0, -1, withscores=True)
-            ranks = [{"id":rank[0], "score": rank[1]} for rank in ranks]
+            ranks = [{"id":int(rank[0]), "score": rank[1]} for rank in ranks]
 
+            pipe = util.redis_pipe()
+            for rank in ranks:
+                pipe.hget(H_PVP_BANDS, rank["id"])
+            bands = yield util.redis_pipe_execute(pipe)
+
+            for i, band in enumerate(bands):
+                bands[i] = json.loads(band)
+
+            bands = {band["userId"]:band for band in bands}
+
+            out_ranks = []
             for idx, rank in enumerate(ranks):
-                name, maxhp, maxdef, maxatk, maxwis, maxagi, price = \
-                    card_tbl.gets(rank["id"], "name", "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "price")
-                rank["index"] = idx
-                rank["name"] = name
-                rank["maxhp"] = int(maxhp)
-                rank["maxdef"] = int(maxdef)
-                rank["maxatk"] = int(maxatk)
-                rank["maxwis"] = int(maxwis)
-                rank["maxagi"] = int(maxagi)
-                rank["price"] = int(price)
+                # name, maxhp, maxdef, maxatk, maxwis, maxagi, price = \
+                #     card_tbl.gets(rank["id"], "name", "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "price")
+                band = bands[rank["id"]]
+                band["index"] = idx
+                out_ranks.append(band)
 
             # reply
             reply = util.new_reply()
-            reply["ranks"] = ranks
+            reply["ranks"] = out_ranks
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)

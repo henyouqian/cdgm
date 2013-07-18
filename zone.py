@@ -575,8 +575,9 @@ class Move(tornado.web.RequestHandler):
             # pvp
             pvp_bands = []
             if hasPvp:
-                if pvp_score == 0:
-                    pass
+                matched_bands, rankrange, score_min, score_max = yield match(pvp_score, pvp_win_streak+1, userid)
+                pvp_bands = matched_bands
+                
 
             # update
             cachejs = json.dumps(cache)
