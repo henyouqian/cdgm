@@ -90,16 +90,16 @@
                       <th>rank</th>
                       <th>id</th>
                       <th>name</th>
+                      <th>level</th>
                       <th>score</th>
-                      
                     </thead>
                     <tbody>
                       <tr ng-repeat="rank in ranks">
                         <td>{{rank.index}}</td>
                         <td>{{rank.userId}}</td>
                         <td>{{rank.userName}}</td>
+                        <td>{{rank.userLevel}}</td>
                         <td>{{rank.score}}</td>
-                        
                       </tr>
                     </tbody>
                   </table>

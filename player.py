@@ -296,6 +296,9 @@ class SetBand(tornado.web.RequestHandler):
 
             card_entities = {row[0]:dict(zip(cols, row)) for row in rows}
 
+            # get warlord level
+            warlord_level = card_entities[warlord]["level"]
+
             # update pvp band
             pvp_bands = []
             for band in bands:
@@ -329,7 +332,7 @@ class SetBand(tornado.web.RequestHandler):
                 pvp_band["cards"] = pvp_cards
                 pvp_bands.append(pvp_band)
 
-            pvp_score = yield pvp.update_pvp_band(userid, username, pvp_bands)
+            pvp_score = yield pvp.update_pvp_band(userid, username, warlord_level, pvp_bands)
 
             # store db
             yield util.whdb.runOperation(

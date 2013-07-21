@@ -165,6 +165,12 @@ def gen_cache(zoneid, islastZone):
             except:
                 logging.error("map_evt_tbl error: mapid=%d, tilevalue=%d" % (zoneid, v))
             continue
+
+        # fixme: just for pvp test
+        if zoneid == 10102:
+            objs[k] = 6
+            continue
+
         if r == 0:      # case or gold
             itemtype = rand2item.get() + 1 # itemtype from 1 to 5
             if itemtype >= 0:
@@ -175,11 +181,6 @@ def gen_cache(zoneid, islastZone):
                 objs[k] = -int(grpid)
         elif r == 2:    # event
             objs[k] = 10000
-
-        else:
-            # pvp
-            # fixme: need probablity
-            objs[k] = 6
 
 
     cache = {"zoneId":zoneid, "objs":objs, "startPos":startpos, "goalPos":goalpos, "currPos":startpos, 
@@ -578,6 +579,8 @@ class Move(tornado.web.RequestHandler):
             if hasPvp:
                 matched_bands, rankrange, score_min, score_max = yield pvp.match(pvp_score, pvp_win_streak+1, userid)
                 pvp_bands = matched_bands
+                key = "pvpFoeBands/%s" % userid
+                yield util.redis().setex(key, 600, json.dumps(matched_bands))
                 
 
             # update
@@ -624,7 +627,7 @@ class BattleResult(tornado.web.RequestHandler):
 
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT warlord, zoneCache, items, maxCardNum, ap, maxAp FROM playerInfos
+                """ SELECT warlord, zoneCache, items, maxCardNum, ap, maxAp, xp, maxXp FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
@@ -635,6 +638,8 @@ class BattleResult(tornado.web.RequestHandler):
             max_card_num = row[3]
             ap = row[4]
             max_ap = row[5]
+            xp = row[6]
+            max_xp = row[7]
 
             band = cache["band"]
             members = band["members"]
@@ -770,6 +775,7 @@ class BattleResult(tornado.web.RequestHandler):
                         levelups.append(levelup)
                         if card["id"] == warlord:
                             ap = max_ap
+                            xp = max_xp
 
                 except:
                     card["exp"] = int(lvtbl.get(level, "exp"))
@@ -855,9 +861,9 @@ class BattleResult(tornado.web.RequestHandler):
 
             ## update band infos in zoneCache
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET zoneCache=%s, ap=%s, items=%s
+                """UPDATE playerInfos SET zoneCache=%s, ap=%s, xp=%s, items=%s
                         WHERE userId=%s"""
-                ,(json.dumps(cache), ap, json.dumps(items), userid)
+                ,(json.dumps(cache), ap, xp, json.dumps(items), userid)
             )
 
             # reply

@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"userid",
+				"userid"
+			],
+			[
 				"runop",
 				"runOperationMany"
 			],
@@ -30,10 +34,6 @@
 			[
 				"skill",
 				"skillid1"
-			],
-			[
-				"userid",
-				"user_id"
 			],
 			[
 				"cardid",
@@ -75,7 +75,7 @@
 			"file": "zone.py",
 			"settings":
 			{
-				"buffer_size": 41950,
+				"buffer_size": 42768,
 				"line_ending": "Unix"
 			}
 		},
@@ -83,15 +83,7 @@
 			"file": "util.py",
 			"settings":
 			{
-				"buffer_size": 8902,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "adisp.py",
-			"settings":
-			{
-				"buffer_size": 5042,
+				"buffer_size": 8957,
 				"line_ending": "Unix"
 			}
 		},
@@ -99,15 +91,7 @@
 			"file": "player.py",
 			"settings":
 			{
-				"buffer_size": 20147,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "auth.py",
-			"settings":
-			{
-				"buffer_size": 7622,
+				"buffer_size": 22021,
 				"line_ending": "Unix"
 			}
 		},
@@ -115,7 +99,7 @@
 			"file": "pvp.py",
 			"settings":
 			{
-				"buffer_size": 15833,
+				"buffer_size": 29129,
 				"line_ending": "Unix"
 			}
 		},
@@ -123,7 +107,7 @@
 			"file": "www/pvp.html",
 			"settings":
 			{
-				"buffer_size": 3393,
+				"buffer_size": 4308,
 				"line_ending": "Unix"
 			}
 		},
@@ -131,7 +115,7 @@
 			"file": "www/pvp.js",
 			"settings":
 			{
-				"buffer_size": 658,
+				"buffer_size": 1848,
 				"line_ending": "Unix"
 			}
 		},
@@ -147,7 +131,7 @@
 			"file": "card.py",
 			"settings":
 			{
-				"buffer_size": 24471,
+				"buffer_size": 24821,
 				"line_ending": "Unix"
 			}
 		},
@@ -168,11 +152,29 @@
 			}
 		},
 		{
-			"file": "toredis/client.py",
+			"file": "brukva/client.py",
 			"settings":
 			{
-				"buffer_size": 6055,
+				"buffer_size": 36535,
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gamedata.py",
+			"settings":
+			{
+				"buffer_size": 728,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "Searching 711 files for \"BAND_NUM\"\n\n/home/liwei/projects/cdgm/gamedata.py:\n   10  # INIT_BRONZE_COIN = 5\n   11  INIT_GOLD = 10000\n   12: BAND_NUM = 3\n   13  INIT_CARDS = [16, 130]\n   14: INIT_BANDS = [{\"formation\":1, \"members\":[None, None, None, None, None, None]} for __ in xrange(BAND_NUM)]\n   15  INIT_ITEMS = {1:10, 2:50, 3:50, 9:20}	# {3:5, 5:34} => id:count		7:bronzeCoin, 8:silverCoin\n   16  INIT_WAGON = []\n   ..\n   23  MONSTER_GROUP_MEMBER_MAX = 5\n   24  \n   25: MAX_PVP_BAND_NUM_PER_LEVEL = 500\n   26  \n   27  MONEY_BAG_SMALL_ID = 18\n\n/home/liwei/projects/cdgm/pvp.py:\n  506          score_max += score\n  507  \n  508:         BAND_NUM = 4\n  509  \n  510          ## get matched rank\n  ...\n  528              pipe.zrevrank(Z_PVP_BANDS, keyminmax[1][0])\n  529              rankrange = yield util.redis_pipe_execute(pipe)\n  530:             if rankrange[1] - rankrange[0] < BAND_NUM:\n  531                  match_level -= 1\n  532                  if match_level == 0:\n  ...\n  539  \n  540          # get band\n  541:         ranks = random.sample(xrange(rankrange[0], rankrange[1]+1), BAND_NUM)\n  542:         if len(ranks) != BAND_NUM:\n  543:             raise Exception(\"len(ranks) != %s\" % BAND_NUM)\n  544  \n  545          pipe = util.redis_pipe()\n  546:         for i in xrange(BAND_NUM):\n  547              pipe.zrevrange(Z_PVP_BANDS, ranks[i], ranks[i], True)\n  548          members = yield util.redis_pipe_execute(pipe)\n  549          # \n  550          pipe = util.redis_pipe()\n  551:         for i in xrange(BAND_NUM):\n  552              pipe.hget(H_PVP_BANDS, members[i][0][0])\n  553          matched_bands = yield util.redis_pipe_execute(pipe)\n\n/home/liwei/projects/cdgm/zone (复件).py:\n    1  from error import *\n    2  from session import *\n    3: from gamedata import BAND_NUM, AP_ADD_DURATION, \\\n    4      XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID\n    5  import util\n    .\n  233                  zoneid = int(self.get_argument(\"zoneid\"))\n  234                  bandidx = int(self.get_argument(\"bandidx\"))\n  235:                 if bandidx not in xrange(BAND_NUM):\n  236                      raise Exception(\"Bad bandidx\")\n  237              except:\n\n/home/liwei/projects/cdgm/zone.py:\n    1  from error import *\n    2  from session import *\n    3: from gamedata import BAND_NUM, AP_ADD_DURATION, \\\n    4      XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID\n    5  import gamedata\n    .\n  244                  zoneid = int(self.get_argument(\"zoneid\"))\n  245                  bandidx = int(self.get_argument(\"bandidx\"))\n  246:                 if bandidx not in xrange(BAND_NUM):\n  247                      raise Exception(\"Bad bandidx\")\n  248              except:\n\n14 matches across 4 files\n",
+			"settings":
+			{
+				"buffer_size": 2830,
+				"line_ending": "Unix",
+				"name": "Find Results",
+				"scratch": true
 			}
 		}
 	],
@@ -272,9 +274,14 @@
 	},
 	"file_history":
 	[
-		"/home/liwei/projects/cdgm/adisp.py",
-		"/home/liwei/projects/cdgm/config.py",
+		"/home/liwei/projects/cdgm/www/admin.js",
+		"/home/liwei/projects/cdgm/auth.py",
 		"/home/liwei/projects/cdgm/toredis/client.py",
+		"/home/liwei/projects/cdgm/adisp.py",
+		"/home/liwei/projects/cdgm/adb.py",
+		"/home/liwei/projects/cdgm/www/admin.html",
+		"/home/liwei/projects/cdgm/www/pvp.js",
+		"/home/liwei/projects/cdgm/config.py",
 		"/home/liwei/projects/cdgm/tornado/ioloop.py",
 		"/home/liwei/projects/cdgm/tornado/stack_context.py",
 		"/home/liwei/projects/cdgm/tornado/iostream.py",
@@ -283,12 +290,9 @@
 		"/home/liwei/projects/cdgm/brukva/client.py",
 		"/home/liwei/projects/cdgm/redis/connection.py",
 		"/home/liwei/projects/cdgm/gamedata.py",
-		"/home/liwei/projects/cdgm/www/admin.js",
-		"/home/liwei/projects/cdgm/www/admin.html",
 		"/home/liwei/projects/cdgm/admin.py",
 		"/home/liwei/projects/cdgm/strings.py",
 		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/tornado/ioloop.py",
-		"/home/liwei/projects/cdgm/adb.py",
 		"/home/liwei/projects/cdgm/threadpool.py",
 		"/home/liwei/projects/cdgm/aredis.py",
 		"/home/liwei/projects/cdgm/wh.py",
@@ -301,7 +305,6 @@
 		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/tornado/platform/epoll.py",
 		"/home/liwei/projects/cdgm/pvp_.py",
 		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/tornado/stack_context.py",
-		"/home/liwei/projects/cdgm/auth.py",
 		"/home/liwei/projects/cdgm/www/login.js",
 		"/home/liwei/projects/asiahero/ver 0.3/map/Zones/10101.json",
 		"/home/liwei/projects/cdgm/archive/zone.py",
@@ -398,16 +401,15 @@
 		"/home/liwei/projects/cdgm/www/register.js",
 		"/home/liwei/projects/cdgm/data/cards.csv",
 		"/home/liwei/projects/cdgm/data/cardGrowthMappings.csv",
-		"/home/liwei/projects/cdgm/band.py",
-		"/home/liwei/projects/cdgm/archive/player.py"
+		"/home/liwei/projects/cdgm/band.py"
 	],
 	"find":
 	{
-		"height": 49.0
+		"height": 50.0
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 102.0,
 		"where_history":
 		[
 			"/home/liwei/projects/cdgm"
@@ -418,6 +420,87 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"member",
+			"member[1]",
+			"levelups",
+			"members",
+			"calc_card_proto_attr",
+			"levelups",
+			"cards",
+			"is_warlord_appended",
+			"warlord_card",
+			"band",
+			"foe_user_id",
+			"move",
+			"battle",
+			"BAND_NUM",
+			"yield match",
+			"pvp_score",
+			"userid",
+			"GetRanks",
+			"H_PVP_BANDS",
+			"GetRanks",
+			"card_tbl",
+			"dict(zip(cols",
+			"skill1Level",
+			"get_3_bands",
+			"setband",
+			"skill3Id",
+			"submit_pvp_band",
+			"calc_pvp_score",
+			"card_tbl",
+			"\"band\"",
+			"H_PVP_BANDS",
+			"Get3Band",
+			"AddTestRecord",
+			"calc_player_pvp_score",
+			"3",
+			"match",
+			"move",
+			"submit_pvp_bands",
+			"CreateTestData",
+			"match",
+			"username",
+			"pvpScore",
+			"\\",
+			"H_PVP_BANDS",
+			"S_PVP_FOES",
+			"zrevrange",
+			"match_no",
+			"zrank",
+			"ZRANGEBYSCORE",
+			"zrangebyscore",
+			"ZREVRANGE",
+			"Z_PVP_BANDS",
+			"PVP_Z_KEY",
+			"Z_PVP_BANDS",
+			"util.redis_pipe",
+			"priceSkillMul",
+			"matchNo",
+			"Match",
+			"async",
+			"adisp",
+			"util.tr",
+			"_pool",
+			"close",
+			"redis_pipe",
+			"sf_num",
+			"rarities",
+			"warlord",
+			"exp_full",
+			"exp_alread_full",
+			"lower_bound",
+			"rarities",
+			"JSON.",
+			"calc_pvp_score",
+			"get3band",
+			"submit_pvp_bands",
+			"calc_player_pvp_score",
+			"calc_pvp_score",
+			"pass",
+			"util.redis",
+			"CreateTestData",
+			"util.redis",
 			"yield create_cards(",
 			"xxxxxxxx",
 			"close",
@@ -464,88 +547,7 @@
 			"WAGON_TEMP_DURATION",
 			"gamedata",
 			"WAGON_INDEX_TEMP",
-			"create_cards",
-			"create_cards(",
-			"Create",
-			"create_cards",
-			"items =",
-			"create_cards",
-			"create_cards(",
-			"yield add_cards",
-			"WAGON_TYPE_SOCIAL",
-			"WAGON_TYPE_TEMP",
-			"WAGON_TYPE_GENERAL",
-			"yield create_cards",
-			"towagon",
-			"AddCard",
-			"jsonify",
-			"addCard",
-			"accordion2",
-			"getinfo",
-			"genaral",
-			"general",
-			"genaral",
-			"AddItemToWagon",
-			"SetItemNum",
-			"add_card",
-			"Wagon",
-			"wagon_temp",
-			"print",
-			"add_cards",
-			"type",
-			"last_ap_time",
-			"values",
-			"create_cards",
-			"wagon",
-			"create_cards",
-			"xxxxxx",
-			"update",
-			"addCard",
-			"addItem",
-			"Wagon",
-			"().",
-			"@async",
-			"callback",
-			"stop",
-			"**",
-			"async(",
-			"async",
-			"execute_command",
-			"readline(",
-			"readline",
-			"callback",
-			"callbacks",
-			"setex",
-			"thread_state",
-			"per_thread_init_func",
-			"_host",
-			"_connection_pool",
-			"thread_idle_life",
-			"reborn",
-			"_run_callback",
-			"sell",
-			"create_cards",
-			"PollIOLoop",
-			"_impl",
-			"poll",
-			"catchmon",
-			"add_callback(",
-			"traceback",
-			"print(",
-			"pring(",
-			"begin _read_delimiter",
-			"start(",
-			"_run(",
-			"_run",
-			"run(",
-			"run",
-			"_try_inline_read",
-			"readline",
-			"read_bytes\"",
-			"_try_inline_read",
-			"read_until(",
-			"exec",
-			"zone"
+			"create_cards"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -553,6 +555,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"",
 			"memids",
 			"pattern=\"[0-9]*\"",
 			"",
@@ -582,7 +585,7 @@
 	"groups":
 	[
 		{
-			"selected": 9,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -590,15 +593,15 @@
 					"file": "zone.py",
 					"settings":
 					{
-						"buffer_size": 41950,
+						"buffer_size": 42768,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								38206,
-								38206
+								31414,
+								31414
 							]
 						],
 						"settings":
@@ -608,7 +611,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 22920.0,
+						"translation.y": 24249.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -618,15 +621,15 @@
 					"file": "util.py",
 					"settings":
 					{
-						"buffer_size": 8902,
+						"buffer_size": 8957,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								8402,
-								8402
+								7441,
+								7441
 							]
 						],
 						"settings":
@@ -636,25 +639,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 6250.0,
+						"translation.y": 1122.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "adisp.py",
+					"file": "player.py",
 					"settings":
 					{
-						"buffer_size": 5042,
+						"buffer_size": 22021,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4000,
-								4000
+								13349,
+								13349
 							]
 						],
 						"settings":
@@ -664,25 +667,135 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2232.0,
+						"translation.y": 5052.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "player.py",
+					"file": "pvp.py",
 					"settings":
 					{
-						"buffer_size": 20147,
+						"buffer_size": 29129,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1414,
-								1414
+								25804,
+								25804
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 16704.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "www/pvp.html",
+					"settings":
+					{
+						"buffer_size": 4308,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3809,
+								3809
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1672.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "www/pvp.js",
+					"settings":
+					{
+						"buffer_size": 1848,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1813,
+								1813
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1464.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "www/wagon.js",
+					"settings":
+					{
+						"buffer_size": 1760,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								389,
+								389
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "card.py",
+					"settings":
+					{
+						"buffer_size": 24821,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1670,
+								1670
 							]
 						],
 						"settings":
@@ -698,173 +811,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "auth.py",
-					"settings":
-					{
-						"buffer_size": 7622,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5342,
-								5342
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 3114.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "pvp.py",
-					"settings":
-					{
-						"buffer_size": 15833,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								14862,
-								14862
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 11140.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "www/pvp.html",
-					"settings":
-					{
-						"buffer_size": 3393,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3022,
-								3022
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/HTML/HTML.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1645.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "www/pvp.js",
-					"settings":
-					{
-						"buffer_size": 658,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								260,
-								260
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
 					"buffer": 8,
-					"file": "www/wagon.js",
-					"settings":
-					{
-						"buffer_size": 1760,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1211,
-								1211
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 594.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "card.py",
-					"settings":
-					{
-						"buffer_size": 24471,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								7716,
-								7716
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 4546.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 10,
 					"file": "www/card.js",
 					"settings":
 					{
@@ -885,13 +832,13 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1782.0,
+						"translation.y": 1980.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 11,
+					"buffer": 9,
 					"file": "wagon.py",
 					"settings":
 					{
@@ -902,8 +849,8 @@
 						"selection":
 						[
 							[
-								6453,
-								6453
+								4488,
+								4488
 							]
 						],
 						"settings":
@@ -913,25 +860,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1188.0,
+						"translation.y": 2970.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 12,
-					"file": "toredis/client.py",
+					"buffer": 10,
+					"file": "brukva/client.py",
 					"settings":
 					{
-						"buffer_size": 6055,
+						"buffer_size": 36535,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3089,
-								3089
+								26256,
+								26256
 							]
 						],
 						"settings":
@@ -941,7 +888,128 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2542.0,
+						"translation.y": 16982.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "gamedata.py",
+					"settings":
+					{
+						"buffer_size": 728,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								204,
+								204
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"settings":
+					{
+						"buffer_size": 2830,
+						"regions":
+						{
+							"match":
+							{
+								"flags": 112,
+								"regions":
+								[
+									[
+										137,
+										145
+									],
+									[
+										282,
+										290
+									],
+									[
+										480,
+										488
+									],
+									[
+										636,
+										644
+									],
+									[
+										880,
+										888
+									],
+									[
+										1089,
+										1097
+									],
+									[
+										1131,
+										1139
+									],
+									[
+										1197,
+										1205
+									],
+									[
+										1286,
+										1294
+									],
+									[
+										1520,
+										1528
+									],
+									[
+										1783,
+										1791
+									],
+									[
+										2135,
+										2143
+									],
+									[
+										2351,
+										2359
+									],
+									[
+										2707,
+										2715
+									]
+								],
+								"scope": ""
+							}
+						},
+						"selection":
+						[
+							[
+								2700,
+								2700
+							]
+						],
+						"settings":
+						{
+							"detect_indentation": false,
+							"output_tag": 1,
+							"result_base_dir": "",
+							"result_file_regex": "^([A-Za-z\\\\/<].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1056.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -991,8 +1059,24 @@
 		"selected_items":
 		[
 			[
+				"gamed",
+				"gamedata.py"
+			],
+			[
+				"player",
+				"player.py"
+			],
+			[
+				"adb",
+				"adb.py"
+			],
+			[
 				"adisp",
 				"adisp.py"
+			],
+			[
+				"card",
+				"card.py"
 			],
 			[
 				"wagon",
@@ -1001,10 +1085,6 @@
 			[
 				"config",
 				"config.py"
-			],
-			[
-				"card",
-				"card.py"
 			],
 			[
 				"game",
@@ -1029,14 +1109,6 @@
 			[
 				"util",
 				"util.py"
-			],
-			[
-				"gamed",
-				"gamedata.py"
-			],
-			[
-				"player",
-				"player.py"
 			],
 			[
 				"profi",

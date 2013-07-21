@@ -1,4 +1,6 @@
-﻿import config
+#! ./env/bin/python
+
+import config
 
 import util
 import auth

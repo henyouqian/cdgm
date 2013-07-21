@@ -1,7 +1,7 @@
 from session import find_session
 from error import *
 import util
-from card import card_tbl, skill_tbl, is_war_lord
+from card import card_tbl, skill_tbl, is_war_lord, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
 
 import tornado.web, tornado.gen
 import adisp
@@ -26,6 +26,7 @@ import redis
         field: user_id
         value: {
             "userName":string,
+            "userLevel":int,
             "score":int,
             "cards":[
                 {
@@ -172,7 +173,7 @@ def calc_player_pvp_score(userid, bands, cards, price_skill_mul):
 
 @adisp.async
 @adisp.process
-def update_pvp_band(userid, username, bands, callback):
+def update_pvp_band(userid, username, userlevel, bands, callback):
     """
         "userId":int
         "userName":string
@@ -242,6 +243,7 @@ def update_pvp_band(userid, username, bands, callback):
                 max_score_band["cards"] = better_cards
                 max_score_band["userId"] = userid
                 max_score_band["userName"] = username
+                max_score_band["userLevel"] = userlevel
                 max_score_band["score"] = max_band_score
                 
 
@@ -259,54 +261,54 @@ def update_pvp_band(userid, username, bands, callback):
         callback(e)
 
 
-@adisp.async
-@adisp.process
-def submit_pvp_band(userid, username, cards, callback):
-    """
-        "userId":int
-        "userName":string
-        "cards":[
-            {
-                "protoId":int,
-                "level":int,
-                "hp":int,
-                "atk":int,
-                "def":int,
-                "wis":int,
-                "agi":int,
-                "skill1Id":int,
-                "skill1Level":int,
-                "skill2Id":int,
-                "skill2Level":int,
-                "skill3Id":int,
-                "skill3Level":int
-            },
-            ...
-        ]
-    """
-    try:
-        # calc pvp score
-        pvp_score = 0
-        price_skill_mul = yield util.redis().hget(H_PVP_FORMULA, "priceSkillMul")
-        price_skill_mul = float(price_skill_mul)
-        for card in cards:
-            if card:
-                score = calc_pvp_score(card, price_skill_mul)
-                pvp_score += score
+# @adisp.async
+# @adisp.process
+# def submit_pvp_band(userid, username, cards, callback):
+#     """
+#         "userId":int
+#         "userName":string
+#         "cards":[
+#             {
+#                 "protoId":int,
+#                 "level":int,
+#                 "hp":int,
+#                 "atk":int,
+#                 "def":int,
+#                 "wis":int,
+#                 "agi":int,
+#                 "skill1Id":int,
+#                 "skill1Level":int,
+#                 "skill2Id":int,
+#                 "skill2Level":int,
+#                 "skill3Id":int,
+#                 "skill3Level":int
+#             },
+#             ...
+#         ]
+#     """
+#     try:
+#         # calc pvp score
+#         pvp_score = 0
+#         price_skill_mul = yield util.redis().hget(H_PVP_FORMULA, "priceSkillMul")
+#         price_skill_mul = float(price_skill_mul)
+#         for card in cards:
+#             if card:
+#                 score = calc_pvp_score(card, price_skill_mul)
+#                 pvp_score += score
 
-        # update to redis
-        pipe = util.redis_pipe()
-        pipe.zadd(Z_PVP_BANDS, pvp_score, userid)
+#         # update to redis
+#         pipe = util.redis_pipe()
+#         pipe.zadd(Z_PVP_BANDS, pvp_score, userid)
 
-        pvp_data = {"userName": username, "cards":cards, "score": pvp_score}
-        pipe.hset(H_PVP_BANDS, userid, json.dumps(pvp_data))
-        yield util.redis_pipe_execute(pipe)
+#         pvp_data = {"userName": username, "cards":cards, "score": pvp_score}
+#         pipe.hset(H_PVP_BANDS, userid, json.dumps(pvp_data))
+#         yield util.redis_pipe_execute(pipe)
         
-        callback(None)
+#         callback(None)
 
-    except Exception as e:
-        traceback.print_exc()
-        callback(e)
+#     except Exception as e:
+#         traceback.print_exc()
+#         callback(e)
 
 
 @adisp.async
@@ -405,6 +407,7 @@ class CreateTestData(tornado.web.RequestHandler):
                 pvp_band = {
                     "userId": -proto,
                     "userName": username,
+                    "userLevel": 1,
                     "cards": cards,
                     "formation":14,
                 }
@@ -628,6 +631,174 @@ class Match(tornado.web.RequestHandler):
             self.finish()
 
 
+class BattleResult(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def post(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+
+            # post data
+            post_input = json.loads(self.request.body)
+            is_win = post_input["isWin"]
+            foe_user_id = post_input["foeUserId"]
+            members = post_input["members"]
+            allout = post_input["allout"]
+            use_item = post_input["useItem"]
+            band_index = post_input["bandIndex"]
+
+            # get player info
+            rows = yield util.whdb.runQuery(
+                """ SELECT items, maxCardNum, xp, maxXp, bands, maxBandNum, warLoad, zoneCache FROM playerInfos
+                        WHERE userId=%s"""
+                ,(userid, )
+            )
+            row = rows[0]
+            items = json.loads(row[0])
+            max_card_num = row[1]
+            xp = row[2]
+            max_xp = row[3]
+            bands = json.loads(row[4])
+            max_band_num = row[5]
+            warlord = row[6]
+            zone_cache = row[7]
+            zone_cache = json.loads(zone_cache)
+
+
+            # validate band members
+            if band_index not in xrange(max_band_num) or band_index >= len(bands):
+                raise Exception("wrong bandIndex: %s" % band_index)
+            self_band = bands[band_index]
+
+            members = [member for member in members if member]
+
+            if len(members) != len(set(members)):
+                raise Exception("members repeated")
+
+            for member in members:
+                if member not in self_band:
+                    raise Exception("member not in band: %s" % member)
+
+            # get matched bands
+            key = "pvpFoeBands/%s" % userid
+            matched_bands = yield util.redis().get(key)
+            if matched_bands:
+                matched_bands = json.loads(matched_bands)
+            else:
+                raise Exception("matched_bands cache not exists. maybe timeout")
+
+            foe_band = None
+            for mb in matched_bands:
+                if mb["userId"] == foe_user_id:
+                    foe_band = mb
+                    break
+
+            if not foe_band:
+                raise Exception("foe band not found: foe userId = %s" % foe_user_id)
+
+            # calc exp
+            add_exp = 0
+            for foe_card in foe_band:
+                if foe_card:
+                    battle_exp = card_tbl.get(foe_card["protoId"], "battleExp")
+                    add_exp += add_exp
+
+            add_exp_per_card = add_exp/len(members)
+
+            # query card entity info
+            cols = ["id", "level", "exp", "protoId", "hp", "atk", "def", "wis", "agi", "hpCrystal", "hpExtra"]
+            rows = yield util.whdb.runQuery(
+                """ SELECT {} FROM playerInfos
+                        WHERE userId=%s""".format(",".join(cols))
+                ,(userid, )
+            )
+            card_entities = [dict(zip(cols, row)) for row in rows]
+
+            # add exp
+            levelups = []
+            for card_entity in card_entities:
+                lvtbl = warlord_level_tbl if card_entity["id"] == warlord else card_level_tbl
+                level = card_entity["level"]
+                max_level = int(card_tbl.get(card_entity["protoId"], "maxlevel"))
+                try:
+                    next_lv_exp = int(lvtbl.get(level+1, "exp"))
+                    card_entity["exp"] += add_exp_per_card
+                    while card_entity["exp"] >= next_lv_exp:
+                        level += 1
+                        next_lv_exp = int(lvtbl.get(level+1, "exp"))
+
+                    #max level check
+                    if level >= max_level:
+                        level = max_level
+                        card_entity["exp"] = int(lvtbl.get(level, "exp"))
+
+                    #level up
+                    if level != card_entity["level"]:
+                        hp, atk, dfs, wis, agi = calc_card_proto_attr(card_entity["protoId"], level)
+                        card_entity["level"] = level
+                        card_entity["hp"] = hp
+                        card_entity["atk"] = atk
+                        card_entity["def"] = dfs
+                        card_entity["wis"] = wis
+                        card_entity["agi"] = agi
+
+                        # recover hp
+                        new_hp = 0
+                        for member in zone_cache["band"]["members"]:
+                            if member == card_entity["id"]:
+                                new_hp = hp+card_entity["hpCrystal"]+card_entity["hpExtra"]
+                                member[1] = new_hp
+                                break
+                        
+                        # 
+                        levelup = {}
+                        levelup["id"] = card_entity["id"]
+                        levelup["level"] = level
+                        levelup["exp"] = card_entity["exp"]
+                        levelup["hp"] = hp
+                        levelup["atk"] = atk
+                        levelup["def"] = dfs
+                        levelup["wis"] = wis
+                        levelup["agi"] = agi
+                        levelups.append(levelup)
+
+                        # recover ap and xp
+                        if card_entity["id"] == warlord:
+                            ap = max_ap
+                            xp = max_xp
+
+                except:
+                    card_entity["exp"] = int(lvtbl.get(level, "exp"))
+
+            # update cardEntity's attributes
+            arg_list = [(c["level"], c["exp"], c["hp"], c["atk"]
+                ,c["def"], c["wis"], c["agi"], c["id"]) for c in card_entities]
+            yield util.whdb.runOperationMany(
+                """UPDATE cardEntities SET level=%s, exp=%s, hp=%s, atk=%s, def=%s, wis=%s, agi=%s
+                        WHERE id=%s"""
+                ,arg_list
+            )
+
+            # update zone cache if levelup
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET zoneCache=%s, ap=%s, xp=%s
+                        WHERE userId=%s"""
+                ,(json.dumps(cache), ap, xp, json.dumps(items), userid)
+            )
+            
+            # reply
+            reply = util.new_reply()
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 class Test(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -725,6 +896,7 @@ handlers = [
     (r"/whapi/pvp/getranks", GetRanks),
     (r"/whapi/pvp/getformula", GetFormula),
     (r"/whapi/pvp/match", Match),
+    (r"/whapi/pvp/battleresult", BattleResult),
     (r"/whapi/pvp/test", Test),
     (r"/whapi/pvp/test1", Test1),
     (r"/whapi/pvp/test2", Test2),
