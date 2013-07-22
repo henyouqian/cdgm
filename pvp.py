@@ -857,7 +857,8 @@ class BattleResult(tornado.web.RequestHandler):
                 elif use_item == 2:
                     resumeItemId = 11
                     resumeItemNum = 1
-                if items[resumeItemId] > resumeItemNum:
+
+                if resumeItemId and resumeItemNum > items.get(resumeItemId, 0):
                     raise Exception("item %s not enough" % resumeItemId)
                 xp = 0
             else:
