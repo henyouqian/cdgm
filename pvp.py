@@ -623,12 +623,17 @@ def match(score, match_no, user_id, callback):
             pipe.zrevrangebyscore(Z_PVP_BANDS, score_max, score_min, offset = 0, limit=1)
             pipe.zrangebyscore(Z_PVP_BANDS, score_min, score_max, offset = 0, limit=1)
             keyminmax = yield util.redis_pipe_execute(pipe)
-            print "kkkkkkkkkk", keyminmax
             if (not keyminmax[0]) or (not keyminmax[1]) or int(keyminmax[1][0])==int(keyminmax[0][0]):
                 match_level -= 1
                 if match_level == 0:
-                    total_rank = yield util.redis().zcard(Z_PVP_BANDS)
-                    rankrange = [total_rank-101, total_rank-1]
+                    pipe = util.redis_pipe()
+                    pipe.zcard(Z_PVP_BANDS)
+                    pipe.zrevrange(Z_PVP_BANDS, 1, 1, True)
+                    total_rank, max_scores = yield util.redis_pipe_execute(pipe)
+                    if score_min >= max_scores[0][1]/2:
+                        rankrange = [0, 100]
+                    else:
+                        rankrange = [total_rank-101, total_rank-1]
                     break
                 colmin = "pvp%dmin" % match_level
                 score_min = int(pvp_match_tbl.get(score_level, colmin)) + score
@@ -641,12 +646,19 @@ def match(score, match_no, user_id, callback):
             if rankrange[1] - rankrange[0] < BAND_NUM:
                 match_level -= 1
                 if match_level == 0:
-                    total_rank = yield util.redis().zcard(Z_PVP_BANDS)
-                    rankrange = [total_rank-101, total_rank-1]
+                    pipe = util.redis_pipe()
+                    pipe.zcard(Z_PVP_BANDS)
+                    pipe.zrevrange(Z_PVP_BANDS, 1, 1, True)
+                    total_rank, max_scores = yield util.redis_pipe_execute(pipe)
+                    if score_min <= max_scores[0][1]/2:
+                        rankrange = [total_rank-101, total_rank-1]
+                    else:
+                        rankrange = [0, 100]
                     break
                 colmin = "pvp%dmin" % match_level
                 score_min = int(pvp_match_tbl.get(score_level, colmin)) + score
                 continue
+            break
 
         # get band
         ranks = random.sample(xrange(rankrange[0], rankrange[1]+1), BAND_NUM)
