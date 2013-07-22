@@ -14,8 +14,10 @@ function Controller($scope, $http) {
 	}
 	getFormula()
 
+	$scope.offset = 0
+	$scope.limit = 50
 	function getPvpRanks() {
-		$.getJSON('/whapi/pvp/getranks', function(json){
+		$.getJSON('/whapi/pvp/getranks', {"offset":$scope.offset, "limit":$scope.limit}, function(json){
 			var err = json.error;
 			if (err){
 				errProc(err)
@@ -90,6 +92,34 @@ function Controller($scope, $http) {
 			}
 		}, "json")
 	}
-	
+
+
+	$scope.nextPage = function() {
+		$scope.offset += $scope.limit
+		$.getJSON('/whapi/pvp/getranks', {"offset":$scope.offset, "limit":$scope.limit}, function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.ranks = json.ranks
+				})
+			}
+		})
+	}
+	$scope.prevPage = function() {
+		$scope.offset = Math.max($scope.offset-$scope.limit, 0)
+
+		$.getJSON('/whapi/pvp/getranks', {"offset":$scope.offset, "limit":$scope.limit}, function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.ranks = json.ranks
+				})
+			}
+		})
+	}
 	
 }

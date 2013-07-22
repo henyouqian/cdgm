@@ -382,6 +382,15 @@ class CreateTestData(tornado.web.RequestHandler):
             price_skill_mul = float(self.get_argument("priceSkillMul"))
             yield util.redis().hset(H_PVP_FORMULA, "priceSkillMul", price_skill_mul)
 
+            # clear all
+            pipe = util.redis_pipe()
+            pipe.delete(Z_PVP_BANDS)
+            pipe.delete(H_PVP_BANDS)
+            pipe.delete(S_PVP_FOES)
+            yield util.redis_pipe_execute(pipe)
+
+
+            # same five member
             bands = []
             for card_row_key in card_tbl.iter_rowkeys():
                 username = card_tbl.get(card_row_key, "name")
@@ -415,7 +424,43 @@ class CreateTestData(tornado.web.RequestHandler):
 
                 bands.append(pvp_band)
 
-            yield submit_pvp_bands(bands)
+            # yield submit_pvp_bands(bands)
+
+            # parse pvp test data
+            test_data = {}
+            for key in pvp_test_data_tbl.iter_rowkeys():
+                tp, rarity = map(int, pvp_test_data_tbl.gets(key, "type", "rarity"))
+                if tp == 0:
+                    for i in xrange(1, 4):
+                        k = (i, rarity)
+                        if not test_data.get(k, None):
+                            test_data[k] = []
+                        test_data[k].append(int(key))
+                else:
+                    k = (tp, rarity)
+                    if not test_data.get(k, None):
+                        test_data[k] = []
+                    test_data[k].append(int(key))
+
+
+            # add type=1, rarity=1
+            yield self.batchAdd(test_data, 1, 1, 1000)
+            yield self.batchAdd(test_data, 1, 2, 1000)
+            yield self.batchAdd(test_data, 1, 3, 1000)
+            yield self.batchAdd(test_data, 1, 4, 1000)
+            yield self.batchAdd(test_data, 1, 5, 1000)
+
+            yield self.batchAdd(test_data, 2, 1, 1000)
+            yield self.batchAdd(test_data, 2, 2, 1000)
+            yield self.batchAdd(test_data, 2, 3, 1000)
+            yield self.batchAdd(test_data, 2, 4, 1000)
+            yield self.batchAdd(test_data, 2, 5, 1000)
+
+            yield self.batchAdd(test_data, 3, 1, 1000)
+            yield self.batchAdd(test_data, 3, 2, 1000)
+            yield self.batchAdd(test_data, 3, 3, 1000)
+            yield self.batchAdd(test_data, 3, 4, 1000)
+            yield self.batchAdd(test_data, 3, 5, 1000)
 
             # reply
             reply = util.new_reply()
@@ -425,6 +470,61 @@ class CreateTestData(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
+
+    @adisp.async
+    @adisp.process
+    def batchAdd(self, test_data, type, rarity, count, callback):
+        try:
+            # type = 1, rarity = 1
+            key = (type, rarity)
+            card_ids = test_data[key]
+            bands = []
+            
+            for i_band in xrange(count):
+                member_num = random.randint(3, 5)
+                member_protos = random.sample(card_ids, min(member_num, len(card_ids)))
+                cards = []
+                formation_dict = {3:(1, 4), 4:(5, 10), 5:(11, 19)}
+                formation_range = formation_dict[member_num]
+                formation = random.randint(formation_range[0], formation_range[1])
+                for member_proto in member_protos:
+                    price, maxlv, skillid1, skillid2= \
+                        map(int, card_tbl.gets(member_proto, "price", \
+                            "maxlevel", "skillid1", "skillid2"))
+                    level = random.randint(1, maxlv)
+                    hp, atk, dfs, wis, agi = calc_card_proto_attr(member_proto, level)
+                    cards.append({
+                        "protoId": member_proto,
+                        "level":maxlv,
+                        "hp":hp,
+                        "atk":atk,
+                        "def":dfs,
+                        "wis":wis,
+                        "agi":agi,
+                        "skill1Id":skillid1,
+                        "skill1Level":random.randint(5, 20),
+                        "skill2Id":skillid2,
+                        "skill2Level":random.randint(5, 20),
+                        "skill3Id":0,
+                        "skill3Level":0
+                    })
+
+
+                pvp_band = {
+                    "userId": -((key[0]*10+key[1])*1000000+i_band),
+                    "userName": "%s, %s, %s" %(key[0], key[1], i_band),
+                    "userLevel": 1,
+                    "cards": cards,
+                    "formation":formation,
+                }
+                bands.append(pvp_band)
+
+            yield submit_pvp_bands(bands)
+            callback(None)
+
+        except Exception as e:
+            traceback.print_exc()
+            callback(e)
 
 
 class GetFormula(tornado.web.RequestHandler):
@@ -450,8 +550,13 @@ class GetRanks(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
+            # param
+            offset = int(self.get_argument("offset"))
+            limit = int(self.get_argument("limit"))
+
+            # 
             r = redis.StrictRedis(host='localhost', port=6379, db=0)
-            ranks = r.zrevrange(Z_PVP_BANDS, 0, -1, withscores=True)
+            ranks = r.zrevrange(Z_PVP_BANDS, offset, offset+limit-1, withscores=True)
             ranks = [{"id":int(rank[0]), "score": rank[1]} for rank in ranks]
 
             pipe = util.redis_pipe()
@@ -469,7 +574,7 @@ class GetRanks(tornado.web.RequestHandler):
                 # name, maxhp, maxdef, maxatk, maxwis, maxagi, price = \
                 #     card_tbl.gets(rank["id"], "name", "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "price")
                 band = bands[rank["id"]]
-                band["index"] = idx
+                band["index"] = idx+offset
                 out_ranks.append(band)
 
             # reply
@@ -829,6 +934,8 @@ class BattleResult(tornado.web.RequestHandler):
 
             
             next_pvp_bands = []
+            cacheKey = "pvpFoeBands/%s" % userid
+
             # lose
             if not is_win:
                 win_streak = 0
@@ -843,8 +950,13 @@ class BattleResult(tornado.web.RequestHandler):
                 # next pvp battle
                 else:
                     next_pvp_bands, rankrange, score_min, score_max = yield match(pvp_score, win_streak+1, userid)
-                    key = "pvpFoeBands/%s" % userid
-                    yield util.redis().setex(key, 600, json.dumps(next_pvp_bands))
+                    ttl = yield util.redis().ttl(cacheKey)
+                    # fixme: use ttl
+                    yield util.redis().setex(cacheKey, 600, json.dumps(next_pvp_bands))
+
+            # delete cache if streak break or finish 3 pvps
+            if win_streak % 3 == 0:
+                yield util.redis().delete(cacheKey)
                 
 
             # update zone cache
@@ -864,6 +976,7 @@ class BattleResult(tornado.web.RequestHandler):
             reply["cards"] = []
             reply["items"] = []
             reply["xp"] = xp
+            reply["nextAddXpTime"] = nextAddXpTime
             reply["smallXpItemNum"] = items.get(10, 0)
             reply["bigXpItemNum"] = items.get(11, 0)
             reply["nextPvpBands"] = next_pvp_bands
@@ -980,3 +1093,4 @@ handlers = [
 ]
 
 pvp_match_tbl = util.CsvTbl("data/pvpmatch.csv", "id")
+pvp_test_data_tbl = util.CsvTbl("data/pvpTestData.csv", "ID")

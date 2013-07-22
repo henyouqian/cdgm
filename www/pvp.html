@@ -85,6 +85,9 @@
               </div>
               <div id="collapseTwo" class="accordion-body collapse">
                 <div class="accordion-inner">
+                  <button class="btn btn-primary" ng-click="prevPage()"> &lt; </button>
+                  Page: {{offset/limit}}
+                  <button class="btn btn-primary" ng-click="nextPage()"> &gt; </button>
                   <table class="table table-striped">
                     <thead>
                       <th>rank</th>
