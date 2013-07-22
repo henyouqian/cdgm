@@ -429,7 +429,8 @@ class CreateTestData(tornado.web.RequestHandler):
             # parse pvp test data
             test_data = {}
             for key in pvp_test_data_tbl.iter_rowkeys():
-                tp, rarity = map(int, pvp_test_data_tbl.gets(key, "type", "rarity"))
+                tp, proto = map(int, pvp_test_data_tbl.gets(key, "type", "ID"))
+                rarity = int(card_tbl.get(proto, "rarity"))
                 if tp == 0:
                     for i in xrange(1, 4):
                         k = (i, rarity)
@@ -444,23 +445,23 @@ class CreateTestData(tornado.web.RequestHandler):
 
 
             # add type=1, rarity=1
-            yield self.batchAdd(test_data, 1, 1, 1000)
-            yield self.batchAdd(test_data, 1, 2, 1000)
-            yield self.batchAdd(test_data, 1, 3, 1000)
-            yield self.batchAdd(test_data, 1, 4, 1000)
-            yield self.batchAdd(test_data, 1, 5, 1000)
+            yield self.batchAdd(test_data, 1, 1, 2000)
+            yield self.batchAdd(test_data, 1, 2, 2000)
+            yield self.batchAdd(test_data, 1, 3, 2000)
+            yield self.batchAdd(test_data, 1, 4, 2000)
+            # yield self.batchAdd(test_data, 1, 5, 1000)
 
-            yield self.batchAdd(test_data, 2, 1, 1000)
-            yield self.batchAdd(test_data, 2, 2, 1000)
-            yield self.batchAdd(test_data, 2, 3, 1000)
-            yield self.batchAdd(test_data, 2, 4, 1000)
-            yield self.batchAdd(test_data, 2, 5, 1000)
+            yield self.batchAdd(test_data, 2, 1, 2000)
+            yield self.batchAdd(test_data, 2, 2, 2000)
+            yield self.batchAdd(test_data, 2, 3, 2000)
+            yield self.batchAdd(test_data, 2, 4, 2000)
+            # yield self.batchAdd(test_data, 2, 5, 1000)
 
-            yield self.batchAdd(test_data, 3, 1, 1000)
-            yield self.batchAdd(test_data, 3, 2, 1000)
-            yield self.batchAdd(test_data, 3, 3, 1000)
-            yield self.batchAdd(test_data, 3, 4, 1000)
-            yield self.batchAdd(test_data, 3, 5, 1000)
+            yield self.batchAdd(test_data, 3, 1, 2000)
+            yield self.batchAdd(test_data, 3, 2, 2000)
+            yield self.batchAdd(test_data, 3, 3, 2000)
+            yield self.batchAdd(test_data, 3, 4, 2000)
+            # yield self.batchAdd(test_data, 3, 5, 1000)
 
             # reply
             reply = util.new_reply()
