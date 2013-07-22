@@ -850,21 +850,24 @@ class BattleResult(tornado.web.RequestHandler):
 
             # comsume xp
             consumeXp = 3 if allout else 1
-            resumeItemId = None
-            resumeItemNum = 0
+            consumeItemId = None
+            consumeItemNum = 0
             if consumeXp > xp:
                 if use_item == 1:
-                    resumeItemId = 10
-                    resumeItemNum = consumeXp - xp
+                    consumeItemId = 10
+                    consumeItemNum = consumeXp - xp
                 elif use_item == 2:
-                    resumeItemId = 11
-                    resumeItemNum = 1
+                    consumeItemId = 11
+                    consumeItemNum = 1
 
-                if resumeItemId and resumeItemNum > items.get(resumeItemId, 0):
-                    raise Exception("item %s not enough" % resumeItemId)
+                if consumeItemId and consumeItemNum > items.get(consumeItemId, 0):
+                    raise Exception("item %s not enough" % consumeItemId)
                 xp = 0
             else:
                 xp = xp - consumeXp
+
+            if consumeItemId and consumeItemNum:
+                items[consumeItemId] -= consumeItemNum
 
             # calc exp
             add_exp = 0
