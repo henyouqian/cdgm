@@ -580,7 +580,7 @@ class Move(tornado.web.RequestHandler):
                 matched_bands, rankrange, score_min, score_max = yield pvp.match(pvp_score, pvp_win_streak+1, userid)
                 pvp_bands = matched_bands
                 key = "pvpFoeBands/%s" % userid
-                yield util.redis().setex(key, 600, json.dumps(matched_bands))
+                yield util.redis().setex(key, 6000, json.dumps(matched_bands))
                 
 
             # update

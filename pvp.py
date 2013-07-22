@@ -2,6 +2,7 @@ from session import find_session
 from error import *
 import util
 from card import card_tbl, skill_tbl, is_war_lord, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
+from gamedata import XP_ADD_DURATION
 
 import tornado.web, tornado.gen
 import adisp
@@ -654,21 +655,28 @@ class BattleResult(tornado.web.RequestHandler):
 
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT items, maxCardNum, xp, maxXp, bands, maxBandNum, warLoad, zoneCache FROM playerInfos
+                """ SELECT items, maxCardNum, ap, maxAp, xp, maxXp, lastXpTime, UTC_TIMESTAMP(), \
+                    bands, maxBandNum, warLord, zoneCache, pvpWinStreak, pvpScore FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
             row = rows[0]
             items = json.loads(row[0])
+            items = {int(k):v for k, v in items.iteritems()}
             max_card_num = row[1]
-            xp = row[2]
-            max_xp = row[3]
-            bands = json.loads(row[4])
-            max_band_num = row[5]
-            warlord = row[6]
-            zone_cache = row[7]
+            ap = row[2]
+            max_ap = row[3]
+            xp = row[4]
+            max_xp = row[5]
+            last_xp_time = row[6]
+            curr_time = row[7]
+            bands = json.loads(row[8])
+            max_band_num = row[9]
+            warlord = row[10]
+            zone_cache = row[11]
             zone_cache = json.loads(zone_cache)
-
+            win_streak = row[12]
+            pvp_score = row[13]
 
             # validate band members
             if band_index not in xrange(max_band_num) or band_index >= len(bands):
@@ -677,11 +685,13 @@ class BattleResult(tornado.web.RequestHandler):
 
             members = [member for member in members if member]
 
+            if len(members) == 0:
+                raise Exception("no members")
             if len(members) != len(set(members)):
                 raise Exception("members repeated")
 
             for member in members:
-                if member not in self_band:
+                if member not in self_band["members"]:
                     raise Exception("member not in band: %s" % member)
 
             # get matched bands
@@ -690,7 +700,8 @@ class BattleResult(tornado.web.RequestHandler):
             if matched_bands:
                 matched_bands = json.loads(matched_bands)
             else:
-                raise Exception("matched_bands cache not exists. maybe timeout")
+                send_error(self, "err_timeout")
+                return
 
             foe_band = None
             for mb in matched_bands:
@@ -699,11 +710,43 @@ class BattleResult(tornado.web.RequestHandler):
                     break
 
             if not foe_band:
+                print matched_bands
                 raise Exception("foe band not found: foe userId = %s" % foe_user_id)
+
+            # refresh xp
+            if not last_xp_time:
+                last_xp_time = datetime(2013, 1, 1)
+
+            dt = curr_time - last_xp_time
+            dt = int(dt.total_seconds())
+            dxp = dt // XP_ADD_DURATION
+            if dxp:
+                xp = min(max_xp, xp + dxp)
+            if xp == max_xp:
+                last_xp_time = curr_time
+            else:
+                last_xp_time = curr_time - datetime.timedelta(seconds = dt % XP_ADD_DURATION)
+            dt = curr_time - last_xp_time
+            nextAddXpTime = int(dt.total_seconds())
+
+            # comsume xp
+            consumeXp = 3 if allout else 1
+            if consumeXp > xp:
+                if use_item == 1:
+                    resumeItemId = 10
+                    resumeItemNum = consumeXp - xp
+                elif use_item == 0:
+                    resumeItemId = 11
+                    resumeItemNum = 1
+                if items[resumeItemId] > resumeItemNum:
+                    raise Exception("item %s not enough" % resumeItemId)
+                xp = 0
+            else:
+                xp = xp - consumeXp
 
             # calc exp
             add_exp = 0
-            for foe_card in foe_band:
+            for foe_card in foe_band["cards"]:
                 if foe_card:
                     battle_exp = card_tbl.get(foe_card["protoId"], "battleExp")
                     add_exp += add_exp
@@ -713,8 +756,8 @@ class BattleResult(tornado.web.RequestHandler):
             # query card entity info
             cols = ["id", "level", "exp", "protoId", "hp", "atk", "def", "wis", "agi", "hpCrystal", "hpExtra"]
             rows = yield util.whdb.runQuery(
-                """ SELECT {} FROM playerInfos
-                        WHERE userId=%s""".format(",".join(cols))
+                """ SELECT {} FROM cardEntities
+                        WHERE ownerId=%s AND id in ({})""".format(",".join(cols), ",".join(map(str, members)))
                 ,(userid, )
             )
             card_entities = [dict(zip(cols, row)) for row in rows]
@@ -784,15 +827,46 @@ class BattleResult(tornado.web.RequestHandler):
                 ,arg_list
             )
 
-            # update zone cache if levelup
+            
+            next_pvp_bands = []
+            # lose
+            if not is_win:
+                win_streak = 0
+            # win
+            else:
+                win_streak += 1
+                if win_streak % 3 == 0:
+                    # fixme: gain reward
+                    if win_streak == 30:
+                        win_streak = 0
+
+                # next pvp battle
+                else:
+                    next_pvp_bands, rankrange, score_min, score_max = yield match(pvp_score, win_streak+1, userid)
+                    key = "pvpFoeBands/%s" % userid
+                    yield util.redis().setex(key, 600, json.dumps(next_pvp_bands))
+                
+
+            # update zone cache
             yield util.whdb.runOperation(
-                """UPDATE playerInfos SET zoneCache=%s, ap=%s, xp=%s
+                """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s, items=%s, pvpWinStreak=%s
                         WHERE userId=%s"""
-                ,(json.dumps(cache), ap, xp, json.dumps(items), userid)
+                ,(json.dumps(zone_cache), xp, last_xp_time, json.dumps(items), win_streak, userid)
             )
+
+            out_members = [{"id":c["id"], "exp":c["exp"]} for c in card_entities]
             
             # reply
             reply = util.new_reply()
+            reply["winStreak"] = win_streak
+            reply["members"] = out_members
+            reply["levelups"] = levelups
+            reply["cards"] = []
+            reply["items"] = []
+            reply["xp"] = xp
+            reply["smallXpItemNum"] = items.get(10, 0)
+            reply["bigXpItemNum"] = items.get(11, 0)
+            reply["nextPvpBands"] = next_pvp_bands
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
