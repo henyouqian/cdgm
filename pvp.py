@@ -496,7 +496,7 @@ class CreateTestData(tornado.web.RequestHandler):
                     hp, atk, dfs, wis, agi = calc_card_proto_attr(member_proto, level)
                     cards.append({
                         "protoId": member_proto,
-                        "level":maxlv,
+                        "level":level,
                         "hp":hp,
                         "atk":atk,
                         "def":dfs,
