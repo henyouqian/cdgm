@@ -623,6 +623,7 @@ def match(score, match_no, user_id, callback):
             pipe.zrevrangebyscore(Z_PVP_BANDS, score_max, score_min, offset = 0, limit=1)
             pipe.zrangebyscore(Z_PVP_BANDS, score_min, score_max, offset = 0, limit=1)
             keyminmax = yield util.redis_pipe_execute(pipe)
+            print "kkkkkkkkkk", keyminmax
             if (not keyminmax[0]) or (not keyminmax[1]) or int(keyminmax[1][0])==int(keyminmax[0][0]):
                 match_level -= 1
                 if match_level == 0:
@@ -841,7 +842,7 @@ class BattleResult(tornado.web.RequestHandler):
                 if use_item == 1:
                     resumeItemId = 10
                     resumeItemNum = consumeXp - xp
-                elif use_item == 0:
+                elif use_item == 2:
                     resumeItemId = 11
                     resumeItemNum = 1
                 if items[resumeItemId] > resumeItemNum:
