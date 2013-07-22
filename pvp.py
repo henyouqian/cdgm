@@ -850,6 +850,8 @@ class BattleResult(tornado.web.RequestHandler):
 
             # comsume xp
             consumeXp = 3 if allout else 1
+            resumeItemId = None
+            resumeItemNum = 0
             if consumeXp > xp:
                 if use_item == 1:
                     resumeItemId = 10
