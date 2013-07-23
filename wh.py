@@ -12,6 +12,7 @@ import pvp
 import experiment
 import cheat
 import admin
+import version
 
 from tornado import web, httpserver, ioloop
 import logging
@@ -20,8 +21,9 @@ import traceback
 import os
 
 
-handlers = auth.handlers + player.handlers + zone.handlers + card.handlers + wagon.handlers + pvp.handlers + experiment.handlers \
-            + cheat.handlers + admin.handlers
+handlers = auth.handlers + player.handlers + zone.handlers + card.handlers \
+            + wagon.handlers + pvp.handlers + experiment.handlers \
+            + cheat.handlers + admin.handlers + version.handlers
 
 if config.debug:
     import cheat

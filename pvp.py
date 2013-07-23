@@ -250,7 +250,6 @@ def update_pvp_band(userid, username, userlevel, bands, callback):
 
         # update to redis
         pipe = util.redis_pipe()
-        print json.dumps(max_score_band)
         pipe.zadd(Z_PVP_BANDS, max_band_score, userid)
         pipe.hset(H_PVP_BANDS, userid, json.dumps(max_score_band))
         yield util.redis_pipe_execute(pipe)
@@ -829,7 +828,6 @@ class BattleResult(tornado.web.RequestHandler):
                     break
 
             if not foe_band:
-                print matched_bands
                 raise Exception("foe band not found: foe userId = %s" % foe_user_id)
 
             # refresh xp
@@ -873,9 +871,8 @@ class BattleResult(tornado.web.RequestHandler):
             add_exp = 0
             for foe_card in foe_band["cards"]:
                 if foe_card:
-                    battle_exp = card_tbl.get(foe_card["protoId"], "battleExp")
-                    add_exp += add_exp
-
+                    battle_exp = int(card_tbl.get(foe_card["protoId"], "battleExp"))
+                    add_exp += battle_exp
             add_exp_per_card = add_exp/len(members)
 
             # query card entity info
@@ -951,7 +948,6 @@ class BattleResult(tornado.web.RequestHandler):
                         WHERE id=%s"""
                 ,arg_list
             )
-
             
             next_pvp_bands = []
             cacheKey = "pvpFoeBands/%s" % userid
