@@ -351,13 +351,15 @@ def submit_pvp_bands(pvp_bands, callback):
         for pvp_band in pvp_bands:
             # calc pvp score
             pvp_score = 0
-            username = pvp_band["userName"]
             userid = pvp_band["userId"]
             for card in pvp_band["cards"]:
                 if card:
                     score = calc_pvp_score(card, price_skill_mul)
                     pvp_score += score
             pvp_band["score"] = pvp_score
+
+            if userid < 0:
+                pvp_band["userName"] += ",%s(%s)" % (int(pvp_score), ",".join(map(str, [card["level"] for card in pvp_band["cards"]])))
 
             # update to redis
             pipe.zadd(Z_PVP_BANDS, pvp_score, userid)
