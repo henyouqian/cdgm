@@ -167,11 +167,6 @@ def gen_cache(zoneid, islastZone):
                 logging.error("map_evt_tbl error: mapid=%d, tilevalue=%d" % (zoneid, v))
             continue
 
-        # fixme: just for pvp test
-        if zoneid == 10102:
-            objs[k] = 6
-            continue
-
         if r == 0:      # case or gold
             itemtype = rand2item.get() + 1 # itemtype from 1 to 5
             if itemtype >= 0:
