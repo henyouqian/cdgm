@@ -131,7 +131,7 @@ class CallbackDispatcher(object):
     def callback(self, results, index, single, arg):
         dt = time.time() - self._t
         if dt > 1: 
-            print "Too long>>>>>>>", self.g.__name__, self.g.gi_code, self.g.gi_frame.f_lineno
+            print "Too long>>>>>>>", dt, self.g.__name__, self.g.gi_code, self.g.gi_frame.f_lineno
             
         self.call_count -= 1
         results[index] = arg
