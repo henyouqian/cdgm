@@ -7,7 +7,7 @@ import tornado.web
 import adisp
 import brukva
 import json
-from card import card_tbl
+from card import card_tbl, create_cards
 import pvp
 
 from datetime import datetime, timedelta
@@ -44,7 +44,7 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # add war lord card
-            cards = yield card.create_cards(userid, [warlord_proto_id]+INIT_CARDS, INIT_MAX_CARD, 1, WAGON_INDEX_GENERAL)
+            cards = yield create_cards(userid, [warlord_proto_id]+INIT_CARDS, INIT_MAX_CARD, 1, WAGON_INDEX_GENERAL)
             warlord_card = cards[0]
             warlord_id = warlord_card["id"]
 

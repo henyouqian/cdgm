@@ -707,7 +707,7 @@ class SetExpMultiplier(tornado.web.RequestHandler):
                 return
 
             # param
-            multiplier = self.get_argument("multiplier")
+            multiplier = float(self.get_argument("multiplier"))
 
             # update redis
             yield util.redis().set(KEY_EXP_MUTIPLIER, multiplier)
