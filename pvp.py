@@ -843,10 +843,11 @@ class BattleResult(tornado.web.RequestHandler):
                 xp = min(max_xp, xp + dxp)
             if xp == max_xp:
                 last_xp_time = curr_time
+                nextAddXpTime = 0
             else:
-                last_xp_time = curr_time - datetime.timedelta(seconds = dt % XP_ADD_DURATION)
-            dt = curr_time - last_xp_time
-            nextAddXpTime = int(dt.total_seconds())
+                t = dt % XP_ADD_DURATION
+                last_xp_time = curr_time - timedelta(seconds = t)
+                nextAddXpTime = AP_ADD_DURATION - t
 
             # comsume xp
             consumeXp = 3 if allout else 1
