@@ -453,10 +453,11 @@ class Move(tornado.web.RequestHandler):
                 ap = min(max_ap, ap + dap)
             if ap == max_ap:
                 last_ap_time = curr_time
+                nextAddApTime = 0
             else:
-                last_ap_time = curr_time - timedelta(seconds = dt % AP_ADD_DURATION)
-            dt = curr_time - last_ap_time
-            nextAddApTime = int(dt.total_seconds())
+                t = dt % AP_ADD_DURATION
+                last_ap_time = curr_time - timedelta(seconds = t)
+                nextAddApTime = AP_ADD_DURATION - t
 
             if ap == 0:
                 send_error(self, "no_ap")

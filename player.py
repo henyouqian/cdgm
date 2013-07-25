@@ -177,7 +177,7 @@ class GetInfo(tornado.web.RequestHandler):
                 last_ap_time = curr_time
             else:
                 t = dt % AP_ADD_DURATION
-                reply["apAddRemain"] = t
+                reply["apAddRemain"] = AP_ADD_DURATION - t
                 last_ap_time = curr_time - timedelta(seconds = t)
             reply["ap"] = ap
 
