@@ -847,7 +847,7 @@ class BattleResult(tornado.web.RequestHandler):
             else:
                 t = dt % XP_ADD_DURATION
                 last_xp_time = curr_time - timedelta(seconds = t)
-                nextAddXpTime = AP_ADD_DURATION - t
+                nextAddXpTime = XP_ADD_DURATION - t
 
             # comsume xp
             consumeXp = 3 if allout else 1
