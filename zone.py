@@ -659,10 +659,12 @@ class BattleResult(tornado.web.RequestHandler):
             mems_per_row = len(inmembers)
             for idx, inmem in enumerate(inmembers):
                 if inmem:
-                    if inmem["id"] == members[idx][0]:
-                        members[idx][1] = inmem["hp"]
-                    elif inmem["id"] == members[idx+mems_per_row][0]:
-                        members[idx+mems_per_row][1] = inmem["hp"]
+                    front_member = members[idx]
+                    back_member = members[idx+mems_per_row]
+                    if front_member and inmem["id"] == front_member[0]:
+                        front_member[1] = inmem["hp"]
+                    elif back_member and inmem["id"] == back_member[0]:
+                        back_member[1] = inmem["hp"]
                         members[idx], members[idx+mems_per_row] = members[idx+mems_per_row], members[idx]
                     else:
                         raise Exception("Error member pos")
