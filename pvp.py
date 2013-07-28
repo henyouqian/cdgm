@@ -991,7 +991,7 @@ class BattleResult(tornado.web.RequestHandler):
             # update zone cache
             if warlord_levelup:
                 yield util.whdb.runOperation(
-                    """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s, ap=%s, lastApTime, items=%s, pvpWinStreak=%s
+                    """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s, ap=%s, lastApTime=%s, items=%s, pvpWinStreak=%s
                             WHERE userId=%s"""
                     ,(json.dumps(zone_cache), xp, curr_time, ap, curr_time, json.dumps(items), win_streak, userid)
                 )
