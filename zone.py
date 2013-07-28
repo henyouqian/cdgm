@@ -625,7 +625,7 @@ class BattleResult(tornado.web.RequestHandler):
 
             # get player info
             rows = yield util.whdb.runQuery(
-                """ SELECT warlord, zoneCache, items, maxCardNum, ap, maxAp, xp, maxXp FROM playerInfos
+                """ SELECT warlord, zoneCache, items, maxCardNum, ap, maxAp, xp, maxXp, UTC_TIMESTAMP() FROM playerInfos
                         WHERE userId=%s"""
                 ,(userid, )
             )
@@ -638,6 +638,7 @@ class BattleResult(tornado.web.RequestHandler):
             max_ap = row[5]
             xp = row[6]
             max_xp = row[7]
+            curr_time = row[8]
 
             band = cache["band"]
             members = band["members"]
@@ -740,6 +741,7 @@ class BattleResult(tornado.web.RequestHandler):
             #     exp_per_card *= 2
 
             levelups = []
+            warlord_levelup = False
             for card in cards:
                 lvtbl = warlord_level_tbl if card["id"] == warlord else card_level_tbl
                 level = card["level"]
@@ -774,6 +776,7 @@ class BattleResult(tornado.web.RequestHandler):
                         if card["id"] == warlord:
                             ap = max_ap
                             xp = max_xp
+                            warlord_levelup = True
 
                 except:
                     card["exp"] = int(lvtbl.get(level, "exp"))
@@ -858,11 +861,18 @@ class BattleResult(tornado.web.RequestHandler):
             )
 
             ## update band infos in zoneCache
-            yield util.whdb.runOperation(
-                """UPDATE playerInfos SET zoneCache=%s, ap=%s, xp=%s, items=%s
-                        WHERE userId=%s"""
-                ,(json.dumps(cache), ap, xp, json.dumps(items), userid)
-            )
+            if warlord_levelup:
+                yield util.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s, ap=%s, lastApTime=%s, xp=%s, lasXpTime=%s, items=%s
+                            WHERE userId=%s"""
+                    ,(json.dumps(cache), ap, curr_time, xp, curr_time, json.dumps(items), userid)
+                )
+            else:
+                yield util.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s, items=%s
+                            WHERE userId=%s"""
+                    ,(json.dumps(cache), json.dumps(items), userid)
+                )
 
             # reply
             reply = util.new_reply()

@@ -889,6 +889,7 @@ class BattleResult(tornado.web.RequestHandler):
 
             # add exp
             levelups = []
+            warlord_levelup = False
             for card_entity in card_entities:
                 lvtbl = warlord_level_tbl if card_entity["id"] == warlord else card_level_tbl
                 level = card_entity["level"]
@@ -937,8 +938,10 @@ class BattleResult(tornado.web.RequestHandler):
 
                         # recover ap and xp
                         if card_entity["id"] == warlord:
+                            warlord_levelup = True
                             ap = max_ap
                             xp = max_xp
+                            nextAddXpTime = 0
 
                 except:
                     card_entity["exp"] = int(lvtbl.get(level, "exp"))
@@ -979,11 +982,18 @@ class BattleResult(tornado.web.RequestHandler):
                 
 
             # update zone cache
-            yield util.whdb.runOperation(
-                """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s, items=%s, pvpWinStreak=%s
-                        WHERE userId=%s"""
-                ,(json.dumps(zone_cache), xp, last_xp_time, json.dumps(items), win_streak, userid)
-            )
+            if warlord_levelup:
+                yield util.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s, ap=%s, lastApTime, items=%s, pvpWinStreak=%s
+                            WHERE userId=%s"""
+                    ,(json.dumps(zone_cache), xp, curr_time, ap, curr_time, json.dumps(items), win_streak, userid)
+                )
+            else:
+                yield util.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s, xp=%s, lastXpTime=%s, items=%s, pvpWinStreak=%s
+                            WHERE userId=%s"""
+                    ,(json.dumps(zone_cache), xp, last_xp_time, json.dumps(items), win_streak, userid)
+                )
 
             out_members = [{"id":c["id"], "exp":c["exp"]} for c in card_entities]
             
