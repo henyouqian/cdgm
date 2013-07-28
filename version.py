@@ -9,7 +9,6 @@ import json
 
 class Version(tornado.web.RequestHandler):
     @tornado.web.asynchronous
-    @adisp.process
     def get(self):
         try:
             # reply
