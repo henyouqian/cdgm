@@ -581,11 +581,93 @@ class UseItem(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class GetTime(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+            
+
+            # query
+            rows = yield util.whdb.runQuery(
+                """ SELECT xp,maxXp,lastXpTime,ap,maxAp,lastApTime, UTC_TIMESTAMP() FROM playerInfos
+                    WHERE userId=%s""",
+                (userid,)
+            )
+
+            row = rows[0]
+            old_xp = xp = row[0]
+            max_xp = row[1]
+            last_xp_time = row[2]
+            old_ap = ap = row[3]
+            max_ap = row[4]
+            last_ap_time = row[5]
+            curr_time = row[6]
+
+            #update xp
+            if not last_xp_time:
+                last_xp_time = datetime(2013, 1, 1)
+            dt = curr_time - last_xp_time
+            dt = int(dt.total_seconds())
+            dxp = dt // XP_ADD_DURATION
+            if dxp:
+                xp = min(max_xp, xp + dxp)
+            if xp == max_xp:
+                xp_add_remain = 0
+                last_xp_time = curr_time
+            else:
+                t = dt % XP_ADD_DURATION
+                xp_add_remain = dt % XP_ADD_DURATION
+                last_xp_time = curr_time - timedelta(seconds = t)
+
+            #update ap
+            if not last_ap_time:
+                last_ap_time = datetime(2013, 1, 1)
+            dt = curr_time - last_ap_time
+            dt = int(dt.total_seconds())
+            dap = dt // AP_ADD_DURATION
+            if dap:
+                ap = min(max_ap, ap + dap)
+            if ap == max_ap:
+                ap_add_remain = 0
+                last_ap_time = curr_time
+            else:
+                t = dt % AP_ADD_DURATION
+                ap_add_remain = AP_ADD_DURATION - t
+                last_ap_time = curr_time - timedelta(seconds = t)
+
+            # update db
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET ap=%s, lastApTime=%s, xp=%s, lastXpTime=%s
+                        WHERE userId=%s"""
+                ,(ap, last_ap_time, xp, last_xp_time, userid)
+            )
+
+            #reply
+            reply = util.new_reply()
+            reply["xp"] = xp
+            reply["xpAddRemain"] = xp_add_remain;
+            reply["ap"] = ap
+            reply["apAddRemain"] = ap_add_remain;
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/player/create", Create),
     (r"/whapi/player/getinfo", GetInfo),
     (r"/whapi/player/setband", SetBand),
     (r"/whapi/player/useitem", UseItem),
+    (r"/whapi/player/time", GetTime),
 ]
 
 fmt_tbl = util.CsvTbl("data/formations.csv", "id")

@@ -75,7 +75,15 @@
 			"file": "zone.py",
 			"settings":
 			{
-				"buffer_size": 42768,
+				"buffer_size": 42825,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "player.py",
+			"settings":
+			{
+				"buffer_size": 22156,
 				"line_ending": "Unix"
 			}
 		},
@@ -88,18 +96,10 @@
 			}
 		},
 		{
-			"file": "player.py",
-			"settings":
-			{
-				"buffer_size": 22021,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "pvp.py",
 			"settings":
 			{
-				"buffer_size": 29129,
+				"buffer_size": 37596,
 				"line_ending": "Unix"
 			}
 		},
@@ -107,7 +107,7 @@
 			"file": "www/pvp.html",
 			"settings":
 			{
-				"buffer_size": 4308,
+				"buffer_size": 4566,
 				"line_ending": "Unix"
 			}
 		},
@@ -115,7 +115,7 @@
 			"file": "www/pvp.js",
 			"settings":
 			{
-				"buffer_size": 1848,
+				"buffer_size": 2579,
 				"line_ending": "Unix"
 			}
 		},
@@ -128,50 +128,18 @@
 			}
 		},
 		{
-			"file": "card.py",
+			"file": "/home/liwei/projects/fileShare/fileShare.py",
 			"settings":
 			{
-				"buffer_size": 24821,
+				"buffer_size": 427,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "www/card.js",
+			"contents": "Searching 717 files for \"AP_ADD_DURATION\"\n\n/home/liwei/projects/cdgm/gamedata.py:\n    4  INIT_XP = 3\n    5  INIT_AP = 30\n    6: AP_ADD_DURATION = 5*60\n    7  XP_ADD_DURATION = 15*60\n    8  \n\n/home/liwei/projects/cdgm/player.py:\n  170              dt = curr_time - last_ap_time\n  171              dt = int(dt.total_seconds())\n  172:             dap = dt // AP_ADD_DURATION\n  173              if dap:\n  174                  ap = min(max_ap, ap + dap)\n  ...\n  177                  last_ap_time = curr_time\n  178              else:\n  179:                 t = dt % AP_ADD_DURATION\n  180                  reply[\"apAddRemain\"] = t\n  181                  last_ap_time = curr_time - timedelta(seconds = t)\n\n/home/liwei/projects/cdgm/wh.sublime-workspace:\n  169  		},\n  170  		{\n  171: 			\"contents\": \"Searching 711 files for \\\"BAND_NUM\\\"\\n\\n/home/liwei/projects/cdgm/gamedata.py:\\n   10  # INIT_BRONZE_COIN = 5\\n   11  INIT_GOLD = 10000\\n   12: BAND_NUM = 3\\n   13  INIT_CARDS = [16, 130]\\n   14: INIT_BANDS = [{\\\"formation\\\":1, \\\"members\\\":[None, None, None, None, None, None]} for __ in xrange(BAND_NUM)]\\n   15  INIT_ITEMS = {1:10, 2:50, 3:50, 9:20}	# {3:5, 5:34} => id:count		7:bronzeCoin, 8:silverCoin\\n   16  INIT_WAGON = []\\n   ..\\n   23  MONSTER_GROUP_MEMBER_MAX = 5\\n   24  \\n   25: MAX_PVP_BAND_NUM_PER_LEVEL = 500\\n   26  \\n   27  MONEY_BAG_SMALL_ID = 18\\n\\n/home/liwei/projects/cdgm/pvp.py:\\n  506          score_max += score\\n  507  \\n  508:         BAND_NUM = 4\\n  509  \\n  510          ## get matched rank\\n  ...\\n  528              pipe.zrevrank(Z_PVP_BANDS, keyminmax[1][0])\\n  529              rankrange = yield util.redis_pipe_execute(pipe)\\n  530:             if rankrange[1] - rankrange[0] < BAND_NUM:\\n  531                  match_level -= 1\\n  532                  if match_level == 0:\\n  ...\\n  539  \\n  540          # get band\\n  541:         ranks = random.sample(xrange(rankrange[0], rankrange[1]+1), BAND_NUM)\\n  542:         if len(ranks) != BAND_NUM:\\n  543:             raise Exception(\\\"len(ranks) != %s\\\" % BAND_NUM)\\n  544  \\n  545          pipe = util.redis_pipe()\\n  546:         for i in xrange(BAND_NUM):\\n  547              pipe.zrevrange(Z_PVP_BANDS, ranks[i], ranks[i], True)\\n  548          members = yield util.redis_pipe_execute(pipe)\\n  549          # \\n  550          pipe = util.redis_pipe()\\n  551:         for i in xrange(BAND_NUM):\\n  552              pipe.hget(H_PVP_BANDS, members[i][0][0])\\n  553          matched_bands = yield util.redis_pipe_execute(pipe)\\n\\n/home/liwei/projects/cdgm/zone (复件).py:\\n    1  from error import *\\n    2  from session import *\\n    3: from gamedata import BAND_NUM, AP_ADD_DURATION, \\\\\\n    4      XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID\\n    5  import util\\n    .\\n  233                  zoneid = int(self.get_argument(\\\"zoneid\\\"))\\n  234                  bandidx = int(self.get_argument(\\\"bandidx\\\"))\\n  235:                 if bandidx not in xrange(BAND_NUM):\\n  236                      raise Exception(\\\"Bad bandidx\\\")\\n  237              except:\\n\\n/home/liwei/projects/cdgm/zone.py:\\n    1  from error import *\\n    2  from session import *\\n    3: from gamedata import BAND_NUM, AP_ADD_DURATION, \\\\\\n    4      XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID\\n    5  import gamedata\\n    .\\n  244                  zoneid = int(self.get_argument(\\\"zoneid\\\"))\\n  245                  bandidx = int(self.get_argument(\\\"bandidx\\\"))\\n  246:                 if bandidx not in xrange(BAND_NUM):\\n  247                      raise Exception(\\\"Bad bandidx\\\")\\n  248              except:\\n\\n14 matches across 4 files\\n\",\n  172  			\"settings\":\n  173  			{\n\n/home/liwei/projects/cdgm/zone.py:\n    1  from error import *\n    2  from session import *\n    3: from gamedata import BAND_NUM, AP_ADD_DURATION, \\\n    4      XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID\n    5  import gamedata\n    .\n  449              dt = curr_time - last_ap_time\n  450              dt = int(dt.total_seconds())\n  451:             dap = dt // AP_ADD_DURATION\n  452              if dap:\n  453                  ap = min(max_ap, ap + dap)\n  ...\n  455                  last_ap_time = curr_time\n  456              else:\n  457:                 last_ap_time = curr_time - timedelta(seconds = dt % AP_ADD_DURATION)\n  458              dt = curr_time - last_ap_time\n  459              nextAddApTime = int(dt.total_seconds())\n\n8 matches across 4 files\n\n\nSearching 718 files for \"nextAddApTime\"\n\n/home/liwei/projects/cdgm/doc/ServerApi.md:\n  312  			currPos: {x:{INT}, y:{INT}},/* 地图中的当前位置 */\n  313  			ap: {INT},				/* 当前行动值 */\n  314: 			nextAddApTime: {INT},	/* 距下次加ap还有几秒 */\n  315  			moneyAdd: {INT},		/* 获得的money */\n  316  			redCaseAdd: {INT},		/* 获得的红宝箱数量（0或1） */\n\n/home/liwei/projects/cdgm/zone.py:\n  457                  last_ap_time = curr_time - timedelta(seconds = dt % AP_ADD_DURATION)\n  458              dt = curr_time - last_ap_time\n  459:             nextAddApTime = AP_ADD_DURATION - int(dt.total_seconds())\n  460  \n  461              if ap == 0:\n  ...\n  600              reply[\"currPos\"] = dict(zip([\"x\", \"y\"], currpos))\n  601              reply[\"ap\"] = ap\n  602:             reply[\"nextAddApTime\"] = nextAddApTime\n  603              reply[\"redCaseAdd\"] = red_case_add\n  604              reply[\"goldCaseAdd\"] = gold_case_add\n\n4 matches across 2 files\n",
 			"settings":
 			{
-				"buffer_size": 4045,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "wagon.py",
-			"settings":
-			{
-				"buffer_size": 15757,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "brukva/client.py",
-			"settings":
-			{
-				"buffer_size": 36535,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "gamedata.py",
-			"settings":
-			{
-				"buffer_size": 728,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "Searching 711 files for \"BAND_NUM\"\n\n/home/liwei/projects/cdgm/gamedata.py:\n   10  # INIT_BRONZE_COIN = 5\n   11  INIT_GOLD = 10000\n   12: BAND_NUM = 3\n   13  INIT_CARDS = [16, 130]\n   14: INIT_BANDS = [{\"formation\":1, \"members\":[None, None, None, None, None, None]} for __ in xrange(BAND_NUM)]\n   15  INIT_ITEMS = {1:10, 2:50, 3:50, 9:20}	# {3:5, 5:34} => id:count		7:bronzeCoin, 8:silverCoin\n   16  INIT_WAGON = []\n   ..\n   23  MONSTER_GROUP_MEMBER_MAX = 5\n   24  \n   25: MAX_PVP_BAND_NUM_PER_LEVEL = 500\n   26  \n   27  MONEY_BAG_SMALL_ID = 18\n\n/home/liwei/projects/cdgm/pvp.py:\n  506          score_max += score\n  507  \n  508:         BAND_NUM = 4\n  509  \n  510          ## get matched rank\n  ...\n  528              pipe.zrevrank(Z_PVP_BANDS, keyminmax[1][0])\n  529              rankrange = yield util.redis_pipe_execute(pipe)\n  530:             if rankrange[1] - rankrange[0] < BAND_NUM:\n  531                  match_level -= 1\n  532                  if match_level == 0:\n  ...\n  539  \n  540          # get band\n  541:         ranks = random.sample(xrange(rankrange[0], rankrange[1]+1), BAND_NUM)\n  542:         if len(ranks) != BAND_NUM:\n  543:             raise Exception(\"len(ranks) != %s\" % BAND_NUM)\n  544  \n  545          pipe = util.redis_pipe()\n  546:         for i in xrange(BAND_NUM):\n  547              pipe.zrevrange(Z_PVP_BANDS, ranks[i], ranks[i], True)\n  548          members = yield util.redis_pipe_execute(pipe)\n  549          # \n  550          pipe = util.redis_pipe()\n  551:         for i in xrange(BAND_NUM):\n  552              pipe.hget(H_PVP_BANDS, members[i][0][0])\n  553          matched_bands = yield util.redis_pipe_execute(pipe)\n\n/home/liwei/projects/cdgm/zone (复件).py:\n    1  from error import *\n    2  from session import *\n    3: from gamedata import BAND_NUM, AP_ADD_DURATION, \\\n    4      XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID\n    5  import util\n    .\n  233                  zoneid = int(self.get_argument(\"zoneid\"))\n  234                  bandidx = int(self.get_argument(\"bandidx\"))\n  235:                 if bandidx not in xrange(BAND_NUM):\n  236                      raise Exception(\"Bad bandidx\")\n  237              except:\n\n/home/liwei/projects/cdgm/zone.py:\n    1  from error import *\n    2  from session import *\n    3: from gamedata import BAND_NUM, AP_ADD_DURATION, \\\n    4      XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID\n    5  import gamedata\n    .\n  244                  zoneid = int(self.get_argument(\"zoneid\"))\n  245                  bandidx = int(self.get_argument(\"bandidx\"))\n  246:                 if bandidx not in xrange(BAND_NUM):\n  247                      raise Exception(\"Bad bandidx\")\n  248              except:\n\n14 matches across 4 files\n",
-			"settings":
-			{
-				"buffer_size": 2830,
+				"buffer_size": 5492,
 				"line_ending": "Unix",
 				"name": "Find Results",
 				"scratch": true
@@ -274,10 +242,21 @@
 	},
 	"file_history":
 	[
+		"/home/liwei/projects/cdgm/www/card.js",
+		"/home/liwei/projects/cdgm/card.py",
+		"/home/liwei/projects/cdgm/wagon.py",
+		"/home/liwei/projects/cdgm/brukva/client.py",
+		"/home/liwei/projects/cdgm/gamedata.py",
+		"/home/liwei/projects/cdgm/wh.py",
+		"/home/liwei/projects/cdgm/admin.py",
+		"/home/liwei/projects/cdgm/redis/client.py",
+		"/home/liwei/projects/cdgm/version.py",
+		"/home/liwei/projects/cdgm/adisp.py",
+		"/home/liwei/projects/cdgm/profiler.py",
+		"/home/liwei/tmp/###.mdb",
 		"/home/liwei/projects/cdgm/www/admin.js",
 		"/home/liwei/projects/cdgm/auth.py",
 		"/home/liwei/projects/cdgm/toredis/client.py",
-		"/home/liwei/projects/cdgm/adisp.py",
 		"/home/liwei/projects/cdgm/adb.py",
 		"/home/liwei/projects/cdgm/www/admin.html",
 		"/home/liwei/projects/cdgm/www/pvp.js",
@@ -287,20 +266,14 @@
 		"/home/liwei/projects/cdgm/tornado/iostream.py",
 		"/home/liwei/projects/cdgm/log/wh.log",
 		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/tornado/iostream.py",
-		"/home/liwei/projects/cdgm/brukva/client.py",
 		"/home/liwei/projects/cdgm/redis/connection.py",
-		"/home/liwei/projects/cdgm/gamedata.py",
-		"/home/liwei/projects/cdgm/admin.py",
 		"/home/liwei/projects/cdgm/strings.py",
 		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/tornado/ioloop.py",
 		"/home/liwei/projects/cdgm/threadpool.py",
 		"/home/liwei/projects/cdgm/aredis.py",
-		"/home/liwei/projects/cdgm/wh.py",
-		"/home/liwei/projects/cdgm/card.py",
 		"/home/liwei/projects/cdgm/session.py",
 		"/home/liwei/projects/cdgm/www/zone.js",
 		"/home/liwei/projects/cdgm/install.py",
-		"/home/liwei/projects/cdgm/profiler.py",
 		"/home/liwei/projects/cdgm/error.py",
 		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/tornado/platform/epoll.py",
 		"/home/liwei/projects/cdgm/pvp_.py",
@@ -360,7 +333,6 @@
 		"/home/liwei/projects/cdgm/redistest.py",
 		"/home/liwei/projects/cdgm/test/auth_test.py",
 		"/home/liwei/projects/cdgm/test/player_test.py",
-		"/home/liwei/projects/cdgm/wagon.py",
 		"/home/liwei/projects/cdgm/zone.py",
 		"/home/liwei/projects/cdgm/tools/fab.py",
 		"/home/liwei/projects/cdgm/tools/install.py",
@@ -382,7 +354,6 @@
 		"/home/liwei/projects/cdgm/.gitignore~",
 		"/home/liwei/projects/test/oss/test.py",
 		"/home/liwei/projects/test/oss/oss_sample.py",
-		"/home/liwei/projects/cdgm/www/card.js",
 		"/home/liwei/projects/cdgm/www/util.js",
 		"/home/liwei/projects/cdgm/env/lib/python2.7/site-packages/MySQLdb/cursors.py",
 		"/home/liwei/.config/sublime-text-2/Packages/User/Default (Linux).sublime-keymap",
@@ -398,10 +369,7 @@
 		"/home/liwei/projects/test/udps.py",
 		"/home/liwei/projects/test/udpc.py",
 		"/home/liwei/projects/cdgm/lab/db_lab.py",
-		"/home/liwei/projects/cdgm/www/register.js",
-		"/home/liwei/projects/cdgm/data/cards.csv",
-		"/home/liwei/projects/cdgm/data/cardGrowthMappings.csv",
-		"/home/liwei/projects/cdgm/band.py"
+		"/home/liwei/projects/cdgm/www/register.js"
 	],
 	"find":
 	{
@@ -420,6 +388,48 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"nextAddXpTime",
+			"nextAddApTime",
+			"AP_ADD_DURATION",
+			"items[",
+			"card",
+			"create_cards",
+			"SetExpMultiplier",
+			"items",
+			"battleres",
+			"yield",
+			"submit_pvp_bands",
+			"print",
+			"print(",
+			"WeightedRandom",
+			"match",
+			"param",
+			"zrevrange",
+			"print(",
+			"print",
+			"calc_card_proto_attr",
+			"calc",
+			"CreateTestData",
+			"ttl",
+			"pvpFoeBands",
+			"timedelta",
+			"send_error",
+			"match",
+			"is_win",
+			"ap",
+			"nextAddApTime",
+			"last_ap_time",
+			"ap",
+			"move",
+			"items = {",
+			"match",
+			"move",
+			"hasPvp",
+			"move",
+			"GetRanks",
+			"update_pvp_band",
+			"submit_pvp_band",
+			"move",
 			"member",
 			"member[1]",
 			"levelups",
@@ -505,49 +515,7 @@
 			"xxxxxxxx",
 			"close",
 			"stop",
-			"wrap(",
-			"callback()",
-			"_run_callback",
-			"_connect_callback",
-			"call",
-			"call_",
-			"callback",
-			"callback() takes exactly",
-			"_run_callback(",
-			"_run_callback",
-			"_connect_callback",
-			"connect(",
-			"connect",
-			"_connect",
-			"statck",
-			"print",
-			"card_tbl",
-			"submit_pvp_bands",
-			"calc_pvp_score",
-			"NullContext",
-			"async(",
-			"adisp.async(",
-			"adisp.async",
-			"yield adisp.async",
-			"create_cards",
-			"time",
-			"profiler",
-			"getranks",
-			"PRICE_RARITY_MUL",
-			"g_price_rarity_mul",
-			"H_PVP_FORMULA",
-			"parse_response",
-			"response_callbacks",
-			"read_response",
-			"update",
-			"runOperationMany",
-			"WAGON_TYPE_TEMP",
-			"expired_cards",
-			"create_cards",
-			"WAGON_TEMP_DURATION",
-			"gamedata",
-			"WAGON_INDEX_TEMP",
-			"create_cards"
+			"wrap("
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -593,15 +561,15 @@
 					"file": "zone.py",
 					"settings":
 					{
-						"buffer_size": 42768,
+						"buffer_size": 42825,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								31414,
-								31414
+								14851,
+								14851
 							]
 						],
 						"settings":
@@ -611,13 +579,41 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 24249.0,
+						"translation.y": 8164.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
+					"file": "player.py",
+					"settings":
+					{
+						"buffer_size": 22156,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6319,
+								6319
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2863.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
 					"file": "util.py",
 					"settings":
 					{
@@ -628,8 +624,8 @@
 						"selection":
 						[
 							[
-								7441,
-								7441
+								1734,
+								1734
 							]
 						],
 						"settings":
@@ -639,35 +635,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1122.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "player.py",
-					"settings":
-					{
-						"buffer_size": 22021,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								13349,
-								13349
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 5052.0,
+						"translation.y": 912.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -677,15 +645,15 @@
 					"file": "pvp.py",
 					"settings":
 					{
-						"buffer_size": 29129,
+						"buffer_size": 37596,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								25804,
-								25804
+								27288,
+								27288
 							]
 						],
 						"settings":
@@ -695,7 +663,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 16704.0,
+						"translation.y": 15669.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -705,15 +673,15 @@
 					"file": "www/pvp.html",
 					"settings":
 					{
-						"buffer_size": 4308,
+						"buffer_size": 4566,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3809,
-								3809
+								3301,
+								3301
 							]
 						],
 						"settings":
@@ -723,7 +691,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1672.0,
+						"translation.y": 1254.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -733,15 +701,15 @@
 					"file": "www/pvp.js",
 					"settings":
 					{
-						"buffer_size": 1848,
+						"buffer_size": 2579,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1813,
-								1813
+								2329,
+								2329
 							]
 						],
 						"settings":
@@ -750,7 +718,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1464.0,
+						"translation.y": 1539.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -767,8 +735,8 @@
 						"selection":
 						[
 							[
-								389,
-								389
+								360,
+								360
 							]
 						],
 						"settings":
@@ -777,153 +745,43 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 57.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 7,
-					"file": "card.py",
+					"file": "/home/liwei/projects/fileShare/fileShare.py",
 					"settings":
 					{
-						"buffer_size": 24821,
+						"buffer_size": 427,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1670,
-								1670
+								74,
+								74
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 462.0,
+						"translation.y": 57.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 8,
-					"file": "www/card.js",
 					"settings":
 					{
-						"buffer_size": 4045,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2247,
-								2247
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 1980.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "wagon.py",
-					"settings":
-					{
-						"buffer_size": 15757,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4488,
-								4488
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2970.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 10,
-					"file": "brukva/client.py",
-					"settings":
-					{
-						"buffer_size": 36535,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								26256,
-								26256
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 16982.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 11,
-					"file": "gamedata.py",
-					"settings":
-					{
-						"buffer_size": 728,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								204,
-								204
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 12,
-					"settings":
-					{
-						"buffer_size": 2830,
+						"buffer_size": 5492,
 						"regions":
 						{
 							"match":
@@ -932,60 +790,52 @@
 								"regions":
 								[
 									[
-										137,
-										145
+										128,
+										143
 									],
 									[
-										282,
-										290
+										356,
+										371
 									],
 									[
-										480,
-										488
+										560,
+										575
 									],
 									[
-										636,
-										644
+										2642,
+										2657
 									],
 									[
-										880,
-										888
+										3230,
+										3245
 									],
 									[
-										1089,
-										1097
+										3884,
+										3899
 									],
 									[
-										1131,
-										1139
+										4178,
+										4193
 									],
 									[
-										1197,
-										1205
+										4425,
+										4440
 									],
 									[
-										1286,
-										1294
+										4762,
+										4775
 									],
 									[
-										1520,
-										1528
+										5090,
+										5103
 									],
 									[
-										1783,
-										1791
+										5324,
+										5337
 									],
 									[
-										2135,
-										2143
-									],
-									[
-										2351,
-										2359
-									],
-									[
-										2707,
-										2715
+										5342,
+										5355
 									]
 								],
 								"scope": ""
@@ -994,14 +844,14 @@
 						"selection":
 						[
 							[
-								2700,
-								2700
+								4578,
+								4578
 							]
 						],
 						"settings":
 						{
 							"detect_indentation": false,
-							"output_tag": 1,
+							"output_tag": 2,
 							"result_base_dir": "",
 							"result_file_regex": "^([A-Za-z\\\\/<].*):$",
 							"result_line_regex": "^ +([0-9]+):",
@@ -1009,7 +859,7 @@
 							"syntax": "Packages/Default/Find Results.hidden-tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 1056.0,
+						"translation.y": 1425.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1058,6 +908,10 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"wh.",
+				"wh.py"
+			],
 			[
 				"gamed",
 				"gamedata.py"
