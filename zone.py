@@ -427,6 +427,7 @@ class Move(tornado.web.RequestHandler):
                 items = {}
             else:
                 items = json.loads(items)
+                items = {int(k):v for k, v in items.iteritems()}
 
             if not cache:
                 raise Exception("Not in zone")

@@ -23,3 +23,8 @@ GeneratorExit
 * 用户的password做sha1，应该要拼接个字符串
 
 * 不重复event功能还没做，现在是每次都能刷出来那个event
+
+* player/useitem里面临时把ap xp是否已满的检测关闭了，记得改回来，一共3处，类似：
+				# fixme:
+                # if xp == maxXp:
+                #     raise Exception("xp full")
