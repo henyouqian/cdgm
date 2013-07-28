@@ -485,6 +485,14 @@ class CreateTestData(tornado.web.RequestHandler):
             for i_band in xrange(count):
                 member_num = random.randint(3, 5)
                 member_protos = random.sample(card_ids, min(member_num, len(card_ids)))
+
+                # warlord
+                warlord_prob = random.random()
+                if warlord_prob < 0.3:
+                    idx = random.randint(0, len(member_protos)-1)
+                    member_protos[idx] = random.choice([119, 120, 121, 122, 123, 124, 125, 126])
+                    print member_protos
+
                 cards = []
                 formation_dict = {3:(1, 4), 4:(5, 10), 5:(11, 19)}
                 formation_range = formation_dict[member_num]
