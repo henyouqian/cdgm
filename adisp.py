@@ -92,6 +92,7 @@ responses corresponding to given urls.
 from functools import partial
 from tornado.ioloop import IOLoop
 import time
+import logging
 
 class CallbackDispatcher(object):
     def __init__(self, generator):
@@ -131,7 +132,7 @@ class CallbackDispatcher(object):
     def callback(self, results, index, single, arg):
         dt = time.time() - self._t
         if dt > 1: 
-            print "Too long>>>>>>>", dt, self.g.__name__, self.g.gi_code, self.g.gi_frame.f_lineno
+            logging.error("Too long: time=%s, name=%s, gi_code=%s, lineno=%s" % (dt, self.g.__name__, self.g.gi_code, self.g.gi_frame.f_lineno))
             
         self.call_count -= 1
         results[index] = arg
