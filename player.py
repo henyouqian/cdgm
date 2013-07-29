@@ -408,9 +408,8 @@ class UseItem(tornado.web.RequestHandler):
             # use item
             ## recover all ap
             if item_id == 1: 
-                # fixme:
-                # if ap == maxAp:
-                #     raise Exception("ap full")
+                if ap == maxAp:
+                    raise Exception("ap full")
 
                 item_num = consumeItem(items, 1)
 
@@ -543,9 +542,8 @@ class UseItem(tornado.web.RequestHandler):
                 except:
                     allout = False
 
-                # fixme:
-                # if xp == maxXp:
-                #     raise Exception("xp full")
+                if xp == maxXp:
+                    raise Exception("xp full")
 
                 if allout:
                     dxp = maxXp - xp
@@ -562,9 +560,8 @@ class UseItem(tornado.web.RequestHandler):
 
             ## recover all xp
             elif item_id == 11:
-                # fixme:
-                # if xp == maxXp:
-                #     raise Exception("xp full")
+                if xp == maxXp:
+                    raise Exception("xp full")
 
                 item_num = consumeItem(items, 1)
                 yield util.whdb.runOperation(
