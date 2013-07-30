@@ -487,20 +487,24 @@ class CreateTestData(tornado.web.RequestHandler):
                 member_protos = random.sample(card_ids, min(member_num, len(card_ids)))
 
                 # warlord
+                warlord_ids = [119, 120, 121, 122, 123, 124, 125, 126]
                 warlord_prob = random.random()
                 if warlord_prob < 0.7:
                     idx = random.randint(0, len(member_protos)-1)
-                    member_protos[idx] = random.choice([119, 120, 121, 122, 123, 124, 125, 126])
+                    member_protos[idx] = random.choice(warlord_ids)
 
                 cards = []
                 formation_dict = {3:(1, 4), 4:(5, 10), 5:(11, 19)}
                 formation_range = formation_dict[member_num]
                 formation = random.randint(formation_range[0], formation_range[1])
+                warlord_level = random.randint(1, 99)
                 for member_proto in member_protos:
                     price, maxlv, skillid1, skillid2= \
                         map(int, card_tbl.gets(member_proto, "price", \
                             "maxlevel", "skillid1", "skillid2"))
                     level = random.randint(1, maxlv)
+                    if member_proto in warlord_ids:
+                        warlord_level = level
                     hp, atk, dfs, wis, agi = calc_card_proto_attr(member_proto, level)
                     cards.append({
                         "protoId": member_proto,
@@ -522,7 +526,7 @@ class CreateTestData(tornado.web.RequestHandler):
                 pvp_band = {
                     "userId": -((key[0]*10+key[1])*1000000+i_band),
                     "userName": "%s, %s, %s" %(key[0], key[1], i_band),
-                    "userLevel": 1,
+                    "userLevel": warlord_level,
                     "cards": cards,
                     "formation":formation,
                 }
