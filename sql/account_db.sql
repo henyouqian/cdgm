@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # http://code.google.com/p/sequel-pro/
 #
-# Host: 127.0.0.1 (MySQL 5.5.31-0ubuntu0.12.04.2)
+# Host: 127.0.0.1 (MySQL 5.5.32-0ubuntu0.12.04.1)
 # Database: account_db
-# Generation Time: 2013-07-08 08:08:01 +0000
+# Generation Time: 2013-07-31 06:17:05 +0000
 # ************************************************************
 
 
@@ -30,6 +30,7 @@ CREATE TABLE `user_account` (
   `username` varchar(40) DEFAULT '',
   `password` varchar(40) DEFAULT '',
   `uin91` varchar(40) DEFAULT NULL,
+  `time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
   UNIQUE KEY `uin91` (`uin91`)

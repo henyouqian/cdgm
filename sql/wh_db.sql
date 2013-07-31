@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # http://code.google.com/p/sequel-pro/
 #
-# Host: 127.0.0.1 (MySQL 5.5.31-0ubuntu0.12.04.2)
+# Host: 127.0.0.1 (MySQL 5.5.32-0ubuntu0.12.04.1)
 # Database: wh_db
-# Generation Time: 2013-07-17 06:06:42 +0000
+# Generation Time: 2013-07-31 06:16:43 +0000
 # ************************************************************
 
 
@@ -90,6 +90,7 @@ CREATE TABLE `playerInfos` (
   `zoneCache` text,
   `items` text NOT NULL,
   `bands` text NOT NULL,
+  `maxBandNum` tinyint(3) unsigned NOT NULL DEFAULT '2',
   `wagonGeneral` smallint(5) unsigned NOT NULL DEFAULT '0',
   `wagonTemp` smallint(5) unsigned NOT NULL DEFAULT '0',
   `wagonSocial` smallint(5) unsigned NOT NULL DEFAULT '0',
@@ -123,28 +124,6 @@ CREATE TABLE `wagons` (
 
 
 
-
---
--- Dumping routines (PROCEDURE) for database 'wh_db'
---
-DELIMITER ;;
-
-# Dump of PROCEDURE get_new_cards
-# ------------------------------------------------------------
-
-/*!50003 DROP PROCEDURE IF EXISTS `get_new_cards` */;;
-/*!50003 SET SESSION SQL_MODE=""*/;;
-/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `get_new_cards`(IN user_id BIGINT, IN col_list VARCHAR(512))
-BEGIN
-    SET @sql = CONCAT("SELECT ", col_list, " FROM cardEntities WHERE ownerId = ", user_id, " AND _newInsert = 1;");
-    PREPARE stmt from @sql;
-    execute stmt;
-
-    UPDATE cardEntities SET _newInsert = 0 WHERE ownerId = user_id AND _newInsert = 1; 
-END */;;
-
-/*!50003 SET SESSION SQL_MODE=@OLD_SQL_MODE */;;
-DELIMITER ;
 
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
