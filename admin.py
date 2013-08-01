@@ -1,9 +1,8 @@
 from session import find_session
 from error import *
 import util
-from card import card_tbl, create_cards, calc_card_proto_attr, warlord_level_tbl, card_level_tbl, is_war_lord, skill_level_tbl, skill_tbl
-from zone import zone_tbl
-from player import fmt_tbl
+from csvtable import *
+from card import create_cards, calc_card_proto_attr, is_war_lord
 import wagon
 import gamedata
 
@@ -60,6 +59,34 @@ class CheckAccount(tornado.web.RequestHandler):
             send_internal_error(self)
         finally:
             self.finish()
+
+
+class setRedisDefaultData(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
+            #param
+            force = self.get_argument("force", False)
+
+            #
+            yield util.redis().setnx(KEY_EXP_MUTIPLIER, 1.0)
+
+            # reply
+            reply = util.new_reply()
+            reply["notification"] = notification
+            reply["expMultiplier"] = exp_multi
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 
 class GetPlayerInfo(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -722,6 +749,28 @@ class SetExpMultiplier(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class ReloadCsv(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
+            csv_reload()
+
+            # reply
+            reply = util.new_reply()
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
 handlers = [
     (r"/whapi/admin/checkAccount", CheckAccount),
     (r"/whapi/admin/setItemNum", SetItemNum),
@@ -742,4 +791,5 @@ handlers = [
     (r"/whapi/admin/setNotification", SetNotification),
     (r"/whapi/admin/setExpMultiplier", SetExpMultiplier),
 
+    (r"/internal/reloadCsv", ReloadCsv),
 ]

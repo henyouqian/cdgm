@@ -3,6 +3,7 @@ from error import *
 import util
 import wagon
 import gamedata
+from csvtable import *
 
 import tornado.web
 import adisp
@@ -14,14 +15,6 @@ import csv
 import strings
 import os
 
-card_tbl = util.CsvTbl("data/cards.csv", "ID")
-grow_tbl = util.CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
-evo_tbl = util.CsvTblMulKey("data/cardEvolutions.csv", "masterCardId", "evolverCardId")
-evo_cost_tbl = util.CsvTblMulKey("data/cardEvolutionCosts.csv", "masterCardRarity", "evolverCardRarity")
-skill_tbl = util.CsvTbl("data/skills.csv", "id")
-skill_level_tbl = util.CsvTblMulKey("data/skillLevels.csv", "rarity", "level")
-warlord_level_tbl = util.CsvTbl("data/levels.csv", "level")
-card_level_tbl = util.CsvTbl("data/cardLevels.csv", "level")
 
 # calc for hp, atk, def, wis, agi
 def calc_card_proto_attr(proto_id, level):

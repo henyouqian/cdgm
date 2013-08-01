@@ -10,7 +10,7 @@ def app_exists(app):
         return False
 
 
-def mdl_exists(mdl):
+def module_exists(mdl):
     try:
         imp.find_module(mdl)
     except:
@@ -22,7 +22,7 @@ def install_app(apt_name):
     os.system("sudo apt-get install %s" % apt_name)
 
 
-def install_mdl(mdl_name):
+def install_module(mdl_name):
     os.system("sudo env/bin/pip install %s" % mdl_name)
 
 if __name__ == "__main__":
@@ -35,8 +35,9 @@ if __name__ == "__main__":
         os.system("virtualenv env")
     os.system(". env/bin/activate")
 
-    install_mdl("tornado")
+    install_module("tornado")
     os.system("sudo easy_install -U distribute")
-    install_mdl("mysql-python")
-    install_mdl("redis")
-    install_mdl("hiredis")
+    install_module("mysql-python")
+    install_module("redis")
+    install_module("hiredis")
+    install_module("futures")

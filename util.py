@@ -28,9 +28,14 @@ class Tm(object):
 # parse csv file
 class CsvTbl(object):
     def __init__(self, csvpath, keycol):
+        self.csvpath = csvpath
+        self.keycol = keycol
+        self.reload()
+
+    def reload(self):
         self.header = {}    # {colName:colIndex}
         self.body = {}
-        with open(csvpath, 'rb') as csvfile:
+        with open(self.csvpath, 'rb') as csvfile:
             spamreader = csv.reader(csvfile)
             firstrow = True
             keycolidx = None
@@ -39,12 +44,12 @@ class CsvTbl(object):
                     firstrow = False
                     i = 0
                     for colname in row:
-                        if colname == keycol:
+                        if colname == self.keycol:
                             keycolidx = i
                         self.header[colname] = i
                         i += 1
                     if keycolidx is None:
-                        raise ValueError("key column not found:" + keycol)
+                        raise ValueError("key column not found:" + self.keycol)
                 else:
                     self.body[row[keycolidx]] = row
 
@@ -70,9 +75,14 @@ class CsvTbl(object):
 
 class CsvTblMulKey(object):
     def __init__(self, csvpath, *keycols):
+        self.csvpath = csvpath
+        self.keycols = keycols
+        self.reload()
+
+    def reload(self):
         self.header = {}    # {colName:colIndex}
         self.body = {}
-        with open(csvpath, 'rb') as csvfile:
+        with open(self.csvpath, 'rb') as csvfile:
             spamreader = csv.reader(csvfile)
             firstrow = True
             for row in spamreader:
@@ -83,7 +93,7 @@ class CsvTblMulKey(object):
                         self.header[colname] = i
                         i += 1
                     keycolids = tuple(self.header[keycol] \
-                                        for keycol in keycols)
+                                        for keycol in self.keycols)
                 else:
                     self.body[tuple(row[colidx]     \
                         for colidx in keycolids)] = row
@@ -232,6 +242,28 @@ def utc_now_sec():
 # reply
 def new_reply():
     return {"error": ""}
+
+# 
+class WeightedRandom(object):
+    def __init__(self, totalWeight, *weights):
+        """if totalWeight <= 0, auto sum weights as totalWeight"""
+        sum = 0
+        uppers = []
+        for weight in weights:
+            sum += weight
+            uppers.append(sum)
+        if totalWeight > 0:
+            sum = totalWeight
+        self.uppers = [x/float(sum) for x in uppers]
+
+    def get(self):
+        rdm = random.random()
+        idx = 0
+        for upper in self.uppers:
+            if rdm <= upper:
+                return idx
+            idx += 1
+        return -1
 
 # redis
 redis_pool = []

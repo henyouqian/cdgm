@@ -2,7 +2,7 @@
 from error import *
 from gamedata import WAGON_TEMP_DURATION, WAGON_INDEX_TEMP
 import util
-import card as mdl_card
+from csvtable import *
 
 import tornado.web
 import adisp
@@ -420,7 +420,7 @@ class SellAll(tornado.web.RequestHandler):
                 if Wagon.isCard(wagon_item):
                     cards.append(wagon_item)
                     cardProto = wagon_item["cardProto"]
-                    money_add += int(mdl_card.card_tbl.get(cardProto, "price"))
+                    money_add += int(card_tbl.get(cardProto, "price"))
                 else:
                     items.append(raw_item)
 

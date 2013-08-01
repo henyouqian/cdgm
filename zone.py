@@ -4,15 +4,13 @@ from gamedata import BAND_NUM, AP_ADD_DURATION, \
     XP_ADD_DURATION, MONSTER_GROUP_MEMBER_MAX, MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID, RED_CASE_ID, GOLD_CASE_ID
 import gamedata
 import util
-from card import card_tbl, warlord_level_tbl, card_level_tbl, calc_card_proto_attr, create_cards
-from player import fmt_tbl
+from csvtable import *
 import pvp
 
 import tornado.web
 import adisp
 import brukva
 import json
-import os
 import logging
 from datetime import datetime, timedelta
 from random import random, choice
@@ -25,91 +23,7 @@ TILE_START = 2      # start tile
 TILE_GOAL = 3       # goal tile
 
 TILE_EVENT_RANGE = xrange(11, 21)
-
-class PlacementTbl(object):
-    def __init__(self):
-        for root, dirs, files in os.walk('data/map'):
-            self.placements = {}
-            for filename in files:
-                nameext = filename.split(".")
-                if nameext[-1] == "json" and len(nameext) == 2:
-                    path = root + "/" + filename
-                    zoneid = nameext[0]
-                    with open(path, "rb") as f:
-                        data = json.load(f)
-
-                        layers = data["layers"]
-                        width = data["width"]
-                        height = data["height"]
-                        zone = {"width":width, "height":height}
-                        for layer in layers:
-                            if layer["name"] == "event":
-                                zone["placements"] = self._parse_placement_conf(layer["data"], width, height)
-
-                        self.placements[zoneid] = zone
-            break
-
-
-    def _parse_placement_conf(self, data, width, height):
-        tiles = width * height
-        if len(data) != tiles:
-            raise Exception("Path data length error")
-        i = 0
-        out = {}
-        for d in data:
-            if d:
-                x = i % width
-                y = i / width
-                out["{},{}".format(x, y)] = d
-            i = i + 1
-        return out
-
-    def get_zone_data(self, zoneid):
-        return self.placements[str(zoneid)]["placements"]
-
-class CaseTbl(object):
-    def __init__(self):
-        cvs_case = util.CsvTbl("data/cases.csv", "ID")
-        self._t = {}
-        for k, v in cvs_case.body.iteritems():
-            row = v[1:]
-            indices = []
-            weights = []
-            for idx, weight in enumerate(row):
-                w = float(weight)
-                if w > 0:
-                    indices.append(idx+1)
-                    weights.append(w)
-            self._t[int(k)] = (indices, weights)
-
-    def get_item(self, caseId):
-        caseId = int(caseId)
-        indices, weights = self._t[caseId]
-        rdm = WeightedRandom(0, *weights)
-        idx = rdm.get()
-        return indices[idx]
         
-
-class WeightedRandom(object):
-    def __init__(self, totalWeight, *weights):
-        """if totalWeight <= 0, auto sum weights as totalWeight"""
-        sum = 0
-        uppers = []
-        for weight in weights:
-            sum += weight
-            uppers.append(sum)
-        if totalWeight > 0:
-            sum = totalWeight
-        self.uppers = [x/float(sum) for x in uppers]
-
-    def get(self):
-        rdm = random()
-        idx = 0
-        for upper in self.uppers:
-            if rdm <= upper:
-                return idx
-            idx += 1
-        return -1
 
 def gen_cache(zoneid, islastZone):
     tiles = plc_tbl.get_zone_data(zoneid)
@@ -119,9 +33,9 @@ def gen_cache(zoneid, islastZone):
     eventrate = float(map_tbl.get_value(maprow, "event%"))
     pvprate = float(map_tbl.get_value(maprow, "PVP%"))
 
-    rand1all = WeightedRandom(1.0, itemrate, monsterrate, eventrate, pvprate)
-    rand1item = WeightedRandom(1.0, itemrate + monsterrate, 0, eventrate, pvprate)
-    rand1mon = WeightedRandom(1.0, 0, itemrate + monsterrate, eventrate, pvprate)
+    rand1all = util.WeightedRandom(1.0, itemrate, monsterrate, eventrate, pvprate)
+    rand1item = util.WeightedRandom(1.0, itemrate + monsterrate, 0, eventrate, pvprate)
+    rand1mon = util.WeightedRandom(1.0, 0, itemrate + monsterrate, eventrate, pvprate)
 
     woodrate = float(map_tbl.get_value(maprow, "wood%"))
     treasurerate = float(map_tbl.get_value(maprow, "treasure%"))
@@ -129,7 +43,7 @@ def gen_cache(zoneid, islastZone):
     littlegoldrate = float(map_tbl.get_value(maprow, "littlegold%"))
     biggoldrate = float(map_tbl.get_value(maprow, "biggold%"))
 
-    rand2item = WeightedRandom(1.0, woodrate, treasurerate, chestrate, littlegoldrate, biggoldrate)
+    rand2item = util.WeightedRandom(1.0, woodrate, treasurerate, chestrate, littlegoldrate, biggoldrate)
 
     mongrpids = []
     for i in xrange(1, 11):
@@ -1166,11 +1080,3 @@ handlers = [
     (r"/whapi/zone/complete", Complete),
 ]
 
-map_tbl = util.CsvTbl("data/maps.csv", "zoneID")
-plc_tbl = PlacementTbl()
-mongrp_tbl = util.CsvTbl("data/monsters.csv", "ID")
-case_tbl = CaseTbl()
-zone_tbl = util.CsvTbl("data/zones.csv", "id")
-mon_card_tbl = util.CsvTbl("data/monstercards.csv", "ID")
-evt_tbl = util.CsvTbl("data/events.csv", "ID")
-map_evt_tbl = util.CsvTblMulKey("data/mapevents.csv", "mapid", "tilevalue")

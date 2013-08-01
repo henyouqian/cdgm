@@ -2,12 +2,13 @@ from error import *
 import util
 from gamedata import *
 from session import *
+from csvtable import *
 
 import tornado.web
 import adisp
 import brukva
 import json
-from card import card_tbl, create_cards
+from card import create_cards
 import pvp
 
 from datetime import datetime, timedelta
@@ -669,5 +670,3 @@ handlers = [
     (r"/whapi/player/useitem", UseItem),
     (r"/whapi/player/time", GetTime),
 ]
-
-fmt_tbl = util.CsvTbl("data/formations.csv", "id")

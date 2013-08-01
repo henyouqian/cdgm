@@ -1,7 +1,8 @@
 from session import find_session
 from error import *
 import util
-from card import card_tbl, skill_tbl, is_war_lord, warlord_level_tbl, card_level_tbl, calc_card_proto_attr
+from csvtable import *
+from card import is_war_lord, calc_card_proto_attr
 from gamedata import XP_ADD_DURATION
 
 import tornado.web, tornado.gen
@@ -1131,6 +1132,3 @@ handlers = [
     (r"/whapi/pvp/toredisa", ToredisAdisp),
     (r"/whapi/pvp/toredisg", ToredisGen),
 ]
-
-pvp_match_tbl = util.CsvTbl("data/pvpmatch.csv", "id")
-pvp_test_data_tbl = util.CsvTbl("data/pvpTestData.csv", "ID")
