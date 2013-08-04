@@ -1,4 +1,4 @@
-﻿from session import *
+from session import *
 from error import *
 import util
 import wagon
@@ -647,11 +647,124 @@ class Sacrifice(tornado.web.RequestHandler):
             self.finish()
 
 
+class addCrystal(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def post(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            user_id = session["userid"]
+
+            # post input
+            input_data = json.loads(self.request.body)
+            entity_id = input_data["card"]
+            crystal_nums = input_data["crystal"]
+            hp_num = int(crystal_nums["HP"])
+            atk_num = int(crystal_nums["ATK"])
+            def_num = int(crystal_nums["DEF"])
+            wis_num = int(crystal_nums["WIS"])
+            agi_num = int(crystal_nums["AGI"])
+            if hp_num < 0 or atk_num < 0 or def_num < 0 or wis_num < 0 or agi_num < 0:
+                raise Exception("num < 0")
+            
+            # get card info
+            cols = ["id", "protoId", "level", "exp", "hp", "atk", "def", "wis", "agi", 
+                "hpCrystal", "atkCrystal", "defCrystal", "wisCrystal", "agiCrystal",
+                "hpExtra", "atkExtra", "defExtra", "wisExtra", "agiExtra",
+                "skill1Id", "skill1Level", "skill1Exp",
+                "skill2Id", "skill2Level", "skill2Exp", 
+                "skill3Id", "skill3Level", "skill3Exp"]
+            rows = yield util.whdb.runQuery(
+                """SELECT {} from cardEntities
+                        WHERE id=%s AND ownerId=%s AND inPackage=%s""".format(",".join(cols))
+                , (entity_id, user_id, 1)
+            )
+            if len(rows) == 0:
+                raise Exception("card not yours or not in package. card_entity_id=%s, user_id=%s"%(entity_id, user_id))
+
+            card = dict(zip(cols, rows[0]))
+
+            # get player info
+            rows = yield util.whdb.runQuery(
+                """SELECT items from playerInfos
+                        WHERE userId=%s"""
+                , (user_id,)
+            )
+            items = json.loads(rows[0])
+            items = {int(k):v for k, v in items.iteritems()}
+
+            # check item num
+            try:
+                if hp_num:
+                    items[gamedata.HP_CRYSTAL_ID] -= hp_num
+                if atk_num:
+                    items[gamedata.ATK_CRYSTAL_ID] -= atk_num
+                if def_num:
+                    items[gamedata.DEF_CRYSTAL_ID] -= def_num
+                if wis_num:
+                    items[gamedata.WIS_CRYSTAL_ID] -= wis_num
+                if agi_num:
+                    items[gamedata.AGI_CRYSTAL_ID] -= agi_num
+            except:
+                raise Exception("crystal not enough")
+
+            if items[gamedata.HP_CRYSTAL_ID] < 0      \
+              or items[gamedata.ATK_CRYSTAL_ID] < 0   \
+              or items[gamedata.DEF_CRYSTAL_ID] < 0   \
+              or items[gamedata.WIS_CRYSTAL_ID] < 0   \
+              or items[gamedata.AGI_CRYSTAL_ID] < 0:
+                raise Exception("crystal not enough")
+
+            # add crystal to card
+            card["hpCrystal"] += hp_num
+            card["atkCrystal"] += atk_num
+            card["defCrystal"] += def_num
+            card["wisCrystal"] += wis_num
+            card["agiCrystal"] += agi_num
+
+            # check up limit
+            for num in (card["hpCrystal"], card["atkCrystal"], card["defCrystal"], card["wisCrystal"], card["agiCrystal"]):
+                if num > gamedata.CRYSTAL_MAX:
+                    raise Exception("crystal count > gamedata.CRYSTAL_MAX")
+
+            # update card
+            yield util.whdb.runOperation(
+                """UPDATE cardEntities SET hpCrystal=%s, atkCrystal=%s, defCrystal=%s, wisCrystal=%s, agiCrystal=%s
+                    WHERE id=%s
+                """,
+                (card["hpCrystal"], card["atkCrystal"], card["defCrystal"], card["wisCrystal"], card["agiCrystal"], entity_id)
+            )
+
+            # update items
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET items=%s 
+                    WHERE userId=%s
+                """,
+                (json.dumps(items), user_id)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["master"] = master_card
+            reply["sacrificers"] = [card["id"] for card in sacrifice_cards]
+            reply["money"] = money
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
 handlers = [
     (r"/whapi/card/getpact", GetPact),
     (r"/whapi/card/sell", Sell),
     (r"/whapi/card/evolution", Evolution),
     (r"/whapi/card/sacrifice", Sacrifice),
+    (r"/whapi/card/addcrystal", addCrystal),
 ]
 
 # test
