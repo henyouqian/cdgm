@@ -749,9 +749,14 @@ class addCrystal(tornado.web.RequestHandler):
 
             # reply
             reply = util.new_reply()
-            reply["master"] = master_card
-            reply["sacrificers"] = [card["id"] for card in sacrifice_cards]
-            reply["money"] = money
+            itemCrystal = {
+                "HP": items[gamedata.HP_CRYSTAL_ID],
+                "ATK": items[gamedata.ATK_CRYSTAL_ID],
+                "DEF": items[gamedata.DEF_CRYSTAL_ID],
+                "WIS": items[gamedata.WIS_CRYSTAL_ID],
+                "AGI": items[gamedata.AGI_CRYSTAL_ID],
+            }
+            reply["card"] = card
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
