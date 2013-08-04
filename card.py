@@ -402,7 +402,7 @@ class Evolution(tornado.web.RequestHandler):
             rarity2 = card_tbl.get(card2["protoId"], "rarity")
             cost = int(evo_cost_tbl.get((rarity1, rarity2), "cost"))
             rows = yield util.whdb.runQuery(
-                        """SELECT money, bands, isInZone FROM playerInfos
+                        """SELECT money, bands, inZoneId FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
                     )
