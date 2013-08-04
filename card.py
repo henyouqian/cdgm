@@ -694,8 +694,7 @@ class addCrystal(tornado.web.RequestHandler):
                         WHERE userId=%s"""
                 , (user_id,)
             )
-            print rows, user_id
-            items = json.loads(rows[0])
+            items = json.loads(rows[0][0])
             items = {int(k):v for k, v in items.iteritems()}
 
             # check item num
