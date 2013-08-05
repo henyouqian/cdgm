@@ -410,10 +410,10 @@ class Evolution(tornado.web.RequestHandler):
             money = row[0]
             bands = json.loads(row[1])
             inZoneId = row[2]
-            current_band = row[3]
+            curr_band_id = row[3]
             if inZoneId > 0:
-                curr_band = bands[current_band]
-                members = current_band["members"]
+                curr_band = bands[curr_band_id]
+                members = curr_band["members"]
                 if card_id1 in members or card_id2 in members:
                     raise Exception("card in zone")
 
