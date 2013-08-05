@@ -191,6 +191,11 @@ def update_pvp_band(userid, username, userlevel, bands, callback):
                         "def":int,
                         "wis":int,
                         "agi":int,
+                        "hpTotal":int,
+                        "atkTotal":int,
+                        "defTotal":int,
+                        "wisTotal":int,
+                        "agiTotal":int,
                         "skill1Id":int,
                         "skill1Level":int,
                         "skill2Id":int,
@@ -237,6 +242,19 @@ def update_pvp_band(userid, username, userlevel, bands, callback):
                 else:
                     band_score += score1
                     better_cards.append(card1)
+
+            for card in better_cards:
+                if card:
+                    card["hp"] = card["hpTotal"]
+                    del card["hpTotal"]
+                    card["atk"] = card["atkTotal"]
+                    del card["atkTotal"]
+                    card["def"] = card["defTotal"]
+                    del card["defTotal"]
+                    card["wis"] = card["wisTotal"]
+                    del card["wisTotal"]
+                    card["agi"] = card["agiTotal"]
+                    del card["agiTotal"]
 
             if band_score > max_band_score:
                 max_band_score = band_score

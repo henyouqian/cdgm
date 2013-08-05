@@ -284,7 +284,9 @@ class SetBand(tornado.web.RequestHandler):
 
             # check member
             mem_proto_num = len(member_set)
-            cols = ["id", "protoId", "level", "skill1Id", "skill1Level", "skill2Id", "skill2Level", "skill3Id", "skill3Level"]
+            cols = ["id", "protoId", "level", "skill1Id", "skill1Level", "skill2Id", "skill2Level", "skill3Id", "skill3Level", 
+                "hp", "atk", "def", "wis", "agi", "hpExtra", "atkExtra", "defExtra", "wisExtra", "agiExtra", 
+                "hpCrystal", "atkCrystal", "defCrystal", "wisCrystal", "agiCrystal"]
             if mem_proto_num:
                 rows = yield util.whdb.runQuery(
                     """ SELECT {} FROM cardEntities
@@ -322,6 +324,11 @@ class SetBand(tornado.web.RequestHandler):
                     card["def"] = dfc
                     card["wis"] = wis
                     card["agi"] = agi
+                    card["hpTotal"] = card_entity["hp"] + card_entity["hpExtra"] + card_entity["hpCrystal"]*POINT_PER_CRYSTAL
+                    card["atkTotal"] = card_entity["atk"] + card_entity["atkExtra"] + card_entity["atkCrystal"]*POINT_PER_CRYSTAL
+                    card["defTotal"] = card_entity["def"] + card_entity["defExtra"] + card_entity["defCrystal"]*POINT_PER_CRYSTAL
+                    card["wisTotal"] = card_entity["wis"] + card_entity["wisExtra"] + card_entity["wisCrystal"]*POINT_PER_CRYSTAL
+                    card["agiTotal"] = card_entity["agi"] + card_entity["agiExtra"] + card_entity["agiCrystal"]*POINT_PER_CRYSTAL
                     card["skill1Id"] = card_entity["skill1Id"]
                     card["skill1Level"] = card_entity["skill1Level"]
                     card["skill2Id"] = card_entity["skill2Id"]

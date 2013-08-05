@@ -402,7 +402,7 @@ class Evolution(tornado.web.RequestHandler):
             rarity2 = card_tbl.get(card2["protoId"], "rarity")
             cost = int(evo_cost_tbl.get((rarity1, rarity2), "cost"))
             rows = yield util.whdb.runQuery(
-                        """SELECT money, bands, inZoneId FROM playerInfos
+                        """SELECT money, bands, inZoneId, currentBand FROM playerInfos
                                 WHERE userId=%s"""
                         ,(user_id, )
                     )
@@ -410,8 +410,12 @@ class Evolution(tornado.web.RequestHandler):
             money = row[0]
             bands = json.loads(row[1])
             inZoneId = row[2]
+            current_band = row[3]
             if inZoneId > 0:
-                raise Exception("error in zone")
+                curr_band = bands[current_band]
+                members = current_band["members"]
+                if card_id1 in members or card_id2 in members:
+                    raise Exception("card in zone")
 
             if money < cost:
                 raise Exception("not enough money")
