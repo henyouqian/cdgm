@@ -749,13 +749,14 @@ class addCrystal(tornado.web.RequestHandler):
 
             # reply
             reply = util.new_reply()
-            itemCrystal = {
+            item_crystal = {
                 "HP": items[gamedata.HP_CRYSTAL_ID],
                 "ATK": items[gamedata.ATK_CRYSTAL_ID],
                 "DEF": items[gamedata.DEF_CRYSTAL_ID],
                 "WIS": items[gamedata.WIS_CRYSTAL_ID],
                 "AGI": items[gamedata.AGI_CRYSTAL_ID],
             }
+            reply["itemCrystal"] = item_crystal
             reply["card"] = card
             self.write(json.dumps(reply))
         except:

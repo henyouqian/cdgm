@@ -9,7 +9,6 @@ def run():
         except KeyboardInterrupt:
             print("cron exit")
             break
-    
 
 
 def sig_handler(signum, frame):
