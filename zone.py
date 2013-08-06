@@ -6,6 +6,7 @@ import gamedata
 import util
 from csvtable import *
 import pvp
+from card import calc_card_proto_attr
 
 import tornado.web
 import adisp
@@ -694,6 +695,8 @@ class BattleResult(tornado.web.RequestHandler):
                             ap = max_ap
                             xp = max_xp
                             warlord_levelup = True
+
+                    print "levelups:", levelups
 
                 except:
                     card["exp"] = int(lvtbl.get(level, "exp"))
