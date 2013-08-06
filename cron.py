@@ -1,22 +1,31 @@
 #! ./env/bin/python
+import datetime
 import time
 import util
 import os
 import sys
 from threading import Timer, current_thread
 
-def work1():
-    print "work1", current_thread()
-    Timer(1, work1, ()).start()
+Z_CRON_TASK = "Z_CRON_TASK"
 
-def work2():
-    print "work2", current_thread()
-    Timer(1.12, work2, ()).start()
+def add_task(dt, taskname):
+    t = time.mktime(dt.timetuple())
+    yield util.redis().zadd(Z_CRON_TASK, t, taskname)
+
+def check_task():
+    t = time.time()
+    tasks = yield util.redis().zrangebyscore(Z_CRON_TASK, 0, t)
+    if tasks:
+        print tasks
+        yield util.redis().z
+
+
+    Timer(1, check_update, ()).start()
+
 
 def main():
     print "main begin", current_thread()
-    work1()
-    work2()
+    check_update()
     print "main end"
 
 def getLock():
