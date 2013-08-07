@@ -90,6 +90,8 @@ fmt_tbl = util.CsvTbl("data/formations.csv", "id")
 
 pvp_match_tbl = util.CsvTbl("data/pvpmatch.csv", "id")
 pvp_test_data_tbl = util.CsvTbl("data/pvpTestData.csv", "ID")
+pvp_win_reward_tbl = util.parse_csv("data/pvpWinRewards.csv")
+pvp_rank_reward_tbl = util.parse_csv("data/pvpRankRewards.csv")
 
 
 tables = [card_tbl, grow_tbl, evo_tbl, evo_cost_tbl, skill_tbl, skill_level_tbl, warlord_level_tbl, card_level_tbl, 

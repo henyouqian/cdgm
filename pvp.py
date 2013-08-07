@@ -1137,6 +1137,8 @@ class ToredisGen(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+
 handlers = [
     (r"/whapi/pvp/createtestdata", CreateTestData),
     (r"/whapi/pvp/getranks", GetRanks),

@@ -109,6 +109,19 @@ class CsvTblMulKey(object):
         rowkeys = tuple(str(key) for key in rowkeys)
         return self.body[rowkeys][self.header[colname]]
 
+def parse_csv(csvfile):
+    first_row = []
+    tbl = []
+    with open(csvfile, 'rb') as csvfile:
+        spamreader = csv.reader(csvfile)
+        for row in spamreader:
+            if not first_row:
+                first_row = row
+            else:
+                dict_row = dict(zip(first_row, row))
+                tbl.append(dict_row)
+    return tbl
+
 
 def lower_bound(haystack, needle, lo=0, hi=None, cmp=None, key=None):
     """lower_bound(haystack, needle[, lo = 0[, hi = None[, cmp = None[, key = None]]]]) => n
