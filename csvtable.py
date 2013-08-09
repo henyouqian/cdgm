@@ -67,6 +67,23 @@ class CaseTbl(object):
         idx = rdm.get()
         return indices[idx]
 
+
+class PvpWinRewardTbl(object):
+    def __init__(self):
+        tbl = util.parse_csv("data/pvpWinRewards.csv")
+        self._tbl = {}
+        for row in tbl:
+            row = {k:int(v) for k, v in row.iteritems()}
+            wincount = int(row["winCount"])
+            if wincount not in self._tbl:
+                self._tbl[wincount] = [row]
+            else:
+                self._tbl[wincount].append(row)
+
+    def get(self, wincount):
+        return self._tbl.get(wincount, None)
+
+
 plc_tbl = PlacementTbl()
 case_tbl = CaseTbl()
 
@@ -90,7 +107,8 @@ fmt_tbl = util.CsvTbl("data/formations.csv", "id")
 
 pvp_match_tbl = util.CsvTbl("data/pvpmatch.csv", "id")
 pvp_test_data_tbl = util.CsvTbl("data/pvpTestData.csv", "ID")
-pvp_win_reward_tbl = util.parse_csv("data/pvpWinRewards.csv")
+
+pvp_win_reward_tbl = PvpWinRewardTbl()
 pvp_rank_reward_tbl = util.parse_csv("data/pvpRankRewards.csv")
 
 
@@ -105,6 +123,9 @@ def csv_reload():
     global plc_tbl, case_tbl
     plc_tbl = PlacementTbl()
     case_tbl = CaseTbl()
+
+    global pvp_win_reward_tbl
+    pvp_win_reward_tbl = PvpWinRewardTbl()
 
     logging.info("csv reloaded.")
 

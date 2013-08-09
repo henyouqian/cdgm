@@ -3,7 +3,7 @@ from error import *
 import util
 from csvtable import *
 from card import is_war_lord, calc_card_proto_attr
-from gamedata import XP_ADD_DURATION
+from gamedata import XP_ADD_DURATION, WAGON_INDEX_TEMP
 
 import tornado.web, tornado.gen
 import adisp
@@ -845,8 +845,8 @@ class BattleResult(tornado.web.RequestHandler):
                     raise Exception("member not in band: %s" % member)
 
             # get matched bands
-            key = "pvpFoeBands/%s" % userid
-            matched_bands = yield util.redis().get(key)
+            cacheKey = "pvpFoeBands/%s" % userid
+            matched_bands = yield util.redis().get(cacheKey)
             if matched_bands:
                 matched_bands = json.loads(matched_bands)
             else:
@@ -986,7 +986,8 @@ class BattleResult(tornado.web.RequestHandler):
             )
             
             next_pvp_bands = []
-            cacheKey = "pvpFoeBands/%s" % userid
+            items_add = []
+            cards_add = []
 
             # lose
             if not is_win:
@@ -995,7 +996,25 @@ class BattleResult(tornado.web.RequestHandler):
             else:
                 win_streak += 1
                 if win_streak % 3 == 0:
-                    # fixme: gain reward
+                    # gain rewards
+                    rewards = pvp_win_reward_tbl.get(win_streak)
+                    for reward in rewards:
+                        if reward["type"] == 1: # item
+                            itemid = reward["objectId"]
+                            itemnum = reward["count"]
+                            if itemid in items:
+                                items[itemid] += itemnum
+                            else:
+                                items[itemid] = itemnum
+                            items_add.append({"id":itemid, "num":itemnum})
+                                
+                        elif reward["type"] == 2: # card
+                            for i in xrange(reward["count"]):
+                                cards_add.append(reward["objectId"])
+
+                    if cards_add:
+                        cards_add = yield create_cards(userid, cards_add, max_card_num, 1, WAGON_INDEX_TEMP)
+
                     if win_streak == 30:
                         win_streak = 0
 
@@ -1032,13 +1051,50 @@ class BattleResult(tornado.web.RequestHandler):
             reply["winStreak"] = win_streak
             reply["members"] = out_members
             reply["levelups"] = levelups
-            reply["cards"] = []
-            reply["items"] = []
+            reply["cards"] = cards_add
+            reply["items"] = items_add
             reply["xp"] = xp
             reply["nextAddXpTime"] = nextAddXpTime
             reply["smallXpItemNum"] = items.get(10, 0)
             reply["bigXpItemNum"] = items.get(11, 0)
             reply["nextPvpBands"] = next_pvp_bands
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
+class GetRank(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+
+            leaderboard = []
+            for i in xrange(30):
+                data = {
+                    "userId":10000+i,
+                    "rank": i+1,
+                    "userName":"user%s"%(10000+i),
+                    "userLevel": random.randint(40, 99),
+                    "score":9999-i,
+                    "cards":random.sample([10189, 10190,10191,10209,10211,10352,10353,10354,10355,10489,10490
+], 5)
+                }
+                leaderboard.append(data)
+            
+            # reply
+            reply = util.new_reply()
+            reply["playerRank"] = 555
+            reply["leaderboard"] = leaderboard
+            
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
@@ -1145,6 +1201,7 @@ handlers = [
     (r"/whapi/pvp/getformula", GetFormula),
     (r"/whapi/pvp/match", Match),
     (r"/whapi/pvp/battleresult", BattleResult),
+    (r"/whapi/pvp/rank", GetRank),
     (r"/whapi/pvp/test", Test),
     (r"/whapi/pvp/test1", Test1),
     (r"/whapi/pvp/test2", Test2),

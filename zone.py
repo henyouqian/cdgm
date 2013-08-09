@@ -489,12 +489,19 @@ class Move(tornado.web.RequestHandler):
                 del cache["objs"][poskey]
 
             # pvp
+            key = "pvpFoeBands/%s" % userid
+
             pvp_bands = []
+            pvp_remain_time = yield util.redis().ttl(key)
+            pvp_remain_time = max(0, pvp_remain_time)
+
             if hasPvp:
-                matched_bands, rankrange, score_min, score_max = yield pvp.match(pvp_score, pvp_win_streak+1, userid)
-                pvp_bands = matched_bands
-                key = "pvpFoeBands/%s" % userid
-                yield util.redis().setex(key, 600, json.dumps(matched_bands))
+                matched_bands = yield util.redis().get(key)
+                if not matched_bands:
+                    matched_bands, rankrange, score_min, score_max = yield pvp.match(pvp_score, pvp_win_streak+1, userid)
+                    pvp_bands = matched_bands
+                    yield util.redis().setex(key, 600, json.dumps(matched_bands))
+                    pvp_remain_time = 600
                 
 
             # update
@@ -520,6 +527,7 @@ class Move(tornado.web.RequestHandler):
             reply["eventId"] = eventid
             reply["catchMons"] = catch_mons
             reply["pvpBands"] = pvp_bands
+            reply["pvpRemainTime"] = pvp_remain_time
             self.write(json.dumps(reply))
 
         except:

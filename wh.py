@@ -13,6 +13,7 @@ import experiment
 import cheat
 import admin
 import version
+import leaderboard
 
 from tornado import web, httpserver, ioloop
 import logging
@@ -23,7 +24,7 @@ import os
 
 handlers = auth.handlers + player.handlers + zone.handlers + card.handlers \
             + wagon.handlers + pvp.handlers + experiment.handlers \
-            + cheat.handlers + admin.handlers + version.handlers
+            + cheat.handlers + admin.handlers + version.handlers + leaderboard.handlers
 
 if config.debug:
     import cheat

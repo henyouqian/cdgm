@@ -205,6 +205,24 @@ class GetInfo(tornado.web.RequestHandler):
                     ,(ap, last_ap_time, xp, last_xp_time, wagonObjNums[0], wagonObjNums[1], wagonObjNums[2], userid)
                 )
 
+            # pvp
+            matched_bands = []
+            pvp_remain_time = 0
+
+            key = "pvpFoeBands/%s" % userid
+            pipe = util.redis_pipe()
+            pipe.get(key)
+            pipe.ttl(key)
+            pipe_results = yield util.redis_pipe_execute(pipe)
+            matched_bands = pipe_results[0]
+            
+            if matched_bands:
+                matched_bands = json.loads(matched_bands)
+                pvp_remain_time = pipe_results[1]
+            else:
+                matched_bands = []
+
+            # reply
             del reply["lastXpTime"]
             del reply["lastApTime"]
             bands = json.loads(infos["bands"])
@@ -213,6 +231,8 @@ class GetInfo(tornado.web.RequestHandler):
             reply["items"] = [{"id": int(k), "num": v} for k, v in items.iteritems()]
             reply["cards"] = cardsInPackage
             reply["wagonCardNum"] = wagonCardNum
+            reply["pvpBands"] = matched_bands
+            reply["pvpRemainTime"] = pvp_remain_time
             self.write(json.dumps(reply))
             
         except:
