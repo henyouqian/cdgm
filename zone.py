@@ -493,7 +493,8 @@ class Move(tornado.web.RequestHandler):
 
             pvp_bands = []
             pvp_remain_time = yield util.redis().ttl(key)
-            pvp_remain_time = max(0, pvp_remain_time)
+            if not pvp_remain_time:
+                pvp_remain_time = 0
 
             if hasPvp:
                 matched_bands = yield util.redis().get(key)
@@ -703,8 +704,6 @@ class BattleResult(tornado.web.RequestHandler):
                             ap = max_ap
                             xp = max_xp
                             warlord_levelup = True
-
-                    print "levelups:", levelups
 
                 except:
                     card["exp"] = int(lvtbl.get(level, "exp"))

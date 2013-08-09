@@ -678,12 +678,19 @@ class GetTime(tornado.web.RequestHandler):
                 ,(ap, last_ap_time, xp, last_xp_time, userid)
             )
 
+            # pvp remain time
+            key = "pvpFoeBands/%s" % userid
+            pvp_remain_time = yield util.redis().ttl(key)
+            if not pvp_remain_time:
+                pvp_remain_time = 0
+
             #reply
             reply = util.new_reply()
             reply["xp"] = xp
             reply["xpAddRemain"] = xp_add_remain;
             reply["ap"] = ap
             reply["apAddRemain"] = ap_add_remain;
+            reply["pvpRemainTime"] = pvp_remain_time
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
