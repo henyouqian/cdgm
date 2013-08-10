@@ -2,7 +2,7 @@ from session import find_session
 from error import *
 import util
 from csvtable import *
-from card import is_war_lord, calc_card_proto_attr
+from card import is_war_lord, calc_card_proto_attr, create_cards
 from gamedata import XP_ADD_DURATION, WAGON_INDEX_TEMP
 
 import tornado.web, tornado.gen
