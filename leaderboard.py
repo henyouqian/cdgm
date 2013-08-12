@@ -26,11 +26,11 @@ def create(name, begintime, endtime, order, callback):
 
         now = datetime.datetime.now()
         if begintime > now or endtime > now:
-            Exception("begintime > now or endtime > now")
+            raise Exception("begintime > now or endtime > now")
 
         print begintime, endtime
         if begintime >= endtime:
-            Exception("begintime <= endtime")
+            raise Exception("begintime >= endtime")
 
         # try add to hash["leaderboard_infos"]
         leaderboard_result_key = "leaderboard_result/"+name
@@ -62,7 +62,7 @@ def delete(name, callback):
         pipe.zrem("leaderboard_endtime_zsets", name)
         leaderboard_result_key = "leaderboard_result/"+name
         pipe.delete(leaderboard_result_key)
-        yield redis_pipe_execute(pipe)
+        yield util.redis_pipe_execute(pipe)
 
         callback(None)
     except Exception as e:
@@ -119,7 +119,35 @@ class Delete(tornado.web.RequestHandler):
             self.finish()
 
 
+class List(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            leaderboard_names = yield util.redis().zrange("leaderboard_endtime_zsets", 0, -1, False)
+            lbs = yield util.redis().hmget("leaderboard_infos", leaderboard_names)
+            leaderboards = []
+            for k, v in lbs.iteritems():
+                l = {}
+                v = pickle.loads(v)
+                l["name"] = k
+                l["begintime"] = util.datetime_to_str(v["begintime"])
+                l["endtime"] = util.datetime_to_str(v["endtime"])
+                del l["leaderboard_result_key"]
+                leaderboards.append(l)
+
+            reply = util.new_reply()
+            reply["leaderboards"] = leaderboards
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
 handlers = [
     (r"/whapi/leaderboard/create", Create),
     (r"/whapi/leaderboard/delete", Delete),
+    (r"/whapi/leaderboard/list", List),
 ]
