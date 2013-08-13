@@ -1093,6 +1093,7 @@ class GetRank(tornado.web.RequestHandler):
             # reply
             reply = util.new_reply()
             reply["playerRank"] = 555
+            reply["playerScore"] = 666777
             reply["leaderboard"] = leaderboard
             
             self.write(json.dumps(reply))
