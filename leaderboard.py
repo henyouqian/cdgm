@@ -133,7 +133,7 @@ class List(tornado.web.RequestHandler):
                 l["name"] = k
                 l["begintime"] = util.datetime_to_str(v["begintime"])
                 l["endtime"] = util.datetime_to_str(v["endtime"])
-                del l["leaderboard_result_key"]
+                l["order"] = v["order"]
                 leaderboards.append(l)
 
             reply = util.new_reply()

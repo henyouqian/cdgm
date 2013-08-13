@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>PVP</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/datetimepicker.css" rel="stylesheet">
+
+    <script src="js/angular.min.js"></script>
+
+    <style type="text/css">
+
+      input[type="text"],
+      input[type="datetime"] {
+        margin-bottom: 0px;
+      }
+
+      .affixList {
+        top: 0px;
+        width: 100px;
+        margin-top:30px;
+      }
+
+      .page-header {
+        padding-bottom: 0px;
+        margin: 20px 0 20px;
+        border-top: 1px solid #eee;
+        border-bottom: 0px solid #eee;
+      }
+
+    </style>
+  </head>
+
+  <body ng-app="App">
+    <div class="container" id="top" ng-controller="Controller">
+      <h1>PVP</h1>
+      
+      <div class="row">
+        <div class="span2">
+          <div class="well affixList" data-spy="affix" data-offset-top="60">
+            <ul class="nav nav-list" id="server-tab" ng-hide="page">
+              <li><a href="#top">顶部</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="span10">
+          <section id="server-rolling">
+            <div class="page-header">
+              <h2>Leaderboards</h2>
+            </div>
+            
+            <div class="well">
+              Begin time:
+              <input type="text" id="begintime" class="form_datetime" style="width: 140px">
+              &nbsp;&nbsp;&nbsp;
+              End time:
+              <input type="text" id="endtime" class="form_datetime" style="width: 140px">
+              &nbsp;&nbsp;&nbsp;
+              Order:
+              <div class="btn-group" data-toggle="buttons-radio">
+                <button type="button" class="btn btn-success">ASC</button>
+                <button type="button" class="btn btn-success">DESC</button>
+              </div>
+              &nbsp;&nbsp;&nbsp;
+              <button class="btn btn-primary" ng-click="create()">Create</button>
+            </div>
+
+            <div class="accordion-group">
+              <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseB">
+                  pvp ranks
+                </a>
+              </div>
+              <div id="collapseB" class="accordion-body collapse">
+                <div class="accordion-inner">
+                  <table class="table table-striped">
+                    <thead>
+                      <th>name</th>
+                      <th>begintime</th>
+                      <th>endtime</th>
+                      <th>score order</th>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="l in leaderboards">
+                        <td>{{l.name}}</td>
+                        <td>{{l.begintime}}</td>
+                        <td>{{l.endtime}}</td>
+                        <td>{{l.order}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            
+          </section>
+
+        </div>
+          </div>
+    </div> <!-- /container -->
+
+    <script src="js/jquery-1.9.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-datetimepicker.min.js"></script>
+    <script src="util.js"></script>
+    <script src="leaderboard.js"></script>
+
+  </body>
+</html>

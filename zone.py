@@ -197,7 +197,7 @@ class Enter(tornado.web.RequestHandler):
             
             dict_id_hp = {}
             for row in rows:
-                hpsum = sum(row[1:])
+                hpsum = row[1]+row[2]*gamedata.POINT_PER_CRYSTAL+row[3]
                 dict_id_hp[row[0]] = hpsum
 
             new_members = []
