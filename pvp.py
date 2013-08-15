@@ -4,6 +4,7 @@ import util
 from csvtable import *
 from card import is_war_lord, calc_card_proto_attr, create_cards
 from gamedata import XP_ADD_DURATION, WAGON_INDEX_TEMP
+import leaderboard
 
 import tornado.web, tornado.gen
 import adisp
@@ -12,6 +13,7 @@ import json
 import random
 import traceback
 from datetime import datetime, timedelta
+import logging
 
 import redis
 
@@ -793,6 +795,7 @@ class BattleResult(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
             userid = session["userid"]
+            username = session["username"]
 
             # post data
             post_input = json.loads(self.request.body)
@@ -1025,6 +1028,21 @@ class BattleResult(tornado.web.RequestHandler):
                     # fixme: use ttl
                     yield util.redis().setex(cacheKey, 600, json.dumps(next_pvp_bands))
 
+                # add score to pvp leaderboard
+                try:
+                    lb_score = yield leaderboard.get_score("pvp", userid)
+                    if not lb_score:
+                        lb_score = 0
+                    self_strength = pvp_score
+                    foe_strength = foe_band["score"]
+                    score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5)
+                    userinfo = {}
+                    userinfo["cards"] = [c["protoId"] for c in card_entities]
+                    userinfo["level"] = 66
+                    yield leaderboard.set_score("pvp", lb_score+score_add, userid, username, userinfo)
+                except:
+                    logging.error("pvp leaderboard error")
+
             # delete cache if streak break or finish 3 pvps
             if win_streak % 3 == 0:
                 yield util.redis().delete(cacheKey)
@@ -1065,7 +1083,7 @@ class BattleResult(tornado.web.RequestHandler):
             self.finish()
 
 
-class GetRank(tornado.web.RequestHandler):
+class Rank(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
     def get(self):
@@ -1078,22 +1096,26 @@ class GetRank(tornado.web.RequestHandler):
             userid = session["userid"]
 
             leaderboard = []
-            for i in xrange(30):
+            ranks = yield leaderboard.get_ranks("pvp", 0, 30)
+            for r in ranks:
+                userinfo = r["userinfo"]
                 data = {
-                    "userId":10000+i,
-                    "rank": i+1,
-                    "userName":"user%s"%(10000+i),
-                    "userLevel": random.randint(40, 99),
-                    "score":9999-i,
-                    "cards":random.sample([10189, 10190,10191,10209,10211,10352,10353,10354,10355,10489,10490
-], 5)
+                    "userId":r["userid"],
+                    "rank": r["rank"],
+                    "userName":r["username"],
+                    "userLevel": userinfo["level"],
+                    "score":r["score"],
+                    "cards":userinfo["cards"],
                 }
                 leaderboard.append(data)
             
+            # 
+            score, rank = yield leaderboard.get_score_and_rank("pvp", userid)
+
             # reply
             reply = util.new_reply()
-            reply["playerRank"] = 555
-            reply["playerScore"] = 666777
+            reply["playerRank"] = rank
+            reply["playerScore"] = score
             reply["leaderboard"] = leaderboard
             
             self.write(json.dumps(reply))
@@ -1202,7 +1224,7 @@ handlers = [
     (r"/whapi/pvp/getformula", GetFormula),
     (r"/whapi/pvp/match", Match),
     (r"/whapi/pvp/battleresult", BattleResult),
-    (r"/whapi/pvp/rank", GetRank),
+    (r"/whapi/pvp/rank", Rank),
     (r"/whapi/pvp/test", Test),
     (r"/whapi/pvp/test1", Test1),
     (r"/whapi/pvp/test2", Test2),

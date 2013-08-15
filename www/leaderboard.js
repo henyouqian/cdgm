@@ -8,10 +8,9 @@ function Controller($scope, $http) {
 	}
 
 	//===================================
-	$scope.offset = 0
-	$scope.limit = 50
+	$scope.order = "ASC"
 	function listLeaderboards() {
-		$.getJSON('/whapi/leaderboard/list', {"offset":$scope.offset, "limit":$scope.limit}, function(json){
+		$.getJSON('/whapi/leaderboard/list', function(json){
 			var err = json.error;
 			if (err){
 				errProc(err)
@@ -36,18 +35,26 @@ function Controller($scope, $http) {
 			alert("begintime >= endtime")
 			return
 		}
-		var order = "ASC"
-		// $.getJSON("/whapi/leaderboard/create", {"begintime": begintime, "endtime": endtime, "order":}, function(json){
-		// 	var err = json.error;
-		// 	if (err){
-		// 		errProc(err)
-		// 	}else{
-		// 		$scope.$apply(function(){
-		// 			$scope.notification = json.text
-		// 		})
-		// 		alert("Notification changed.")
-		// 	}
-		// })
+		var key = $scope.key
+		var order = $scope.order
+		if (!key) {alert("!key"); return;}
+		if (!order) {alert("!order"); return;}
+
+		$.getJSON("/whapi/leaderboard/create", {"key": key, "begintime": begintime, "endtime": endtime, "order":order}, function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			} else {
+				$scope.$apply(function(){
+					$scope.leaderboards = [json.leaderboard].concat($scope.leaderboards)
+				})
+			}
+		})
+	}
+
+	//===================================
+	$scope.view = function(key) {
+		window.location.href="scores.html?key="+key
 	}
 
 }

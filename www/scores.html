@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" ng-app>
+  <head>
+    <meta charset="utf-8">
+    <title>Scores</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/datetimepicker.css" rel="stylesheet">
+
+    <script src="js/angular.min.js"></script>
+
+    <style type="text/css">
+
+      input[type="text"],
+      input[type="datetime"] {
+        margin-bottom: 0px;
+      }
+
+      .affixList {
+        top: 0px;
+        width: 100px;
+        margin-top:30px;
+      }
+
+      .page-header {
+        padding-bottom: 0px;
+        margin: 20px 0 20px;
+        border-top: 1px solid #eee;
+        border-bottom: 0px solid #eee;
+      }
+
+    </style>
+  </head>
+
+  <body ng-controller="Controller">
+    <div class="container" id="top">
+      <h1>Leaderboard: {{key}}</h1>
+      
+      <div class="row">
+        <div class="span2">
+          <div class="well affixList" data-spy="affix" data-offset-top="60">
+            <button class="btn btn-primary" ng-click="back()">Back</button>
+            <div style="height:6px"></div>
+            <button class="btn btn-danger" ng-click="deleteModal()">Delete</button>
+          </div>
+        </div>
+
+        <div class="span10">
+          <section id="server-rolling">
+            <table class="table table-striped">
+              <thead>
+                <th>rank</th>
+                <th>userid</th>
+                <th>username</th>
+                <th>score</th>
+                <th>submit time</th>
+                <th></th>
+              </thead>
+              <tbody>
+                <tr ng-repeat="r in ranks">
+                  <td>{{r.rank}}</td>
+                  <td>{{r.userid}}</td>
+                  <td>{{r.username}}</td>
+                  <td>{{r.score}}</td>
+                  <td>{{r.submittime}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
+          </div>
+    </div> <!-- /container -->
+
+    <script src="js/jquery-1.9.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-datetimepicker.min.js"></script>
+    <script src="util.js"></script>
+    <script src="scores.js"></script>
+
+
+    <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Warning</h3>
+      </div>
+      <div class="modal-body">
+        <p>Delete?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        <button class="btn btn-danger" ng-click="del()">Delete</button>
+      </div>
+    </div>
+
+  </body>
+</html>
