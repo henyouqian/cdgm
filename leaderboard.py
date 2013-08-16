@@ -100,6 +100,7 @@ def set_score(leaderboard_key, score, userid, username, userinfo, callback):
     try:
         leaderboard_result_key = get_leaderbard_result_key(leaderboard_key)
         leaderboard_result_info_key = get_leaderboard_result_info_key(leaderboard_key)
+        score = int(score)
 
         pipe = util.redis_pipe()
         pipe.zadd(leaderboard_result_key, score, userid)
