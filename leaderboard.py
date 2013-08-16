@@ -154,7 +154,7 @@ def get_ranks(leaderboard_key, offset, limit, callback):
         leaderboard_info = yield util.redis().hget("leaderboard_infos", key)
         if not leaderboard_info:
             raise Exception("leaderboard not exist:key=%s"%key)
-            
+
         leaderboard_info = pickle.loads(leaderboard_info)
         order = leaderboard_info["order"]
         if order == "ASC":
@@ -245,17 +245,19 @@ class List(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
-            leaderboard_keys = yield util.redis().zrevrange("leaderboard_endtime_zsets", 0, -1, False)
-            lbs = yield util.redis().hmget("leaderboard_infos", leaderboard_keys)
             leaderboards = []
-            for k in leaderboard_keys:
-                l = {}
-                v = pickle.loads(lbs[k])
-                l["key"] = k
-                l["begintime"] = util.datetime_to_str(v["begintime"])
-                l["endtime"] = util.datetime_to_str(v["endtime"])
-                l["order"] = v["order"]
-                leaderboards.append(l)
+            leaderboard_keys = yield util.redis().zrevrange("leaderboard_endtime_zsets", 0, -1, False)
+            if leaderboard_keys:
+                lbs = yield util.redis().hmget("leaderboard_infos", leaderboard_keys)
+                
+                for k in leaderboard_keys:
+                    l = {}
+                    v = pickle.loads(lbs[k])
+                    l["key"] = k
+                    l["begintime"] = util.datetime_to_str(v["begintime"])
+                    l["endtime"] = util.datetime_to_str(v["endtime"])
+                    l["order"] = v["order"]
+                    leaderboards.append(l)
 
             reply = util.new_reply()
             reply["leaderboards"] = leaderboards
