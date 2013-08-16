@@ -31,7 +31,7 @@ if config.debug:
         finally:
             reply = {"error":"%s" % err, "traceback":"%s" % traceback.format_exc()}
             hdl.write(json.dumps(reply))
-            hdl.set_status(500)
+            # hdl.set_status(500)
             traceback.print_exc()
 
             if hdl.request.body:
@@ -39,7 +39,7 @@ if config.debug:
 else:
     def send_error(hdl, err, text=None):
         reply = '{"error":"%s"}' % (err, )
-        hdl.set_status(500)
+        # hdl.set_status(500)
         hdl.write(reply)
 
 def send_ok(hdl):
@@ -49,7 +49,7 @@ if config.debug:
     def send_internal_error(hdl):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         reply = {"error":"err_internal:%s,%s"%(exc_type, exc_value), "traceback":"%s" % traceback.format_exc()}
-        hdl.set_status(500)
+        # hdl.set_status(500)
         hdl.write(json.dumps(reply))
         traceback.print_exc()
 
@@ -58,5 +58,5 @@ if config.debug:
 else:
     def send_internal_error(hdl):
         reply = '{"error":"err_internal"}'
-        hdl.set_status(500)
+        # hdl.set_status(500)
         hdl.write(reply)
