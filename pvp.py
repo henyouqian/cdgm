@@ -911,6 +911,12 @@ class BattleResult(tornado.web.RequestHandler):
                     add_exp += battle_exp
             add_exp_per_card = add_exp/len(members)
 
+            # append warlord to members if it not in there, in order to get warlord level
+            warlord_appended = False
+            if warlord not in members:
+                warlord_appended = True
+                members.append(warlord)
+
             # query card entity info
             cols = ["id", "level", "exp", "protoId", "hp", "atk", "def", "wis", "agi", "hpCrystal", "hpExtra"]
             rows = yield util.whdb.runQuery(
@@ -919,6 +925,18 @@ class BattleResult(tornado.web.RequestHandler):
                 ,(userid, )
             )
             card_entities = [dict(zip(cols, row)) for row in rows]
+
+            # get warlord level
+            worlord_level = None
+            for i, c in enumerate(card_entities):
+                if c["id"] == warlord:
+                    worlord_level = c["level"]
+                    if warlord_appended:
+                        del card_entities[i]
+                    break
+
+            if not worlord_level:
+                raise Exception("no worlord_level");
 
             # add exp
             levelups = []
@@ -1030,18 +1048,19 @@ class BattleResult(tornado.web.RequestHandler):
 
                 # add score to pvp leaderboard
                 try:
-                    lb_score = yield leaderboard.get_score("pvp", userid)
-                    if not lb_score:
-                        lb_score = 0
+                    self_score, self_rank = yield leaderboard.get_score_and_rank("pvp", userid)
+                    if not self_score:
+                        self_score = 0
                     self_strength = pvp_score
                     foe_strength = foe_band["score"]
                     score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5)
                     userinfo = {}
                     userinfo["cards"] = [c["protoId"] for c in card_entities]
-                    userinfo["level"] = 66
-                    yield leaderboard.set_score("pvp", lb_score+score_add, userid, username, userinfo)
+                    userinfo["level"] = worlord_level
+                    yield leaderboard.set_score("pvp", self_score+score_add, userid, username, userinfo)
                 except:
                     logging.error("pvp leaderboard error")
+                    raise
 
             # delete cache if streak break or finish 3 pvps
             if win_streak % 3 == 0:

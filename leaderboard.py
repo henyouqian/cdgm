@@ -120,7 +120,7 @@ def set_score(leaderboard_key, score, userid, username, userinfo, callback):
 @adisp.process
 def get_score_and_rank(leaderboard_key, userid, callback):
     try:
-        leaderboard_info = yield util.redis().hget("leaderboard_infos", key)
+        leaderboard_info = yield util.redis().hget("leaderboard_infos", leaderboard_key)
         leaderboard_info = pickle.loads(leaderboard_info)
         order = leaderboard_info["order"]
 
