@@ -152,6 +152,9 @@ def get_ranks(leaderboard_key, offset, limit, callback):
 
         # 
         leaderboard_info = yield util.redis().hget("leaderboard_infos", key)
+        if not leaderboard_info:
+            raise Exception("leaderboard not exist:key=%s"%key)
+            
         leaderboard_info = pickle.loads(leaderboard_info)
         order = leaderboard_info["order"]
         if order == "ASC":

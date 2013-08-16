@@ -1115,7 +1115,13 @@ class Rank(tornado.web.RequestHandler):
             userid = session["userid"]
 
             lb_datas = []
-            ranks = yield leaderboard.get_ranks("pvp", 0, 30)
+
+            try:
+                ranks = yield leaderboard.get_ranks("pvp", 0, 30)
+            except:
+                raise
+                # leaderboard.create(key, begintime, endtime, order)
+
             for r in ranks:
                 userinfo = r["userinfo"]
                 data = {
