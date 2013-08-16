@@ -1053,7 +1053,7 @@ class BattleResult(tornado.web.RequestHandler):
                         self_score = 0
                     self_strength = pvp_score
                     foe_strength = foe_band["score"]
-                    score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5)
+                    score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5*0.01*random.uniform(0.9, 1.1))
                     userinfo = {}
                     userinfo["cards"] = [c["protoId"] for c in card_entities]
                     userinfo["level"] = worlord_level
