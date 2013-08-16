@@ -1114,7 +1114,7 @@ class Rank(tornado.web.RequestHandler):
                 return
             userid = session["userid"]
 
-            leaderboard = []
+            lb_datas = []
             ranks = yield leaderboard.get_ranks("pvp", 0, 30)
             for r in ranks:
                 userinfo = r["userinfo"]
@@ -1126,7 +1126,7 @@ class Rank(tornado.web.RequestHandler):
                     "score":r["score"],
                     "cards":userinfo["cards"],
                 }
-                leaderboard.append(data)
+                lb_datas.append(data)
             
             # 
             score, rank = yield leaderboard.get_score_and_rank("pvp", userid)
@@ -1135,7 +1135,7 @@ class Rank(tornado.web.RequestHandler):
             reply = util.new_reply()
             reply["playerRank"] = rank
             reply["playerScore"] = score
-            reply["leaderboard"] = leaderboard
+            reply["leaderboard"] = lb_datas
             
             self.write(json.dumps(reply))
         except:
