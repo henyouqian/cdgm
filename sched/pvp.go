@@ -1,9 +1,12 @@
 package main
 
 import (
+	"github.com/garyburd/redigo/redis"
 	"fmt"
 	"time"
-	"github.com/garyburd/redigo/redis"
+	"strconv"
+	"encoding/csv"
+	"os"
 )
 
 
@@ -19,37 +22,96 @@ func init() {
 			if err != nil {
 				return nil, err
 			}
-			// if err := c.Do("AUTH", password); err != nil {
-			// 	c.Close()
-			// 	return nil, err
-			// }
 			return c, err
 		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
 	}
-	fmt.Println(pool)
+}
+
+type RewardObj struct {
+	objtype int
+	objid int
+	objcount int
+}
+
+type RewardTbl map[int] []RewardObj
+
+func atoi(str string) int {
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func (self RewardTbl) load() {
+	f, err := os.Open("../data/pvpWinRewards.csv")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	reader := csv.NewReader(f)
+	records, err := reader.ReadAll()
+	if err != nil {
+		panic(err)
+	}
+
+	for i, v := range(records) {
+		if i == 0 {
+			continue
+		}
+		obj := RewardObj{atoi(v[0]), atoi(v[1]), atoi(v[2])}
+
+		wincount := atoi(v[3])
+		_, exists := self[wincount]
+		if exists {
+			self[wincount] = append(self[wincount], obj)
+		} else {
+			self[wincount] = []RewardObj{obj}
+		}
+	}
+
+	fmt.Println(self)
 }
 
 
-
 func pvpMain(){
-	for {
-		fmt.Println("in pvp loop")
+	tbl := make(RewardTbl)
+	tbl.load()
 
+	for {
+		// 
 		conn := pool.Get()
 		defer conn.Close()
 
-		exists, err := redis.Bool(conn.Do("EXISTS", "bafdf"))
+		// get finished leaderboard
+		t := time.Now().Unix()
+		lbnames, err := redis.Strings(conn.Do("zrangebyscore", 
+			"leaderboard_endtime_zsets", 0, t, "limit", 0, 10))
 		if err != nil {
-			// handle error return from c.Do or type conversion error.
+			fmt.Println("error: ", err)
+			goto sleep
 		}
 
-		fmt.Println(exists)
+		// send rewards
+		if len(lbnames) > 0 {
+			lbname := lbnames[0]
+			resultsKey := "leaderboard_result/"+lbname
+			resultsKey = "leaderboard_result/"+"pvp"
 
-
-		time.Sleep(2000 * time.Millisecond)
+			strs, err := redis.Strings(conn.Do("zrange", resultsKey, 0, 30))
+			if err != nil {
+				fmt.Println("error: ", err)
+				goto sleep
+			}
+			for i, str := range(strs) {
+				userid, _ := strconv.Atoi(str)
+				fmt.Println(i, userid)
+			}
+			
+		}
+		
+		sleep:
+			time.Sleep(2000 * time.Millisecond)
 	}
 }

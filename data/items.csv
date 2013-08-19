@@ -1,22 +1,24 @@
-id,name,comment,type,cantrade,tradepoint,spritename
-1,邪惡葫蘆,回復全部體力值,0,1,0.2,iconCalabash
-2,治療草藥,回復全部HP,0,1,0.05,iconMedicalHerb
-3,復活聖水,復活一名隊員,0,1,0.6,iconHolyWater
-4,高級治療草藥,回復全體隊員,1,1,0.4,
-5,高級誘惑粉末,100%抓取打到的怪物,1,1,0.4,iconCatchPowderBig
-6,誘惑粉末,一定幾率抓取,0,0,0,iconCatchPowderSmall
-7,初級魔石,抽怪物,0,0,0,iconCrystalLv1
-8,中級魔石,,0,0,0,iconCrystalLv2
-9,高級魔石,,0,0,0,iconCrystalLv3
-10,小海螺,回復一點戰力,0,0,0,iconConchSmall
-11,海螺號角,回滿戰力,1,1,0.2,iconConchBig
-12,任務幣,抽怪物,0,0,0,iconCrystalSpecial
-13,HP水晶,增加50點HP,0,1,0,
-14,ATK水晶,增加50點ATK,0,1,0,
-15,AGI水晶,增加50點AGI,0,1,0,
-16,DEF水晶,增加50點DEF,0,1,0,
-17,WIS水晶,增加50點WIS,0,1,0,
-18,小錢袋,,0,0,0,iconMoneyBagLv2
-19,大錢袋,,1,0,0,iconMoneyBagLv2
-20,寶箱,,0,0,0,iconTreasureLv2
-21,高級寶箱,,1,0,0,iconTreasureBoxLv3
+id	name	comment	type	cantrade	tradepoint	spritename
+1	邪惡葫蘆	回復全部體力值	0	1	0.2	iconCalabash
+2	治療草藥	回復全部HP	0	1	0.05	iconMedicalHerb
+3	復活聖水	復活一名隊員	0	1	0.6	iconHolyWater
+4	高級治療草藥	回復全體隊員	1	1	0.4	
+5	高級誘惑粉末	100%抓取打到的怪物	1	1	0.4	iconCatchPowderBig
+6	誘惑粉末	一定幾率抓取	0	0	0	iconCatchPowderSmall
+7	初級魔石	抽怪物	0	0	0	iconCrystalLv1
+8	中級魔石		0	0	0	iconCrystalLv2
+9	高級魔石		0	0	0	iconCrystalLv3
+10	小海螺	回復一點戰力	0	0	0	iconConchSmall
+11	海螺號角	回滿戰力	1	1	0.2	iconConchBig
+12	任務幣	抽怪物	0	0	0	iconCrystalSpecial
+13	HP水晶	增加50點HP	0	1	0	iconCrystalHP
+14	ATK水晶	增加50點ATK	0	1	0	iconCrystalATK
+15	AGI水晶	增加50點AGI	0	1	0	iconCrystalAGI
+16	DEF水晶	增加50點DEF	0	1	0	iconCrystalDEF
+17	WIS水晶	增加50點WIS	0	1	0	iconCrystalWIS
+18	小錢袋		0	0	0	iconMoneyBagLv2
+19	大錢袋		1	0	0	iconMoneyBagLv2
+20	寶箱		0	0	0	iconTreasureLv2
+21	高級寶箱		1	0	0	iconTreasureBoxLv3
+22	小葫蘆		0	0	0	iconTreasureBoxLv3
+23	萬能水晶		0	0	0	iconCrystalRand
