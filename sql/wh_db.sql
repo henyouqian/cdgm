@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.32-0ubuntu0.12.04.1)
 # Database: wh_db
-# Generation Time: 2013-07-31 06:16:43 +0000
+# Generation Time: 2013-08-19 05:24:54 +0000
 # ************************************************************
 
 
@@ -96,6 +96,7 @@ CREATE TABLE `playerInfos` (
   `wagonSocial` smallint(5) unsigned NOT NULL DEFAULT '0',
   `pvpScore` int(10) unsigned NOT NULL DEFAULT '0',
   `pvpWinStreak` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `tutorialStep` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
