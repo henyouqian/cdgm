@@ -100,7 +100,8 @@ class GetInfo(tornado.web.RequestHandler):
             # query user info
             cols = "userId,name,warlord,money,inZoneId,lastZoneId,maxCardNum," \
                     "xp,maxXp,lastXpTime,ap,maxAp,lastApTime,currentBand," \
-                    "lastFormation,bands,items,wagonGeneral,wagonTemp,wagonSocial,pvpWinStreak,UTC_TIMESTAMP()"
+                    "lastFormation,bands,items,wagonGeneral,wagonTemp,wagonSocial,"\
+                    "pvpWinStreak,UTC_TIMESTAMP(),tutorialStep"
 
             sql = "SELECT {} FROM playerInfos WHERE userId=%s".format(cols)
             rows = yield util.whdb.runQuery(
@@ -221,6 +222,10 @@ class GetInfo(tornado.web.RequestHandler):
                 pvp_remain_time = pipe_results[1]
             else:
                 matched_bands = []
+
+            # 
+            reply["tutorialStepIndex"] = reply["tutorialStep"]
+            del reply["tutorialStep"]
 
             # reply
             del reply["lastXpTime"]
@@ -697,10 +702,43 @@ class GetTime(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class SetTutorialStep(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def post(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+
+            # param
+            post_input = json.loads(self.request.body)
+            tutorial_step = post_input["tutorialStepIndex"]
+
+            # update
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET tutorialStep=%s WHERE userId=%s"""
+                ,(tutorial_step, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["tutorialStepIndex"] = tutorial_step
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/player/create", Create),
     (r"/whapi/player/getinfo", GetInfo),
     (r"/whapi/player/setband", SetBand),
     (r"/whapi/player/useitem", UseItem),
     (r"/whapi/player/time", GetTime),
+    (r"/whapi/player/settutorialstepindex", SetTutorialStep),
 ]

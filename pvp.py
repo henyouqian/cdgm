@@ -1217,7 +1217,7 @@ class ToredisAdisp(tornado.web.RequestHandler):
     @adisp.process
     def get(self):
         try:
-            foo = yield adisp.async(util.tr().zrevrange)(Z_PVP_BANDS, 0, -1)
+            foo = yield adisp.async(util.tr().zrevrange)(Z_PVP_BANDS, 0, 10)
             reply = util.new_reply()
             reply["foo"] = foo
             self.write(json.dumps(reply))

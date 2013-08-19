@@ -107,14 +107,17 @@ class Login(tornado.web.RequestHandler):
 
             # check player exist
             player_exist = False
+            tutorial_step = 0
             rows = yield util.whdb.runQuery(
-                """SELECT 1 FROM playerInfos WHERE userId=%s"""
+                """SELECT 1, tutorialStep FROM playerInfos WHERE userId=%s"""
                 ,(userid, )
             )
             try:
                 player_exist = bool(rows[0][0])
+                tutorial_step = rows[0][1]
             except:
                 player_exist = False
+
 
             # reply
             self.set_cookie("token", usertoken, 
@@ -124,6 +127,7 @@ class Login(tornado.web.RequestHandler):
             reply = util.new_reply()
             reply["token"] = usertoken
             reply["playerExist"] = player_exist
+            reply["tutorialStepIndex"] = tutorial_step
 
             if callback:
                 self.write("%s(%s)" % (callback, json.dumps(reply)))
