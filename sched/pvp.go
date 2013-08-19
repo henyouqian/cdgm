@@ -44,7 +44,7 @@ func atoi(str string) int {
 }
 
 func (self RewardTbl) load() {
-	f, err := os.Open("../data/pvpWinRewards.csv")
+	f, err := os.Open("../data/pvpRankRewards.csv")
 	if err != nil {
 		panic(err)
 	}
@@ -56,13 +56,18 @@ func (self RewardTbl) load() {
 		panic(err)
 	}
 
+	colmap := make(map[string]int)
+
 	for i, v := range(records) {
 		if i == 0 {
+			for colidx, colname := range(v) {
+				colmap[colname] = colidx
+			}
 			continue
 		}
-		obj := RewardObj{atoi(v[0]), atoi(v[1]), atoi(v[2])}
+		obj := RewardObj{atoi(v[colmap["type"]]), atoi(v[colmap["objectId"]]), atoi(v[colmap["count"]])}
 
-		wincount := atoi(v[3])
+		wincount := atoi(v[colmap["rank"]])
 		_, exists := self[wincount]
 		if exists {
 			self[wincount] = append(self[wincount], obj)
@@ -70,14 +75,13 @@ func (self RewardTbl) load() {
 			self[wincount] = []RewardObj{obj}
 		}
 	}
-
-	fmt.Println(self)
 }
 
 
 func pvpMain(){
 	tbl := make(RewardTbl)
 	tbl.load()
+	fmt.Println(tbl)
 
 	for {
 		// 
