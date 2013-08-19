@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	go pvpMain()
 	var input string
 	for {
 		fmt.Print(">>")
