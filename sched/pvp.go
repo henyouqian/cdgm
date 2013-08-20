@@ -68,9 +68,9 @@ func loadTbl() RewardTbl {
 	colmap := make(map[string]int)
 
 	currRank := 0
-	for i, v := range(records) {
+	for i, v := range records {
 		if i == 0 {
-			for colidx, colname := range(v) {
+			for colidx, colname := range v {
 				colmap[colname] = colidx
 			}
 			continue
@@ -126,7 +126,7 @@ func pvpMain(){
 			}
 			lastRank := 0
 			rwdEntities := make([]RewardEntity, 0, maxRank)
-			for _, rwds := range(tbl) {
+			for _, rwds := range tbl {
 				for rank := lastRank + 1; rank <= rwds.Rank; rank++ {
 					if rank > len(strUserIds) {
 						break;
@@ -134,7 +134,7 @@ func pvpMain(){
 					userid := atoi(strUserIds[rank-1])
 					lastRank = rank
 
-					for _, rwd := range(rwds.Rewards) {
+					for _, rwd := range rwds.Rewards {
 						rwdEntity := RewardEntity{userid, rwd}
 						rwdEntities = append(rwdEntities, rwdEntity)
 					}
@@ -143,7 +143,7 @@ func pvpMain(){
 
 			// add reward entities to redis
 			jsonRwdEntities := make([][]byte, 0, len(rwdEntities))
-			for _, re := range(rwdEntities) {
+			for _, re := range rwdEntities {
 				j, err := json.Marshal(re)
 				if err != nil {
 					panic(err)
@@ -151,7 +151,7 @@ func pvpMain(){
 				jsonRwdEntities = append(jsonRwdEntities, j)
 			}
 
-			for _, v := range(jsonRwdEntities) {
+			for _, v := range jsonRwdEntities {
 				conn.Send("rpush", "rewardEntities", v)
 			}
 			conn.Flush()
