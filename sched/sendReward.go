@@ -23,7 +23,7 @@ func sandRewardMain(){
 		// pop one from redis
 		reply, err := redis.Bytes(conn.Do("rpop", "rewardEntities"))
 		if err != nil {
-			panic(err)
+			log.Println("rewardEntities is empty")
 		}
 		if len(reply) != 0 {
 			var re RewardEntity
@@ -55,6 +55,6 @@ func sandRewardMain(){
 			}
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 }

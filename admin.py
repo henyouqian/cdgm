@@ -548,8 +548,8 @@ class AddCard(tornado.web.RequestHandler):
             max_card_num = rows[0][0]
 
             # update db
-            proto_ids = [protoid]
-            cards = yield create_cards(userid, proto_ids, max_card_num, level, gamedata.WAGON_INDEX_GENERAL, "From admin")
+            proto_levels = [[protoid, level]]
+            cards = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_GENERAL, "From admin")
             card = cards[0]
             card["name"], card["rarity"], card["evolution"] = card_tbl.gets(protoid, "name", "rarity", "evolution")
 
@@ -580,8 +580,8 @@ class AddCardToWagon(tornado.web.RequestHandler):
             desc = self.get_argument("desc", "From admin")
 
             # update db
-            proto_ids = [protoid]
-            cards = yield create_cards(userid, proto_ids, 0, level, gamedata.WAGON_INDEX_GENERAL, desc)
+            proto_levels = [[protoid, level]]
+            cards = yield create_cards(userid, proto_levels, 0, gamedata.WAGON_INDEX_GENERAL, desc)
             card = cards[0]
             card["name"], card["rarity"], card["evolution"] = card_tbl.gets(protoid, "name", "rarity", "evolution")
 

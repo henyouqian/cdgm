@@ -467,7 +467,8 @@ class Move(tornado.web.RequestHandler):
             # add cards
             cards = []
             if evt_cards:
-                cards = yield create_cards(userid, evt_cards, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
+                proto_levels = [[c, 1] for c in evt_cards]
+                cards = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
 
             # battle
             if monGrpId:
@@ -725,7 +726,8 @@ class BattleResult(tornado.web.RequestHandler):
                             catched_mons.append(mon)
 
                     if catched_mons:
-                        catched_mons = yield create_cards(userid, catched_mons, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
+                        proto_levels = [[c, 1] for c in catched_mons]
+                        catched_mons = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
 
             # event
             events = cache["events"]
@@ -772,7 +774,8 @@ class BattleResult(tornado.web.RequestHandler):
 
             # add cards
             if evt_cards:
-                evt_cards = yield create_cards(userid, evt_cards, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
+                proto_levels = [[c, 1] for c in evt_cards]
+                evt_cards = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
 
             # delete events
             if poskey in cache["events"]:
@@ -874,7 +877,8 @@ class CatchMonster(tornado.web.RequestHandler):
                             catched_mons.append(mon)
 
                     if catched_mons:
-                        catched_mons = yield create_cards(userid, catched_mons, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
+                        proto_levels = [[c, 1] for c in catched_mons]
+                        catched_mons = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
 
                     del cache["catchMons"]
 
@@ -1012,7 +1016,8 @@ class Complete(tornado.web.RequestHandler):
                     if cardid:
                         rwdcards.append(cardid)
                 if rwdcards:
-                    rwdcards = yield create_cards(userid, rwdcards, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
+                    proto_levels = [[c, 1] for c in rwdcards]
+                    rwdcards = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
 
                 ## reward max card number
                 num = int(evt_tbl.get_value(evtrow, "maxcardnum"))

@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/garyburd/redigo/redis"
-	"fmt"
 	"time"
 	"encoding/csv"
 	"encoding/json"
@@ -138,6 +137,6 @@ func pvpMain(){
 
 		log.Println("add pvp")
 		
-		time.Sleep(2000 * time.Millisecond)
+		time.Sleep(10000 * time.Millisecond)
 	}
 }

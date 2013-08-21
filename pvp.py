@@ -1034,7 +1034,8 @@ class BattleResult(tornado.web.RequestHandler):
                                 cards_add.append(reward["objectId"])
 
                     if cards_add:
-                        cards_add = yield create_cards(userid, cards_add, max_card_num, 1, WAGON_INDEX_TEMP)
+                        proto_levles = [[c, 1]for c in cards_add]
+                        cards_add = yield create_cards(userid, proto_levles, max_card_num, WAGON_INDEX_TEMP)
 
                     if win_streak == 30:
                         win_streak = 0

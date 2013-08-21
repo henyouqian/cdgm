@@ -47,10 +47,10 @@ def is_war_lord(proto_id):
 
 @adisp.async
 @adisp.process
-def create_cards(owner_id, proto_ids, max_card_num, level, wagonIdx, desc="", callback=None):
+def create_cards(owner_id, proto_and_levels, max_card_num, wagonIdx, desc="", callback=None):
     try:
         cards = []
-        for proto_id in proto_ids:
+        for proto_id, level in proto_and_levels:
             hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
             skill_1_id, skill_2_id = card_tbl.gets(proto_id, "skillid1", "skillid2")
             lvtbl = warlord_level_tbl if is_war_lord(proto_id) else card_level_tbl
@@ -232,7 +232,8 @@ class GetPact(tornado.web.RequestHandler):
                 items[cost_item_id] -= cost_num
 
             # create cards
-            cards = yield create_cards(user_id, card_ids, max_card_num, 1, wagon_index)
+            proto_n_levels = [[c, 1] for c in card_ids]
+            cards = yield create_cards(user_id, proto_n_levels, max_card_num, wagon_index)
 
             # real pay and set wagon
             yield util.whdb.runOperation(

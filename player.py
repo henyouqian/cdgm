@@ -45,7 +45,8 @@ class Create(tornado.web.RequestHandler):
                 return;
 
             # add war lord card
-            cards = yield create_cards(userid, [warlord_proto_id]+INIT_CARDS, INIT_MAX_CARD, 1, WAGON_INDEX_GENERAL)
+            card_proto_levels = [[warlord_proto_id, 1]]+INIT_CARDS
+            cards = yield create_cards(userid, card_proto_levels, INIT_MAX_CARD, WAGON_INDEX_GENERAL)
             warlord_card = cards[0]
             warlord_id = warlord_card["id"]
 
