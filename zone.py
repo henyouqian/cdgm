@@ -6,7 +6,7 @@ import gamedata
 import util
 from csvtable import *
 import pvp
-from card import calc_card_proto_attr
+from card import calc_card_proto_attr, create_cards
 
 import tornado.web
 import adisp
