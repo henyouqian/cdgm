@@ -7,6 +7,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"os"
+	"log"
 )
 
 
@@ -71,7 +72,7 @@ type RewardEntity struct{
 
 func pvpMain(){
 	tbl := loadTbl()
-	fmt.Println(tbl)
+	log.Println(tbl)
 	
 	for {
 		// 
@@ -94,7 +95,7 @@ func pvpMain(){
 
 			maxRank := tbl[len(tbl)-1].Rank
 			strUserIds, err := redis.Strings(conn.Do("zrange", resultsKey, 0, maxRank))
-			strUserIds = []string{"12", "13", "15"}		//fixme
+			strUserIds = []string{"12", "58", "59"}		//fixme
 			if err != nil {
 				panic(err)
 			}
@@ -134,7 +135,9 @@ func pvpMain(){
 				panic(err)
 			}
 		}
+
+		log.Println("add pvp")
 		
-		time.Sleep(200000 * time.Millisecond)
+		time.Sleep(2000 * time.Millisecond)
 	}
 }

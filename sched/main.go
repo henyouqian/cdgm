@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	// go pvpMain()
+	go pvpMain()
 	go sandRewardMain()
 	var input string
 	for {

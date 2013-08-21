@@ -208,10 +208,11 @@ class AddItemToWagon(tornado.web.RequestHandler):
             userid = int(self.get_argument("userId"))
             itemid = int(self.get_argument("itemId"))
             itemnum = int(self.get_argument("itemNum"))
+            desc = self.get_argument("desc", "From admin")
 
             # add to wagon
             items = [{"id":itemid, "num":itemnum}]
-            yield wagon.add_items(0, userid, items, "From admin")
+            yield wagon.add_items(0, userid, items, desc)
 
             # reply
             reply = util.new_reply()
@@ -576,10 +577,11 @@ class AddCardToWagon(tornado.web.RequestHandler):
             userid = int(self.get_argument("userId"))
             protoid = int(self.get_argument("protoId"))
             level = int(self.get_argument("level"))
+            desc = self.get_argument("desc", "From admin")
 
             # update db
             proto_ids = [protoid]
-            cards = yield create_cards(userid, proto_ids, 0, level, gamedata.WAGON_INDEX_GENERAL, "From admin")
+            cards = yield create_cards(userid, proto_ids, 0, level, gamedata.WAGON_INDEX_GENERAL, desc)
             card = cards[0]
             card["name"], card["rarity"], card["evolution"] = card_tbl.gets(protoid, "name", "rarity", "evolution")
 

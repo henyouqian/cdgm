@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/garyburd/redigo/redis"
+	"log"
 	"fmt"
 	"time"
 	"net/http"
@@ -9,8 +10,8 @@ import (
 	"encoding/json"
 )
 
-const (
-	desc = "pvp rank"
+var (
+	description = url.QueryEscape("pvp rank")
 )
 
 func sandRewardMain(){
@@ -30,31 +31,30 @@ func sandRewardMain(){
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println("re:", re)
 
 			//add item or card
 			urls := make([]string, 0, 10)
 			if re.Reward.IsCard {
             	for i := 0; i < re.Reward.Count; i++ {
             		url := fmt.Sprintf("http://localhost/whapi/admin/addCardToWagon?userId=%d&protoId=%d&level=%d&desc=%s&secretcode=e468251e-932b-43e4-a35f-d0d80413d2b3",
-						re.Userid, re.Reward.Id, 1, desc)
+						re.Userid, re.Reward.Id, 1, description)
             		urls = append(urls, url)
             	}
 			} else {
 				url := fmt.Sprintf("http://localhost/whapi/admin/addItemToWagon?userId=%d&itemId=%d&itemNum=%d&desc=%s&secretcode=e468251e-932b-43e4-a35f-d0d80413d2b3",
-						re.Userid, re.Reward.Id, re.Reward.Count, desc)
+						re.Userid, re.Reward.Id, re.Reward.Count, description)
 				urls = append(urls, url)
 			}
 
 			for _, v := range urls {
-				reply, err := http.Get(url.QueryEscape(v))
+				_, err := http.Get(v)
 				if err != nil {
 					panic(err)
 				}
-				fmt.Println(reply)
+				log.Println("send ok: ", v)
 			}
 		}
 
-		time.Sleep(50000 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 	}
 }

@@ -465,6 +465,7 @@ class Move(tornado.web.RequestHandler):
             items_add = _items_add
 
             # add cards
+            cards = []
             if evt_cards:
                 cards = yield create_cards(userid, evt_cards, max_card_num, 1, gamedata.WAGON_INDEX_TEMP)
 
