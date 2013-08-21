@@ -523,7 +523,7 @@ class Move(tornado.web.RequestHandler):
             reply["redCaseAdd"] = red_case_add
             reply["goldCaseAdd"] = gold_case_add
             reply["items"] = items_add
-            reply["cards"] = evt_cards
+            reply["cards"] = cards
             reply["monGrpId"] = monGrpId
             reply["eventId"] = eventid
             reply["catchMons"] = catch_mons

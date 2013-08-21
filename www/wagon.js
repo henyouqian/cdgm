@@ -15,7 +15,7 @@ function listWagon(wagonIdx)
 	gWagonIdx = wagonIdx
 	$("#wagon_items").empty()
 
-	input = {"wagonIdx":wagonIdx, "startIdx":0, "count":20}
+	input = {"wagonIdx":wagonIdx, "startIdx":0, "count":200}
 	$.post('/whapi/wagon/list', JSON.stringify(input), function(json){
 		var err = json.error
 		if (err){

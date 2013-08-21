@@ -161,14 +161,14 @@ class List(tornado.web.RequestHandler):
                 raise Exception("wrong wagonIdx: %s" % wagon_idx)
             if start_idx < 0:
                 raise Exception("wrong startIdx: %s" % start_idx)
-            if count <= 0 or count > 20:
+            if count <= 0 or count > 200:
                 raise Exception("wrong count: %s" % start_idx)
 
             # query wagon data
             cols = ["id", "count", "cardEntity", "cardProto", "itemId", "descText", "time"]
             rows = yield util.whdb.runQuery(
                 """SELECT {} FROM wagons
-                        WHERE userId=%s AND wagonIdx=%s LIMIT %s,%s""".format(",".join(cols))
+                        WHERE userId=%s AND wagonIdx=%s ORDER BY id DESC LIMIT %s,%s""".format(",".join(cols))
                 ,(user_id, wagon_idx, start_idx, count)
             )
 
@@ -408,6 +408,7 @@ class SellAll(tornado.web.RequestHandler):
                         WHERE userId=%s""".format(field_strs[wagon_idx])
                 ,(user_id,)
             )
+            print rows
             row = rows[0]
             wagon_items = json.loads(row[0])
 
