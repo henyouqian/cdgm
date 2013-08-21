@@ -57,7 +57,7 @@ class Create(tornado.web.RequestHandler):
                 band["members"][1] = warlord_id
                 
             bands[0]["members"][0] = cards[1]["id"]
-            bands[0]["members"][2] = cards[2]["id"]
+            # bands[0]["members"][2] = cards[2]["id"]
 
             bands = json.dumps(bands)
 
