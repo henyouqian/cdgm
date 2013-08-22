@@ -993,72 +993,73 @@ class Complete(tornado.web.RequestHandler):
 
                 # reward event
                 evtid = map_tbl.get_value(maprow, "rewardeventID")
-                evtrow = evt_tbl.get_row(evtid)
+                if int(evtid):     
+                    evtrow = evt_tbl.get_row(evtid)
 
-                ## reward items
-                for i in xrange(3):
-                    itemid = int(evt_tbl.get_value(evtrow, "item%dID"%(i+1)))
-                    itemnum = int(evt_tbl.get_value(evtrow, "amount%d"%(i+1)))
-                    if itemid and itemnum:
-                        if itemid in (MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID):
-                            itemnum = getMoneyNum(itemid) * itemnum
-                            money += itemnum
-                        else:
-                            if itemid in items:
-                                items[itemid] += itemnum
+                    ## reward items
+                    for i in xrange(3):
+                        itemid = int(evt_tbl.get_value(evtrow, "item%dID"%(i+1)))
+                        itemnum = int(evt_tbl.get_value(evtrow, "amount%d"%(i+1)))
+                        if itemid and itemnum:
+                            if itemid in (MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID):
+                                itemnum = getMoneyNum(itemid) * itemnum
+                                money += itemnum
                             else:
-                                items[itemid] = itemnum
-                        rwditems.append({"id": itemid, "num":itemnum})
+                                if itemid in items:
+                                    items[itemid] += itemnum
+                                else:
+                                    items[itemid] = itemnum
+                            rwditems.append({"id": itemid, "num":itemnum})
 
-                ## reward cards
-                for i in xrange(3):
-                    cardid = int(evt_tbl.get_value(evtrow, "card%dID"%(i+1)))
-                    if cardid:
-                        rwdcards.append(cardid)
-                if rwdcards:
-                    proto_levels = [[c, 1] for c in rwdcards]
-                    rwdcards = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
+                    ## reward cards
+                    for i in xrange(3):
+                        cardid = int(evt_tbl.get_value(evtrow, "card%dID"%(i+1)))
+                        if cardid:
+                            rwdcards.append(cardid)
+                    if rwdcards:
+                        proto_levels = [[c, 1] for c in rwdcards]
+                        rwdcards = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
 
-                ## reward max card number
-                num = int(evt_tbl.get_value(evtrow, "maxcardnum"))
-                if num and num > max_card_num:
-                    new_max_card_num = max_card_num = num
+                    ## reward max card number
+                    num = int(evt_tbl.get_value(evtrow, "maxcardnum"))
+                    if num and num > max_card_num:
+                        new_max_card_num = max_card_num = num
 
-                ## reward max trade number
-                num = int(evt_tbl.get_value(evtrow, "maxtreadnum"))
-                if num and num > max_trade_num:
-                    new_max_trade_num = max_trade_num = num
+                    ## reward max trade number
+                    num = int(evt_tbl.get_value(evtrow, "maxtreadnum"))
+                    if num and num > max_trade_num:
+                        new_max_trade_num = max_trade_num = num
 
-                ## reward formation
-                num = int(evt_tbl.get_value(evtrow, "band"))
-                if num and num > last_formation:
-                    mem_num1 = int(fmt_tbl.get(last_formation, "maxNum"))
-                    mem_num2 = int(fmt_tbl.get(num, "maxNum"))
-                    new_last_formation = last_formation = num
-                    if mem_num1 != mem_num2:
-                        if mem_num2 - mem_num1 != 1:
-                            raise Exception("new formation member count error:%d->%d")
-                        for band in bands:
-                            mem_num = mem_num2
-                            members = band["members"]
-                            n = len(members)
-                            front = members[:(n/2)]
-                            back = members[(n/2):-1]
+                    ## reward formation
+                    num = int(evt_tbl.get_value(evtrow, "band"))
+                    if num and num > last_formation:
+                        mem_num1 = int(fmt_tbl.get(last_formation, "maxNum"))
+                        mem_num2 = int(fmt_tbl.get(num, "maxNum"))
+                        new_last_formation = last_formation = num
+                        if mem_num1 != mem_num2:
+                            if mem_num2 - mem_num1 != 1:
+                                raise Exception("new formation member count error:%d->%d")
+                            for band in bands:
+                                mem_num = mem_num2
+                                members = band["members"]
+                                n = len(members)
+                                front = members[:(n/2)]
+                                back = members[(n/2):-1]
 
-                            lfront = len(front)
-                            if lfront < mem_num:
-                                front += (mem_num - lfront)*[None]
-                            elif lfront > mem_num:
-                                front = front[:mem_num]
+                                lfront = len(front)
+                                if lfront < mem_num:
+                                    front += (mem_num - lfront)*[None]
+                                elif lfront > mem_num:
+                                    front = front[:mem_num]
 
-                            lback = len(back)
-                            if lback < mem_num:
-                                back += (mem_num - lback)*[None]
-                            elif lback > mem_num:
-                                back = back[:mem_num]
+                                lback = len(back)
+                                if lback < mem_num:
+                                    back += (mem_num - lback)*[None]
+                                elif lback > mem_num:
+                                    back = back[:mem_num]
 
-                            band["members"] = front + back
-                            band["formation"] = new_last_formation
+                                band["members"] = front + back
+                                band["formation"] = new_last_formation
 
             # db store
             yield util.whdb.runOperation(
