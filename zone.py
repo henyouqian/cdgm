@@ -1061,6 +1061,38 @@ class Complete(tornado.web.RequestHandler):
                                 band["members"] = front + back
                                 band["formation"] = new_last_formation
 
+            # delete the little girl
+            if zoneid == 10001:
+                rows = yield util.whdb.runQuery(
+                    """ SELECT id FROM cardEntities
+                            WHERE ownerId=%s AND protoId=130"""
+                    ,(userid, )
+                )
+                cardids = []
+                if (len(rows)):
+                    for row in rows:
+                        if len(row):
+                            cardids.append(row[0])
+
+                if cardids:
+                    print cardids, userid
+                    yield util.whdb.runOperation(
+                        """DELETE FROM cardEntities
+                                WHERE ownerId=%s AND protoId=130"""
+                        ,(userid, )
+                    )
+                    print cardids, userid
+                    # del from band if need
+                    inband = False
+                    for band in bands:
+                        for idx, member in enumerate(band["members"]):
+                            if member in cardids:
+                                band["members"][idx] = None
+                                break
+
+                    print bands
+
+
             # db store
             yield util.whdb.runOperation(
                 """UPDATE playerInfos SET zoneCache=NULL, inZoneId=0, items=%s, lastZoneId=%s

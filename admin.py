@@ -1,4 +1,4 @@
-from session import find_session
+﻿from session import find_session
 from error import *
 import util
 from csvtable import *
@@ -209,6 +209,7 @@ class AddItemToWagon(tornado.web.RequestHandler):
             itemid = int(self.get_argument("itemId"))
             itemnum = int(self.get_argument("itemNum"))
             desc = self.get_argument("desc", "From admin")
+            desc = "系统赠送"
 
             # add to wagon
             items = [{"id":itemid, "num":itemnum}]

@@ -472,7 +472,7 @@ class Evolution(tornado.web.RequestHandler):
             for band in bands:
                 for idx, member in enumerate(band["members"]):
                     if member == card2["id"]:
-                        band[idx] = None
+                        band["members"][idx] = None
                         inband = True
                         break
             
