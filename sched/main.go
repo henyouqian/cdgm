@@ -3,9 +3,11 @@ package main
 import (
 	// "github.com/golang/glog"
 	"fmt"
+	"flag"
 )
 
 func main() {
+	flag.Parse()
 	go pvpMain()
 	go sandRewardMain()
 	var input string

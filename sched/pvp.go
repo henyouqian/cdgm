@@ -6,7 +6,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"os"
-	"log"
+	"github.com/golang/glog"
 )
 
 
@@ -69,9 +69,58 @@ type RewardEntity struct{
 	Reward RewardObj
 }
 
+func sendRewards(lbname string, conn redis.Conn, tbl RewardTbl) {
+	resultsKey := "leaderboard_result/"+lbname
+
+	maxRank := tbl[len(tbl)-1].Rank
+	strUserIds, err := redis.Strings(conn.Do("zrange", resultsKey, 0, maxRank))
+	strUserIds = []string{"12", "58", "59"}		//fixme
+	if err != nil {
+		panic(err)
+	}
+	lastRank := 0
+	rwdEntities := make([]RewardEntity, 0, maxRank)
+	for _, rwds := range tbl {
+		for rank := lastRank + 1; rank <= rwds.Rank; rank++ {
+			if rank > len(strUserIds) {
+				break;
+			}
+			userid := atoi(strUserIds[rank-1])
+			lastRank = rank
+
+			for _, rwd := range rwds.Rewards {
+				rwdEntity := RewardEntity{userid, rwd}
+				rwdEntities = append(rwdEntities, rwdEntity)
+			}
+		}
+	}
+
+	// add reward entities to redis
+	jsonRwdEntities := make([][]byte, 0, len(rwdEntities))
+	for _, re := range rwdEntities {
+		j, err := json.Marshal(re)
+		if err != nil {
+			panic(err)
+		}
+		jsonRwdEntities = append(jsonRwdEntities, j)
+	}
+
+	for _, v := range jsonRwdEntities {
+		conn.Send("lpush", "rewardEntities", v)
+	}
+	conn.Flush()
+	_, err = conn.Receive()
+	if err != nil {
+		panic(err)
+	}
+
+	// clean the leaderboard
+	conn.Do("del", resultsKey)
+}
+
 func pvpMain(){
 	tbl := loadTbl()
-	log.Println(tbl)
+	glog.Info(tbl)
 	
 	for {
 		// 
@@ -85,64 +134,47 @@ func pvpMain(){
 		checkError(err)
 
 		if reply == nil {
-			log.Println("no finished leaderboard, sleep 60 Sec...")
+			glog.Info("no finished leaderboard, sleep 60 Sec...")
 			time.Sleep(60 * time.Second)
 			continue
 		}
 
 		lbnames, err := redis.Strings(reply, err)
 		checkError(err)
+		_ = lbnames
 
 		// send rewards
-		for _, lbname := range lbnames {
-			resultsKey := "leaderboard_result/"+lbname
-			resultsKey = "leaderboard_result/"+"pvp"	//fixme
+		// for _, lbname := range lbnames {
+		// 	sendRewards(lbname, conn)
+		// }
 
-			maxRank := tbl[len(tbl)-1].Rank
-			strUserIds, err := redis.Strings(conn.Do("zrange", resultsKey, 0, maxRank))
-			strUserIds = []string{"12", "58", "59"}		//fixme
-			if err != nil {
-				panic(err)
-			}
-			lastRank := 0
-			rwdEntities := make([]RewardEntity, 0, maxRank)
-			for _, rwds := range tbl {
-				for rank := lastRank + 1; rank <= rwds.Rank; rank++ {
-					if rank > len(strUserIds) {
-						break;
-					}
-					userid := atoi(strUserIds[rank-1])
-					lastRank = rank
+		// just for pvp now
+		// check pvp data time
+		pvptimeRaw, err := conn.Do("get", "pvpDate")
+		checkError(err)
 
-					for _, rwd := range rwds.Rewards {
-						rwdEntity := RewardEntity{userid, rwd}
-						rwdEntities = append(rwdEntities, rwdEntity)
-					}
-				}
-			}
+		if pvptimeRaw == nil {
+			tt := time.Now()
+			jst, _ := tt.MarshalJSON()
+			conn.Do("set", "pvpDate", jst)
+			continue
+		}
+		var pvptime time.Time
+		pvptimeBytes, err := redis.Bytes(pvptimeRaw, err)
+		checkError(err)
+		err = pvptime.UnmarshalJSON(pvptimeBytes)
+		checkError(err)
 
-			// add reward entities to redis
-			jsonRwdEntities := make([][]byte, 0, len(rwdEntities))
-			for _, re := range rwdEntities {
-				j, err := json.Marshal(re)
-				if err != nil {
-					panic(err)
-				}
-				jsonRwdEntities = append(jsonRwdEntities, j)
-			}
+		y1, m1, d1 := pvptime.Date()
+		
+		tt := time.Now()
+		y2, m2, d2 := tt.Date()
 
-			for _, v := range jsonRwdEntities {
-				conn.Send("lpush", "rewardEntities", v)
-			}
-			conn.Flush()
-			_, err = conn.Receive()
-			if err != nil {
-				panic(err)
-			}
+		// when date change
+		if y1 != y2 || m1 != m2 || d1 != d2 {
+			sendRewards("pvp", conn, tbl)
 		}
 
-		log.Println("add pvp rewards")
-		
-		time.Sleep(15 * time.Second)
+		time.Sleep(60 * time.Second)
 	}
 }
