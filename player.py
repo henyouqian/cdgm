@@ -1,4 +1,4 @@
-from error import *
+﻿from error import *
 import util
 from gamedata import *
 from session import *
@@ -431,7 +431,6 @@ class UseItem(tornado.web.RequestHandler):
             def consumeItem(items, num):
                 item_num = items.get(str(item_id), 0)
                 remain = item_num - num
-                print item_num, num
                 if remain < 0:
                     raise Exception("not enough item")
                 items[str(item_id)] = remain
@@ -603,6 +602,24 @@ class UseItem(tornado.web.RequestHandler):
                             WHERE userId=%s"""
                     ,(json.dumps(items), user_id)
                 )
+
+            ## recover AP small
+            elif item_id == 22:
+                if ap == maxAp:
+                    raise Exception("ap full")
+
+                ap += 5
+
+                if ap >= maxAp:
+                    ap = maxAp
+
+                item_num = consumeItem(items, 1)
+
+                yield util.whdb.runOperation(
+                    """ UPDATE playerInfos SET items=%s, ap=%s
+                            WHERE userId=%s"""
+                    ,(json.dumps(items), ap, user_id)
+                )
             
             # reply
             reply = util.new_reply()
@@ -758,10 +775,12 @@ class SetName(tornado.web.RequestHandler):
                 ,(name, userid)
             )
 
+
             # reply
             reply = util.new_reply()
-            reply["name"] = name
-            self.write(json.dumps(reply))
+            reply["name"] = name.encode("utf-8")
+            js = json.dumps(reply, ensure_ascii=False)
+            self.write(js)
         except:
             send_internal_error(self)
         finally:
