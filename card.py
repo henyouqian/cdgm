@@ -233,7 +233,8 @@ class GetPact(tornado.web.RequestHandler):
 
             # create cards
             proto_n_levels = [[c, 1] for c in card_ids]
-            cards = yield create_cards(user_id, proto_n_levels, max_card_num, wagon_index)
+            desc = wagon_desc_tbl.get(3, "content")
+            cards = yield create_cards(user_id, proto_n_levels, max_card_num, wagon_index, desc)
 
             # real pay and set wagon
             yield util.whdb.runOperation(

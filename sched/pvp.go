@@ -28,16 +28,12 @@ func loadTbl() RewardTbl {
 	tbl := make([]RewardsPerRank, 0, 10)
 
 	f, err := os.Open("../data/pvpRankRewards.csv")
-	if err != nil {
-		panic(err)
-	}
+	checkError(err)
 	defer f.Close()
 
 	reader := csv.NewReader(f)
 	records, err := reader.ReadAll()
-	if err != nil {
-		panic(err)
-	}
+	checkError(err)
 
 	colmap := make(map[string]int)
 

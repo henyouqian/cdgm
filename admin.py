@@ -208,8 +208,8 @@ class AddItemToWagon(tornado.web.RequestHandler):
             userid = int(self.get_argument("userId"))
             itemid = int(self.get_argument("itemId"))
             itemnum = int(self.get_argument("itemNum"))
-            desc = self.get_argument("desc", "From admin")
-            desc = "系统赠送"
+            desc = wagon_desc_tbl.get(1, "content")
+            desc = self.get_argument("desc", desc)
 
             # add to wagon
             items = [{"id":itemid, "num":itemnum}]
@@ -578,7 +578,8 @@ class AddCardToWagon(tornado.web.RequestHandler):
             userid = int(self.get_argument("userId"))
             protoid = int(self.get_argument("protoId"))
             level = int(self.get_argument("level"))
-            desc = self.get_argument("desc", "From admin")
+            desc = wagon_desc_tbl.get(1, "content")
+            desc = self.get_argument("desc", desc)
 
             # update db
             proto_levels = [[protoid, level]]

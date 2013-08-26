@@ -12,7 +12,13 @@ import (
 
 var (
 	description = url.QueryEscape("pvp rank")
+	wagon_desc string
 )
+
+func init() {
+	
+}
+
 
 func sandRewardMain() {
 	for {
