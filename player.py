@@ -735,6 +735,38 @@ class SetTutorialStep(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+
+class SetName(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def post(self):
+        try:
+            # session
+            session = yield find_session(self)
+            if not session:
+                send_error(self, err_auth)
+                return
+            userid = session["userid"]
+
+            # param
+            post_input = json.loads(self.request.body)
+            name = post_input["name"]
+
+            # update
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET name=%s WHERE userId=%s"""
+                ,(name, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["name"] = name
+            self.write(json.dumps(reply))
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/player/create", Create),
     (r"/whapi/player/getinfo", GetInfo),
@@ -742,4 +774,5 @@ handlers = [
     (r"/whapi/player/useitem", UseItem),
     (r"/whapi/player/time", GetTime),
     (r"/whapi/player/settutorialstepindex", SetTutorialStep),
+    (r"/whapi/player/setname", SetName),
 ]

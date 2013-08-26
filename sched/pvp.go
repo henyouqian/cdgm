@@ -80,15 +80,21 @@ func pvpMain(){
 
 		// get finished leaderboard
 		t := time.Now().Unix()
-		lbnames, err := redis.Strings(conn.Do("zrangebyscore", 
-			"leaderboard_endtime_zsets", 0, t, "limit", 0, 10))
-		if err != nil {
-			panic(err)
+		reply, err := conn.Do("zrangebyscore", 
+			"leaderboard_endtime_zsets", 0, t, "limit", 0, 10)
+		checkError(err)
+
+		if reply == nil {
+			log.Println("no finished leaderboard, sleep 60 Sec...")
+			time.Sleep(60 * time.Second)
+			continue
 		}
 
+		lbnames, err := redis.Strings(reply, err)
+		checkError(err)
+
 		// send rewards
-		if len(lbnames) > 0 {
-			lbname := lbnames[0]
+		for _, lbname := range lbnames {
 			resultsKey := "leaderboard_result/"+lbname
 			resultsKey = "leaderboard_result/"+"pvp"	//fixme
 
@@ -135,8 +141,8 @@ func pvpMain(){
 			}
 		}
 
-		log.Println("add pvp")
+		log.Println("add pvp rewards")
 		
-		time.Sleep(10000 * time.Millisecond)
+		time.Sleep(15 * time.Second)
 	}
 }

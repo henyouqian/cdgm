@@ -14,17 +14,25 @@ var (
 	description = url.QueryEscape("pvp rank")
 )
 
-func sandRewardMain(){
+func sandRewardMain() {
 	for {
 		// 
 		conn := redisPool.Get()
 		defer conn.Close()
 		
 		// pop one from redis
-		reply, err := redis.Bytes(conn.Do("rpop", "rewardEntities"))
-		if err != nil {
-			log.Println("rewardEntities is empty")
+		rawReply, err := conn.Do("rpop", "rewardEntities")
+		checkError(err)
+
+		if rawReply == nil {
+			log.Println("no rewards to sent, sleep 10 Sec...")
+			time.Sleep(10 * time.Second)
+			continue
 		}
+
+		reply, err := redis.Bytes(rawReply, err)
+		checkError(err)
+
 		if len(reply) != 0 {
 			var re RewardEntity
 			err := json.Unmarshal(reply, &re)
@@ -47,14 +55,17 @@ func sandRewardMain(){
 			}
 
 			for _, v := range urls {
-				_, err := http.Get(v)
-				if err != nil {
-					panic(err)
+				r, err := http.Get(v)
+				checkError(err)
+				if r.StatusCode != 200 {
+					log.Println("http get error: statusCode=", r.StatusCode)
+					time.Sleep(10 * time.Second)
+				} else {
+					log.Printf("award sended ok: %+v\n", re)
 				}
-				log.Println("send ok: ", v)
 			}
 		}
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 }

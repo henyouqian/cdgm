@@ -30,3 +30,9 @@ func atoi(str string) int {
 	}
 	return i
 }
+
+func checkError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

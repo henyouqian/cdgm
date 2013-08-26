@@ -75,7 +75,8 @@ class Database:
                                        user=self._user,
                                        passwd=self._password,
                                        host=self._host,
-                                       port=3306)
+                                       port=3306,
+                                       charset="utf8")
             except Exception as ex:
                 raise ex
         else:
