@@ -111,7 +111,7 @@ pvp_test_data_tbl = util.CsvTbl("data/pvpTestData.csv", "ID")
 pvp_win_reward_tbl = PvpWinRewardTbl()
 pvp_rank_reward_tbl = util.parse_csv("data/pvpRankRewards.csv")
 
-wagon_desc_tbl = util.parse_csv("data/wagonDesc.csv")
+wagon_desc_tbl = util.CsvTbl("data/wagonDesc.csv", "id")
 
 
 tables = [card_tbl, grow_tbl, evo_tbl, evo_cost_tbl, skill_tbl, skill_level_tbl, warlord_level_tbl, card_level_tbl, 
