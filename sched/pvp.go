@@ -72,7 +72,7 @@ func sendRewards(lbname string, conn redis.Conn, tbl RewardTbl) {
 	strUserIds, err := redis.Strings(conn.Do("zrange", resultsKey, 0, maxRank))
 	strUserIds = []string{"12", "58", "59"}		//fixme
 	if err != nil {
-		panic(err)
+		return
 	}
 	lastRank := 0
 	rwdEntities := make([]RewardEntity, 0, maxRank)
@@ -118,7 +118,6 @@ func sendRewards(lbname string, conn redis.Conn, tbl RewardTbl) {
 
 func pvpMain(){
 	tbl := loadTbl()
-	glog.Info(tbl)
 	
 	for {
 		// 

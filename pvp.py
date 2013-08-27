@@ -926,6 +926,9 @@ class BattleResult(tornado.web.RequestHandler):
                     add_exp += battle_exp
             add_exp_per_card = add_exp/len(members)
 
+            if not is_win:
+                add_exp_per_card /= 2
+
             # append warlord to members if it not in there, in order to get warlord level
             warlord_appended = False
             if warlord not in members:

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/garyburd/redigo/redis"
-	"log"
+	"github.com/golang/glog"
 	"fmt"
 	"time"
 	"net/http"
@@ -31,7 +31,7 @@ func sandRewardMain() {
 		checkError(err)
 
 		if rawReply == nil {
-			log.Println("no rewards to sent, sleep 10 Sec...")
+			glog.Info("no rewards to sent, sleep 10 Sec...")
 			time.Sleep(10 * time.Second)
 			continue
 		}
@@ -64,10 +64,10 @@ func sandRewardMain() {
 				r, err := http.Get(v)
 				checkError(err)
 				if r.StatusCode != 200 {
-					log.Println("http get error: statusCode=", r.StatusCode)
+					glog.Error("http get error: statusCode=", r.StatusCode)
 					time.Sleep(10 * time.Second)
 				} else {
-					log.Printf("award sended ok: %+v\n", re)
+					glog.Infof("award sended ok: %+v\n", re)
 				}
 			}
 		}
