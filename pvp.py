@@ -724,8 +724,8 @@ def match(score, match_no, user_id, callback):
 
         # add score into matched band
         for band in matched_bands:
-            score, rank = yield leaderboard.get_score_and_rank("pvp", band["userId"], "DESC")
-            band["userScore"] = score
+            # score, rank = yield leaderboard.get_score_and_rank("pvp", band["userId"], "DESC")
+            band["userScore"] = band["score"]
 
         callback((matched_bands, rankrange, score_min, score_max))
 
