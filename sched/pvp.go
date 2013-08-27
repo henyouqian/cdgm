@@ -111,7 +111,9 @@ func sendRewards(lbname string, conn redis.Conn, tbl RewardTbl) {
 	}
 
 	// clean the leaderboard
-	conn.Do("del", resultsKey)
+	conn.Send("rename", "leaderboard_result/pvp_temp", "leaderboard_result/pvp_yesterday")
+	conn.Send("rename", "leaderboard_result_info/pvp_temp", "leaderboard_result_info/pvp_yesterday")
+	conn.Flush()
 }
 
 func pvpMain(){
@@ -168,7 +170,13 @@ func pvpMain(){
 
 		// when date change
 		if y1 != y2 || m1 != m2 || d1 != d2 {
-			sendRewards("pvp", conn, tbl)
+			// 
+			conn.Send("rename", "leaderboard_result/pvp", "leaderboard_result/pvp_temp")
+			conn.Send("rename", "leaderboard_result_info/pvp", "leaderboard_result_info/pvp_temp")
+			conn.Flush()
+
+			//send rewards
+			sendRewards("pvp_temp", conn, tbl)
 		}
 
 		time.Sleep(60 * time.Second)

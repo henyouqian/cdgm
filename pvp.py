@@ -724,7 +724,7 @@ def match(score, match_no, user_id, callback):
 
         # add score into matched band
         for band in matched_bands:
-            score, rank = yield leaderboard.get_score_and_rank("pvp", band["userId"])
+            score, rank = yield leaderboard.get_score_and_rank("pvp", band["userId"], "DESC")
             band["userScore"] = score
 
         callback((matched_bands, rankrange, score_min, score_max))
@@ -1065,7 +1065,7 @@ class BattleResult(tornado.web.RequestHandler):
 
                 # add score to pvp leaderboard
                 try:
-                    self_score, self_rank = yield leaderboard.get_score_and_rank("pvp", userid)
+                    self_score, self_rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
                     if not self_score:
                         self_score = 0
                     self_strength = pvp_score
@@ -1134,7 +1134,7 @@ class Rank(tornado.web.RequestHandler):
             lb_datas = []
 
             try:
-                ranks = yield leaderboard.get_ranks("pvp", 0, 30)
+                ranks = yield leaderboard.get_ranks("pvp", 0, 30, "DESC")
             except:
                 raise
                 # leaderboard.create(key, begintime, endtime, order)
@@ -1152,7 +1152,7 @@ class Rank(tornado.web.RequestHandler):
                 lb_datas.append(data)
             
             # 
-            score, rank = yield leaderboard.get_score_and_rank("pvp", userid)
+            score, rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
 
             # reply
             reply = util.new_reply()

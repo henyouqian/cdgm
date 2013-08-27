@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	description = url.QueryEscape("pvp rank")
+	description = url.QueryEscape("活動獎勵")
 	wagon_desc string
 )
 

@@ -220,7 +220,7 @@ class Enter(tornado.web.RequestHandler):
             )
 
             # 
-            score, rank = yield leaderboard.get_score_and_rank("pvp", userid)
+            score, rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
 
             # response
             client_cache = trans_cache_to_client(cache)
@@ -284,7 +284,7 @@ class Get(tornado.web.RequestHandler):
                 raise Exception("Not in zone")
 
             # 
-            score, rank = yield leaderboard.get_score_and_rank("pvp", userid)
+            score, rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
             
             cache = json.loads(cache)
             client_cache = trans_cache_to_client(cache)
@@ -520,7 +520,7 @@ class Move(tornado.web.RequestHandler):
                     yield util.redis().setex(key, 600, json.dumps(matched_bands))
                     pvp_remain_time = 600
 
-            score, rank = yield leaderboard.get_score_and_rank("pvp", userid)
+            score, rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
                 
 
             # update
