@@ -151,6 +151,7 @@ func pvpMain(){
 		checkError(err)
 
 		if pvptimeRaw == nil {
+			glog.Info("create pvpDate")
 			tt := time.Now()
 			jst, _ := tt.MarshalJSON()
 			conn.Do("set", "pvpDate", jst)
@@ -168,7 +169,7 @@ func pvpMain(){
 		y2, m2, d2 := tt.Date()
 
 		// when date change
-		if y1 != y2 || m1 != m2 || d1 != d2 {
+		if true || y1 != y2 || m1 != m2 || d1 != d2 {
 			// 
 			conn.Send("rename", "leaderboard_result/pvp", "leaderboard_result/pvp_temp")
 			conn.Send("rename", "leaderboard_result_info/pvp", "leaderboard_result_info/pvp_temp")
