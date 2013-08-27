@@ -31,6 +31,7 @@ import redis
         value: {
             "userName":string,
             "userLevel":int,
+            "userProtoId":int
             "score":int,
             "cards":[
                 {
@@ -177,10 +178,12 @@ def calc_player_pvp_score(userid, bands, cards, price_skill_mul):
 
 @adisp.async
 @adisp.process
-def update_pvp_band(userid, username, userlevel, bands, callback):
+def update_pvp_band(userid, username, userlevel, warlordproto, bands, callback):
     """
-        "userId":int
-        "userName":string
+        "userid":int
+        "username":string
+        "userlevel":int
+        "warlordproto":int
         "bands":[
             {
                 "formation": {INT}, 
@@ -267,7 +270,7 @@ def update_pvp_band(userid, username, userlevel, bands, callback):
                 max_score_band["userName"] = username
                 max_score_band["userLevel"] = userlevel
                 max_score_band["score"] = max_band_score
-                
+                max_score_band["userProtoId"] = warlordproto
 
         # update to redis
         pipe = util.redis_pipe()
@@ -340,6 +343,7 @@ def submit_pvp_bands(pvp_bands, callback):
             {
                 "userId":int,
                 "userName":string,
+                "userProtoId":int
                 "formation":int,
                 "cards":[
                     {
@@ -519,6 +523,7 @@ class CreateTestData(tornado.web.RequestHandler):
                 formation_range = formation_dict[member_num]
                 formation = random.randint(formation_range[0], formation_range[1])
                 warlord_level = random.randint(1, 99)
+                warlord_proto = random.randint(119, 126)
                 for member_proto in member_protos:
                     price, maxlv, skillid1, skillid2= \
                         map(int, card_tbl.gets(member_proto, "price", \
@@ -526,6 +531,7 @@ class CreateTestData(tornado.web.RequestHandler):
                     level = random.randint(1, maxlv)
                     if member_proto in warlord_ids:
                         warlord_level = level
+                        warlord_proto = member_proto
                     hp, atk, dfs, wis, agi = calc_card_proto_attr(member_proto, level)
                     cards.append({
                         "protoId": member_proto,
@@ -548,6 +554,7 @@ class CreateTestData(tornado.web.RequestHandler):
                     "userId": -((key[0]*10+key[1])*1000000+i_band),
                     "userName": "%s, %s, %s" %(key[0], key[1], i_band),
                     "userLevel": warlord_level,
+                    "userProtoId": warlord_proto,
                     "cards": cards,
                     "formation":formation,
                 }
@@ -714,6 +721,11 @@ def match(score, match_no, user_id, callback):
             if band["userId"] != user_id:
                 bands.append(band)
         matched_bands = bands[:3]
+
+        # add score into matched band
+        for band in matched_bands:
+            score, rank = yield leaderboard.get_score_and_rank("pvp", band["userId"])
+            band["userScore"] = score
 
         callback((matched_bands, rankrange, score_min, score_max))
 
@@ -1049,6 +1061,7 @@ class BattleResult(tornado.web.RequestHandler):
                     ttl = yield util.redis().ttl(cacheKey)
                     # fixme: use ttl
                     yield util.redis().setex(cacheKey, 600, json.dumps(next_pvp_bands))
+                        
 
                 # add score to pvp leaderboard
                 try:

@@ -7,6 +7,7 @@ import util
 from csvtable import *
 import pvp
 from card import calc_card_proto_attr, create_cards
+import leaderboard
 
 import tornado.web
 import adisp
@@ -218,11 +219,16 @@ class Enter(tornado.web.RequestHandler):
                 ,(cachejs, zoneid, bandidx, session["userid"])
             )
 
+            # 
+            score, rank = yield leaderboard.get_score_and_rank("pvp", userid)
+
             # response
-            clientCache = trans_cache_to_client(cache)
-            clientCache["error"] = no_error
-            reply = json.dumps(clientCache)
-            self.write(reply)
+            client_cache = trans_cache_to_client(cache)
+            reply = util.new_reply()
+            reply.update(client_cache)
+            reply["playerRank"] = rank
+            reply["playerScore"]  = score
+            self.write(json.dumps(reply))
         except:
             send_internal_error(self)
         finally:
@@ -264,22 +270,30 @@ class Get(tornado.web.RequestHandler):
             if not session:
                 send_error(self, err_auth)
                 return
+            userid = session["userid"]
 
             # db get
             rows = yield util.whdb.runQuery(
                 """SELECT zoneCache FROM playerInfos 
                         WHERE userid=%s"""
-                ,(session["userid"],)
+                ,(userid,)
             )
             cache = rows[0][0]
 
             if not cache:
                 raise Exception("Not in zone")
+
+            # 
+            score, rank = yield leaderboard.get_score_and_rank("pvp", userid)
             
             cache = json.loads(cache)
             client_cache = trans_cache_to_client(cache)
-            client_cache["error"] = no_error
-            self.write(json.dumps(client_cache))
+
+            reply = util.new_reply()
+            reply.update(client_cache)
+            reply["playerRank"] = rank
+            reply["playerScore"]  = score
+            self.write(json.dumps(reply))
 
         except:
             send_internal_error(self)
@@ -505,6 +519,8 @@ class Move(tornado.web.RequestHandler):
                     pvp_bands = matched_bands
                     yield util.redis().setex(key, 600, json.dumps(matched_bands))
                     pvp_remain_time = 600
+
+            score, rank = yield leaderboard.get_score_and_rank("pvp", userid)
                 
 
             # update
@@ -531,6 +547,8 @@ class Move(tornado.web.RequestHandler):
             reply["catchMons"] = catch_mons
             reply["pvpBands"] = pvp_bands
             reply["pvpRemainTime"] = pvp_remain_time
+            reply["playerRank"] = rank
+            reply["playerScore"]  = score
             self.write(json.dumps(reply))
 
         except:
