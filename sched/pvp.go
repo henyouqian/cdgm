@@ -70,7 +70,7 @@ func sendRewards(lbname string, conn redis.Conn, tbl RewardTbl) {
 
 	maxRank := tbl[len(tbl)-1].Rank
 	strUserIds, err := redis.Strings(conn.Do("zrange", resultsKey, 0, maxRank))
-	strUserIds = []string{"12", "58", "59"}		//fixme
+	// strUserIds = []string{"12", "58", "59"}		//fixme
 	if err != nil {
 		return
 	}
