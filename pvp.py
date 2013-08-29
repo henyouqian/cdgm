@@ -907,6 +907,8 @@ class BattleResult(tornado.web.RequestHandler):
                     consumeItemId = 11
                     consumeItemNum = 1
                     xp_add = 3
+                else:
+                    raise Exception("must use item, but not use: consumeXp=%d, xp=%d" % (consumeXp, xp))
 
                 if consumeItemId and consumeItemNum > items.get(consumeItemId, 0):
                     raise Exception("item %s not enough" % consumeItemId)
