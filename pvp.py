@@ -1025,6 +1025,10 @@ class BattleResult(tornado.web.RequestHandler):
                         WHERE id=%s"""
                 ,arg_list
             )
+
+            # 
+            smallXpItemNum = items.get(10, 0)
+            bigXpItemNum = items.get(11, 0)
             
             next_pvp_bands = []
             items_add = []
@@ -1114,8 +1118,8 @@ class BattleResult(tornado.web.RequestHandler):
             reply["items"] = items_add
             reply["xp"] = xp
             reply["nextAddXpTime"] = nextAddXpTime
-            reply["smallXpItemNum"] = items.get(10, 0)
-            reply["bigXpItemNum"] = items.get(11, 0)
+            reply["smallXpItemNum"] = smallXpItemNum
+            reply["bigXpItemNum"] = bigXpItemNum
             reply["nextPvpBands"] = next_pvp_bands
             self.write(json.dumps(reply))
         except:

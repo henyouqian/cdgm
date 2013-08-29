@@ -11,14 +11,20 @@ import (
 )
 
 var (
-	description = url.QueryEscape("活動獎勵")
+	description = ""
 	wagon_desc string
 )
 
 func init() {
-	
+	type WagonDesc struct {
+		Id int
+		Content string
+	}
+	var tbl map[string]WagonDesc
+	loadCsvTbl("../data/wagonDesc.csv", &tbl, "id")
+	description = url.QueryEscape(tbl["4"].Content)
+	fmt.Println(description)
 }
-
 
 func sandRewardMain() {
 	for {
