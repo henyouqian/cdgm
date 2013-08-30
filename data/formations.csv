@@ -18,5 +18,5 @@ id,name,comment,maxNum,reserveNum,order1,order2,order3,order4,order5
 17,5-Rear,,5,1,3,3,3,3,3
 18,5-Pike,,5,1,3,3,1,3,3
 19,5-Shield,,5,1,1,1,3,1,1
-100,1-Formation,,1,0,1,0,0,0,0
+100,1-Formation,,1,0,2,0,0,0,0
 101,2-Formation,,2,0,1,1,0,0,0

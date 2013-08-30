@@ -20,5 +20,5 @@ id,name,comment,type,cantrade,tradepoint,spritename
 19,大錢袋,,1,0,0,iconMoneyBagLv2
 20,寶箱,,0,0,0,iconTreasureLv2
 21,高級寶箱,,1,0,0,iconTreasureBoxLv3
-22,小葫蘆,,0,0,0,iconTreasureBoxLv3
+22,小葫蘆,,0,0,0,iconLittleCalabash
 23,萬能水晶,,0,0,0,iconCrystalRand
