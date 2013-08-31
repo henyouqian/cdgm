@@ -964,6 +964,8 @@ class Complete(tornado.web.RequestHandler):
             # red case
             for x in xrange(cache["redCase"]):
                 caseid = int(map_tbl.get_value(maprow, "treasureprobabilityID"))
+                if caseid == 0:
+                    continue
                 itemid = int(case_tbl.get_item(caseid))
                 itemobj = {"id":itemid}
                 if itemid in (MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID):
@@ -981,6 +983,8 @@ class Complete(tornado.web.RequestHandler):
             # gold case
             for x in xrange(cache["goldCase"]):
                 caseid = int(map_tbl.get_value(maprow, "chestprobabilityID"))
+                if caseid == 0:
+                    continue
                 itemid = int(case_tbl.get_item(caseid))
                 itemobj = {"id":itemid}
                 if itemid in (MONEY_BAG_SMALL_ID, MONEY_BAG_BIG_ID):
