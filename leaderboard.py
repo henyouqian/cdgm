@@ -72,6 +72,8 @@ def get_score_and_rank(leaderboard_key, userid, order, callback):
             raise Exception("invalid order")
 
         score, rank = yield util.redis_pipe_execute(pipe)
+        if rank != None:
+            rank += 1
         if (score == None) or (rank == None):
             score = rank = 0
         callback((score, rank))

@@ -126,8 +126,14 @@ def trans_cache_to_client(cache):
     for pos, eventid in events.iteritems():
         try:
             pt = [int(p) for p in pos.split(",")]
-            start_dialog, end_dialog, monsterid = evt_tbl.gets(eventid, "startdialogueID", "overdialogueID", "monsterID")
-            event = {"x": pt[0], "y": pt[1], "startDialog": int(start_dialog), "endDialog": int(end_dialog), "monsterId": int(monsterid)}
+            start_dialog, end_dialog, monsterid, item1id = map(int, evt_tbl.gets(eventid, "startdialogueID", "overdialogueID", "monsterID", "item1ID"))
+            evtobj = 0
+            if monsterid:
+                evtobj = -monsterid
+            elif item1id:
+                itemmap = {18:4, 19:5, 20:2, 21:3}
+                evtobj = itemmap.get(item1id, 0)
+            event = {"x": pt[0], "y": pt[1], "startDialog": start_dialog, "endDialog": end_dialog, "obj": evtobj}
             outevents.append(event)
         except:
             logging.error("event parse error: %s", traceback.format_exc())

@@ -223,6 +223,8 @@ class Accept(tornado.web.RequestHandler):
             # post input
             post_input = json.loads(self.request.body)
             keys = post_input["keys"]
+            if not keys:
+                raise Exception("no keys")
             keys = map(int, keys)
 
             # query
