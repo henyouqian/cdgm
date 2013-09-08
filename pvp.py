@@ -726,9 +726,9 @@ def match(score, match_no, user_id, callback):
         for band in matched_bands:
             self_strength = score
             foe_strength = band["score"]
-            score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5*0.01*random.uniform(0.9, 1.1))
+            # score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5*0.01*random.uniform(0.9, 1.1))
+            score_add = int(max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5*0.01))
             band["userScore"] = score_add
-            print "xxxxxxxxxxxxxx", band["userScore"]
 
         callback((matched_bands, rankrange, score_min, score_max))
 
@@ -1082,7 +1082,8 @@ class BattleResult(tornado.web.RequestHandler):
                         self_score = 0
                     self_strength = pvp_score
                     foe_strength = foe_band["score"]
-                    score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5*0.01*random.uniform(0.9, 1.1))
+                    # score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5*0.01*random.uniform(0.9, 1.1))
+                    score_add = int(max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5*0.01))
 
                     userinfo = {}
                     userinfo["cards"] = [c["protoId"] for c in card_entities]
