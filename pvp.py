@@ -728,6 +728,7 @@ def match(score, match_no, user_id, callback):
             foe_strength = band["score"]
             score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5*0.01*random.uniform(0.9, 1.1))
             band["userScore"] = score_add
+            print "xxxxxxxxxxxxxx", band["userScore"]
 
         callback((matched_bands, rankrange, score_min, score_max))
 
