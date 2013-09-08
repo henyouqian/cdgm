@@ -1,6 +1,6 @@
 import os
 
-if __name__ == "__main__":
+def main():
     try:
         os.mkdir('output')
     except:
@@ -19,4 +19,13 @@ if __name__ == "__main__":
                                fout.write("\n") 
                             if line[-2:] == "\r\n":
                                 line = line[:-2]
+                            elif line[-1:] == "\n":
+                                line = line[:-1]
+                            if "," not in line:
+                                print "Can not find ',' !!!!!! file=%s" % filename
+                                return
                             fout.write(line)
+    print "Succeed!"
+
+if __name__ == "__main__":
+    main()

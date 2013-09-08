@@ -41,3 +41,4 @@ archive/
 t.py
 log/
 config.py
+tools/configFormat/output/
