@@ -8,18 +8,22 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
-	"net/http"
-	"time"
-	"github.com/nu7hatch/gouuid"
-	"runtime"
 	"github.com/golang/glog"
+	"github.com/nu7hatch/gouuid"
+	"net/http"
+	"runtime"
+	"time"
 )
 
 var redisPool *redis.Pool
+var authDB *sql.DB
+var matchDB *sql.DB
+var testDB *sql.DB
 
 func init() {
 	redisPool = &redis.Pool{
-		MaxIdle:     5,
+		MaxIdle:     20,
+		MaxActive:   0,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", "localhost:6379")
@@ -29,10 +33,19 @@ func init() {
 			return c, err
 		},
 	}
+
+	authDB = opendb("auth_db")
+	authDB.SetMaxIdleConns(10)
+
+	matchDB = opendb("match_db")
+	matchDB.SetMaxIdleConns(10)
+
+	testDB = opendb("test")
+	testDB.SetMaxIdleConns(10)
 }
 
 type Err struct {
-	Error string
+	Error       string
 	ErrorString string
 }
 
@@ -41,17 +54,21 @@ func handleError(w http.ResponseWriter) {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder := json.NewEncoder(w)
 
-		var err Err;
+		var err Err
 		switch r.(type) {
 		case Err:
 			err = r.(Err)
 		default:
 			err = Err{"err_internal", fmt.Sprintf("%v", r)}
 
-			buf := make([]byte, 1024)
-			runtime.Stack(buf, false)
-			glog.Errorf("%v\n%s\n", r, buf)
+			// buf := make([]byte, 1024)
+			// runtime.Stack(buf, false)
+			// glog.Errorf("%v\n%s\n", r, buf)
 		}
+
+		buf := make([]byte, 1024)
+		runtime.Stack(buf, false)
+		glog.Errorf("%v\n%s\n", r, buf)
 
 		encoder.Encode(&err)
 	}
@@ -79,16 +96,13 @@ func checkError(err error, errType string) {
 func decodeRequestBody(r *http.Request, v interface{}) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(v)
-	if err != nil {
-		sendError("err_decode_body", "")
-	}
+	checkError(err, "err_decode_body")
 }
 
 func writeResponse(w http.ResponseWriter, v interface{}) {
 	encoder := json.NewEncoder(w)
 	encoder.Encode(v)
 }
-
 
 func opendb(dbname string) *sql.DB {
 	db, err := sql.Open("mysql", fmt.Sprintf("root@/%s?parseTime=true", dbname))
@@ -112,4 +126,47 @@ func genUUID() string {
 	uuid, err := uuid.NewV4()
 	checkError(err, "")
 	return base64.URLEncoding.EncodeToString(uuid[:])
+}
+
+func repeatSingletonTask(key string, interval time.Duration, f func()) {
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	intervalMin := 10 * time.Millisecond
+	if interval < intervalMin {
+		interval = intervalMin
+	}
+
+	fingerprint := genUUID()
+	redisKey := fmt.Sprintf("locker/%s", key)
+	for {
+		rdsfp, _ := redis.String(rc.Do("get", redisKey))
+		if rdsfp == fingerprint {
+			// it's mine
+			_, err := rc.Do("expire", redisKey, int64(interval.Seconds())+1)
+			checkError(err, "")
+			f()
+			time.Sleep(interval)
+			continue
+		} else {
+			// takeup
+			if rdsfp == "" {
+				_, err := rc.Do("setex", redisKey, int64(interval.Seconds())+1, fingerprint)
+				checkError(err, "")
+				f()
+				time.Sleep(interval)
+				continue
+			}
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+}
+
+// just for test
+func printlalalaTask() {
+	printlalala := func() {
+		fmt.Println("lalala")
+	}
+	go repeatSingletonTask("printlalala", 500*time.Millisecond, printlalala)
 }
