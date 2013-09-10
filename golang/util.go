@@ -162,11 +162,3 @@ func repeatSingletonTask(key string, interval time.Duration, f func()) {
 		time.Sleep(1 * time.Second)
 	}
 }
-
-// just for test
-func printlalalaTask() {
-	printlalala := func() {
-		fmt.Println("lalala")
-	}
-	go repeatSingletonTask("printlalala", 500*time.Millisecond, printlalala)
-}

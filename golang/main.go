@@ -12,6 +12,10 @@ func staticFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, r.URL.Path[1:])
 }
 
+func test() {
+	fmt.Println(tblCard["101"])
+}
+
 func main() {
 	var port int
 	flag.IntVar(&port, "port", 9999, "server port")
@@ -21,6 +25,8 @@ func main() {
 
 	regAuth()
 	regLab()
+
+	test()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
