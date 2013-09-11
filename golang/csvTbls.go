@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"github.com/henyouqian/golangUtil"
 	"os"
 	"reflect"
 	"strconv"
@@ -27,19 +28,39 @@ type rowCard struct {
 	MaxDef    uint16
 	MaxWis    uint16
 	MaxAgi    uint16
-	MaxLevel  uint8
+	MaxLevel  uint16
 	GrowType  uint8
-	SkillId1  uint8
-	SkillId2  uint8
+	SkillId1  uint16
+	SkillId2  uint16
+}
+
+type rowCardGrowth struct {
+	Type  uint8
+	Level uint16
+	Curve uint16
+}
+
+type rowCardLevel struct {
+	Level uint16
+	Exp   uint32
 }
 
 var (
-	tblCard map[string]rowCard
+	tblCard             map[string]rowCard
+	tblCardGrowth       map[string]rowCardGrowth
+	tblCardLevel        map[string]rowCardLevel
+	tblWarlordCardLevel map[string]rowCardLevel
 )
 
 func init() {
 	err := loadCsvTbl("../data/cards.csv", []string{"ID"}, &tblCard)
-	checkError(err, "")
+	lwutil.AssertNoError(err)
+	err = loadCsvTbl("../data/cardGrowthMappings.csv", []string{"type", "level"}, &tblCardGrowth)
+	lwutil.AssertNoError(err)
+	err = loadCsvTbl("../data/cardLevels.csv", []string{"level"}, &tblCardLevel)
+	lwutil.AssertNoError(err)
+	err = loadCsvTbl("../data/levels.csv", []string{"level"}, &tblWarlordCardLevel)
+	lwutil.AssertNoError(err)
 }
 
 func loadCsvTbl(file string, keycols []string, tbl interface{}) (e error) {

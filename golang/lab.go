@@ -2,56 +2,57 @@ package main
 
 import (
 	"fmt"
+	"github.com/henyouqian/golangUtil"
 	"net/http"
 )
 
 func dbSimple(w http.ResponseWriter, r *http.Request) {
-	defer handleError(w)
-	checkMathod(r, "GET")
+	defer lwutil.HandleError(w)
+	lwutil.CheckMathod(r, "GET")
 
 	// db
 	ids := make([]int64, 10)
 	stmt, err := testDB.Prepare("INSERT INTO batchTest (a, b, c, d) VALUES (?, ?, ?, ?)")
-	checkError(err, "")
+	lwutil.CheckError(err, "")
 	for i := 0; i < 10; i++ {
 		res, err := stmt.Exec(1, 2, 3, 4)
-		checkError(err, "")
+		lwutil.CheckError(err, "")
 
 		id, err := res.LastInsertId()
-		checkError(err, "")
+		lwutil.CheckError(err, "")
 
 		ids[i] = id
 	}
 
-	writeResponse(w, ids)
+	lwutil.WriteResponse(w, ids)
 }
 
 func dbBatch(w http.ResponseWriter, r *http.Request) {
-	defer handleError(w)
-	checkMathod(r, "GET")
+	defer lwutil.HandleError(w)
+	lwutil.CheckMathod(r, "GET")
 
 	// db
 	ids := make([]int64, 10)
 	tx, err := testDB.Begin()
-	checkError(err, "")
+	lwutil.CheckError(err, "")
 	stmt, err := tx.Prepare("INSERT INTO batchTest (a, b, c, d) VALUES (?, ?, ?, ?)")
-	checkError(err, "")
+	lwutil.CheckError(err, "")
 	for i := 0; i < 10; i++ {
 		res, err := stmt.Exec(1, 2, 3, 4)
-		checkError(err, "")
+		lwutil.CheckError(err, "")
 
 		id, err := res.LastInsertId()
-		checkError(err, "")
+		lwutil.CheckError(err, "")
 
 		ids[i] = id
 
 		fmt.Println(id)
 	}
 
-	writeResponse(w, ids)
+	lwutil.WriteResponse(w, ids)
 
 	err = tx.Commit()
-	checkError(err, "")
+	lwutil.CheckError(err, "")
 }
 
 func regLab() {

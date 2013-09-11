@@ -13,7 +13,9 @@ func staticFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func test() {
-	fmt.Println(tblCard["101"])
+	glog.Infoln(tblCard["101"])
+	cardAttr, _ := calcCardAttr(101, 10)
+	glog.Infoln(cardAttr)
 }
 
 func main() {
