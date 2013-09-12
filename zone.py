@@ -539,6 +539,8 @@ class Move(tornado.web.RequestHandler):
                 ,(cachejs, ap, last_ap_time, money, itemsjs, userid)
             )
 
+            print items_add
+
             # reply
             reply = util.new_reply()
             reply["currPos"] = dict(zip(["x", "y"], currpos))
