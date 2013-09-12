@@ -408,8 +408,8 @@ class Move(tornado.web.RequestHandler):
             poskey = "%d,%d" % (currpos[0], currpos[1])
             evtid = cache["objs"].get(poskey)
             money_add = 0
-            red_case_add = 0
-            gold_case_add = 0
+            # red_case_add = 0
+            # gold_case_add = 0
             items_add = []
             monGrpId = None
             catch_mons = []
@@ -470,12 +470,12 @@ class Move(tornado.web.RequestHandler):
                     money_add += n
                 elif itemid == RED_CASE_ID:
                     cache["redCase"] += itemnum
-                    red_case_add += itemnum
-                    continue
+                    # red_case_add += itemnum
+                    # continue
                 elif itemid == GOLD_CASE_ID:
                     cache["goldCase"] += itemnum
-                    gold_case_add += itemnum
-                    continue
+                    # gold_case_add += itemnum
+                    # continue
                 else:
                     if itemid in items:
                         items[itemid] += itemnum
@@ -544,8 +544,8 @@ class Move(tornado.web.RequestHandler):
             reply["currPos"] = dict(zip(["x", "y"], currpos))
             reply["ap"] = ap
             reply["nextAddApTime"] = nextAddApTime
-            reply["redCaseAdd"] = red_case_add
-            reply["goldCaseAdd"] = gold_case_add
+            # reply["redCaseAdd"] = red_case_add
+            # reply["goldCaseAdd"] = gold_case_add
             reply["items"] = items_add
             reply["cards"] = cards
             reply["monGrpId"] = monGrpId
@@ -770,8 +770,8 @@ class BattleResult(tornado.web.RequestHandler):
             # add items
             items_add = []
             money_add = 0
-            red_case_add = 0
-            gold_case_add = 0
+            # red_case_add = 0
+            # gold_case_add = 0
             for item in evt_items:
                 itemid = item["id"]
                 itemnum = item["num"]
@@ -783,12 +783,12 @@ class BattleResult(tornado.web.RequestHandler):
                     money_add += n
                 elif itemid == RED_CASE_ID:
                     cache["redCase"] += itemnum
-                    red_case_add += itemnum
-                    continue
+                    # red_case_add += itemnum
+                    # continue
                 elif itemid == GOLD_CASE_ID:
                     cache["goldCase"] += itemnum
-                    gold_case_add += itemnum
-                    continue
+                    # gold_case_add += itemnum
+                    # continue
                 else:
                     if itemid in items:
                         items[itemid] += itemnum
