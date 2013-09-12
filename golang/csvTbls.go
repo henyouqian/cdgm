@@ -54,13 +54,13 @@ var (
 
 func init() {
 	err := loadCsvTbl("../data/cards.csv", []string{"ID"}, &tblCard)
-	lwutil.AssertNoError(err)
+	lwutil.PanicError(err)
 	err = loadCsvTbl("../data/cardGrowthMappings.csv", []string{"type", "level"}, &tblCardGrowth)
-	lwutil.AssertNoError(err)
+	lwutil.PanicError(err)
 	err = loadCsvTbl("../data/cardLevels.csv", []string{"level"}, &tblCardLevel)
-	lwutil.AssertNoError(err)
+	lwutil.PanicError(err)
 	err = loadCsvTbl("../data/levels.csv", []string{"level"}, &tblWarlordCardLevel)
-	lwutil.AssertNoError(err)
+	lwutil.PanicError(err)
 }
 
 func loadCsvTbl(file string, keycols []string, tbl interface{}) (e error) {

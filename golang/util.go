@@ -2,9 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/henyouqian/golangUtil"
 	"time"
 )
 
@@ -27,12 +27,20 @@ func init() {
 		},
 	}
 
-	authDB = lwutil.Opendb("auth_db")
+	authDB = opendb("auth_db")
 	authDB.SetMaxIdleConns(10)
 
-	whDB = lwutil.Opendb("wh_db")
+	whDB = opendb("wh_db")
 	whDB.SetMaxIdleConns(10)
 
-	testDB = lwutil.Opendb("test")
+	testDB = opendb("test")
 	testDB.SetMaxIdleConns(10)
+}
+
+func opendb(dbname string) *sql.DB {
+	db, err := sql.Open("mysql", fmt.Sprintf("root@/%s?parseTime=true", dbname))
+	if err != nil {
+		panic(err)
+	}
+	return db
 }
