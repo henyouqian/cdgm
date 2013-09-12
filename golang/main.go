@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang/glog"
+	"github.com/henyouqian/lwUtil"
 	"net/http"
 	"runtime"
 )
@@ -16,6 +17,14 @@ func test() {
 	glog.Infoln(tblCard["101"])
 	cardAttr, _ := calcCardAttr(101, 10)
 	glog.Infoln(cardAttr)
+
+	type ccc struct {
+		Age  int
+		Name string
+	}
+	s := ccc{12, "fsdf"}
+	k, v, err := lwutil.GetStructFieldKVs(s)
+	glog.Infoln(k, v, err)
 }
 
 func main() {

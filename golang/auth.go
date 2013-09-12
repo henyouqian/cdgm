@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
-	"github.com/henyouqian/golangUtil"
+	"github.com/henyouqian/lwUtil"
 	"net/http"
 	"time"
 )

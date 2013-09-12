@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	//"github.com/golang/glog"
-	"github.com/henyouqian/golangUtil"
+	"github.com/henyouqian/lwUtil"
 	"strconv"
 )
 
@@ -165,6 +165,31 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 
 	//
 	gotoPackNum := lwutil.Min(int64(maxCardNum-inpackNum), int64(len(cards)))
+
+	// insert transaction
+	func() error {
+		//tx, err := whDB.Begin()
+		//if err != nil {
+		//	return err
+		//}
+		//defer lwutil.EndTx(tx, &err)
+
+		//stmt, err := tx.Prepare("INSERT INTO cardEntities (a, b, c, d) VALUES (?, ?, ?, ?)")
+		//if err != nil {
+		//	return err
+		//}
+
+		//ids := make([]int64, insertCount)
+		//for i := 0; i < insertCount; i++ {
+		//	res, err := stmt.Exec(1, 2, 3, 4)
+		//	lwutil.CheckError(err, "err_account_exists")
+
+		//	ids[i], err = res.LastInsertId()
+		//	lwutil.CheckError(err, "")
+		//}
+		return nil
+	}()
+
 	_ = gotoPackNum
 
 	return nil

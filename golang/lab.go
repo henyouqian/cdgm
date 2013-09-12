@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/henyouqian/golangUtil"
+	"github.com/henyouqian/lwUtil"
 	"net/http"
 )
 

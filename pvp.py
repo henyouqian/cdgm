@@ -891,7 +891,7 @@ class BattleResult(tornado.web.RequestHandler):
                 xp = min(max_xp, xp + dxp)
             if xp == max_xp:
                 last_xp_time = curr_time
-                nextAddXpTime = 0
+                nextAddXpTime = XP_ADD_DURATION
             else:
                 t = dt % XP_ADD_DURATION
                 last_xp_time = curr_time - timedelta(seconds = t)

@@ -539,8 +539,6 @@ class Move(tornado.web.RequestHandler):
                 ,(cachejs, ap, last_ap_time, money, itemsjs, userid)
             )
 
-            print items_add
-
             # reply
             reply = util.new_reply()
             reply["currPos"] = dict(zip(["x", "y"], currpos))
@@ -838,9 +836,6 @@ class BattleResult(tornado.web.RequestHandler):
                 member["id"] = card["id"]
                 member["exp"] = card["exp"]
                 members.append(member)
-
-
-            print evt_items
 
             reply["members"] = members
             reply["levelups"] = levelups
