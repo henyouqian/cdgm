@@ -555,6 +555,7 @@ class Move(tornado.web.RequestHandler):
             reply["pvpRemainTime"] = pvp_remain_time
             reply["playerRank"] = rank
             reply["playerScore"]  = score
+            reply["getMoney"] = money_add
             self.write(json.dumps(reply))
 
         except:
@@ -768,7 +769,6 @@ class BattleResult(tornado.web.RequestHandler):
                 evt_cards = [card for card in evt_cards if card]
 
             # add items
-            items_add = []
             money_add = 0
             # red_case_add = 0
             # gold_case_add = 0
@@ -794,7 +794,6 @@ class BattleResult(tornado.web.RequestHandler):
                         items[itemid] += itemnum
                     else:
                         items[itemid] = itemnum
-                items_add.append(item)
 
             # add cards
             if evt_cards:
@@ -838,12 +837,16 @@ class BattleResult(tornado.web.RequestHandler):
                 member["exp"] = card["exp"]
                 members.append(member)
 
+
+            print evt_items
+
             reply["members"] = members
             reply["levelups"] = levelups
             reply["catchedMons"] = catched_mons
             reply["items"] = evt_items
             reply["cards"] = evt_cards
             reply["currPos"] = dict(zip(["x", "y"], currpos))
+            reply["getMoney"] = money_add
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
