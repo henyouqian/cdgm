@@ -1116,6 +1116,8 @@ class BattleResult(tornado.web.RequestHandler):
             
             # reply
             reply = util.new_reply()
+            if is_win and win_streak == 0:
+                win_streak = 30
             reply["winStreak"] = win_streak
             reply["members"] = out_members
             reply["levelups"] = levelups

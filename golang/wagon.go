@@ -9,8 +9,8 @@ import (
 )
 
 type wagonCardInfo struct {
-	id    uint64
-	proto uint32
+	Id    uint64
+	Proto uint32
 }
 
 func wagonAddCards(wagonIdx uint8, userId uint32, cardInfos []wagonCardInfo, desc string) error {
@@ -39,7 +39,7 @@ func wagonAddCards(wagonIdx uint8, userId uint32, cardInfos []wagonCardInfo, des
 		}
 
 		for _, cardInfo := range cardInfos {
-			_, err := stmt.Exec(userId, wagonIdx, 1, cardInfo.id, cardInfo.proto, desc)
+			_, err := stmt.Exec(userId, wagonIdx, 1, cardInfo.Id, cardInfo.Proto, desc)
 			if err != nil {
 				return lwutil.NewErr(err)
 			}
@@ -61,8 +61,8 @@ func wagonAddCards(wagonIdx uint8, userId uint32, cardInfos []wagonCardInfo, des
 }
 
 type wagonItemInfo struct {
-	id    uint8
-	count uint16
+	Id    uint8
+	Count uint16
 }
 
 func wagonAddItems(wagonIdx uint8, userId uint32, items []wagonItemInfo, desc string) error {
@@ -81,6 +81,27 @@ func wagonAddItems(wagonIdx uint8, userId uint32, items []wagonItemInfo, desc st
 			return lwutil.NewErr(err)
 		}
 		defer lwutil.EndTx(tx, &err)
+
+		//insert into wagons
+		stmt, err := tx.Prepare(`INSERT INTO wagons
+            (userId, wagonIdx, count, itemId, descText)
+			VALUES(?, ?, ?, ?, ?)`)
+		if err != nil {
+			return lwutil.NewErr(err)
+		}
+
+		for _, item := range items {
+			_, err := stmt.Exec(userId, wagonIdx, item.Count, item.Id, desc)
+			if err != nil {
+				return lwutil.NewErr(err)
+			}
+		}
+
+		//update userinfo
+		cols := []string{"wagonGeneral", "wagonTemp", "wagonSocial"}
+		sql := fmt.Sprintf(`UPDATE playerInfos SET %s=%s+?
+			WHERE userId=?`, cols[wagonIdx], cols[wagonIdx])
+		tx.Exec(sql, len(items), userId)
 
 		return nil
 	}()
