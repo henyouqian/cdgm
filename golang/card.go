@@ -1,11 +1,11 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	//"github.com/golang/glog"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwUtil"
 	"strconv"
+	"strings"
 )
 
 type cardProtoAndLevel struct {
@@ -61,12 +61,12 @@ func isWarlord(protoId uint32) bool {
 func calcCardAttr(protoId uint32, level uint16) (*cardAttr, error) {
 	cardProto, ok := tblCard[strconv.FormatUint(uint64(protoId), 10)]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("car not found: protoId=%d", protoId))
+		return nil, lwutil.NewErrStr(fmt.Sprintf("car not found: protoId=%d", protoId))
 	}
 
 	maxLevel := cardProto.MaxLevel
 	if level > maxLevel {
-		return nil, errors.New(fmt.Sprint("level > cardProto: level=%d, maxLevle=%d", level, cardProto.MaxLevel))
+		return nil, lwutil.NewErrStr(fmt.Sprint("level > cardProto: level=%d, maxLevle=%d", level, cardProto.MaxLevel))
 	}
 
 	//
@@ -95,18 +95,22 @@ func calcCardAttr(protoId uint32, level uint16) (*cardAttr, error) {
 	return &cardAttr, nil
 }
 
-func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uint16) error {
-	cards := make([]cardEntity, len(protoAndLvs))
+func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uint16, wagonIdx uint8, desc string) ([]*cardEntity, error) {
+	cardNum := len(protoAndLvs)
+	if cardNum == 0 {
+		return nil, lwutil.NewErrStr("protoAndLvs is empty")
+	}
+	cards := make([]*cardEntity, cardNum)
 	for i, v := range protoAndLvs {
 		attr, err := calcCardAttr(v.proto, v.level)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		//
 		cardProto, ok := tblCard[strconv.FormatUint(uint64(v.proto), 10)]
 		if !ok {
-			return errors.New(fmt.Sprintf("car not found: protoId=%d", v.proto))
+			return nil, lwutil.NewErrStr(fmt.Sprintf("car not found: protoId=%d", v.proto))
 		}
 
 		//
@@ -116,7 +120,7 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 		}
 		row, ok := (*lvExpTbl)[strconv.FormatUint(uint64(v.level), 10)]
 		if !ok {
-			return errors.New(fmt.Sprintf("invalid level: %d", v.level))
+			return nil, lwutil.NewErrStr(fmt.Sprintf("invalid level: %d", v.level))
 		}
 		exp := row.Exp
 
@@ -152,7 +156,7 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 			Skill3Exp:   0,
 		}
 
-		cards[i] = card
+		cards[i] = &card
 	}
 
 	//get card num in package
@@ -160,37 +164,75 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 	var inpackNum uint16
 	err := row.Scan(&inpackNum)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	//
-	gotoPackNum := lwutil.Min(int64(maxCardNum-inpackNum), int64(len(cards)))
+	glog.Infoln(int64(maxCardNum-inpackNum), cardNum)
+	gotoPackNum := lwutil.Truncate(int64(maxCardNum)-int64(inpackNum), 0, int64(cardNum))
+	wcInfos := make([]wagonCardInfo, 0, 10)
 
 	// insert transaction
-	func() error {
-		//tx, err := whDB.Begin()
-		//if err != nil {
-		//	return err
-		//}
-		//defer lwutil.EndTx(tx, &err)
+	err = func() error {
+		tx, err := whDB.Begin()
+		if err != nil {
+			lwutil.NewErr(err)
+		}
+		defer lwutil.EndTx(tx, &err)
 
-		//stmt, err := tx.Prepare("INSERT INTO cardEntities (a, b, c, d) VALUES (?, ?, ?, ?)")
-		//if err != nil {
-		//	return err
-		//}
+		fields, err := lwutil.GetStructFieldKeys(cards[0])
+		if err != nil {
+			return lwutil.NewErr(err)
+		}
+		fieldStr := strings.Join(fields, ",")
+		ques := make([]string, len(fields))
+		for i, _ := range ques {
+			ques[i] = "?"
+		}
+		quesStr := strings.Join(ques, ",")
+		stmt, err := tx.Prepare(fmt.Sprintf("INSERT INTO cardEntities (%s) VALUES (%s)", fieldStr, quesStr))
+		if err != nil {
+			lwutil.NewErr(err)
+		}
 
-		//ids := make([]int64, insertCount)
-		//for i := 0; i < insertCount; i++ {
-		//	res, err := stmt.Exec(1, 2, 3, 4)
-		//	lwutil.CheckError(err, "err_account_exists")
+		for i := 0; i < cardNum; i++ {
+			card := cards[i]
 
-		//	ids[i], err = res.LastInsertId()
-		//	lwutil.CheckError(err, "")
-		//}
+			if i < int(gotoPackNum) {
+				card.InPackage = true
+			} else {
+				card.InPackage = false
+				wcInfo := wagonCardInfo{card.Id, card.ProtoId}
+				wcInfos = append(wcInfos, wcInfo)
+			}
+
+			values, err := lwutil.GetStructFieldValues(card)
+			if err != nil {
+				return lwutil.NewErr(err)
+			}
+
+			res, err := stmt.Exec(values...)
+			if err != nil {
+				return lwutil.NewErr(err)
+			}
+
+			cardId, err := res.LastInsertId()
+			if err != nil {
+				return lwutil.NewErr(err)
+			}
+			card.Id = uint64(cardId)
+		}
 		return nil
 	}()
 
-	_ = gotoPackNum
+	if err != nil {
+		return nil, err
+	}
 
-	return nil
+	// add to wagon
+	if len(wcInfos) != 0 {
+		wagonAddCards(wagonIdx, ownerId, wcInfos, desc)
+	}
+
+	return cards, nil
 }

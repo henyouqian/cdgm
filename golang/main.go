@@ -25,6 +25,15 @@ func test() {
 	s := ccc{12, "fsdf"}
 	k, v, err := lwutil.GetStructFieldKVs(s)
 	glog.Infoln(k, v, err)
+
+	a := make(map[int]*ccc)
+	a[1] = &ccc{111, "aaa"}
+	a[1].Age = 45
+	glog.Infoln(a[1])
+
+	//protoAndLvs := []cardProtoAndLevel{cardProtoAndLevel{333, 15}}
+	//cards, err := createCards(12, protoAndLvs, 100, 0, "hahahaha")
+	//glog.Infoln(cards[0], err)
 }
 
 func main() {
@@ -34,9 +43,7 @@ func main() {
 
 	http.HandleFunc("/static/", staticFile)
 
-	regAuth()
 	regLab()
-
 	test()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
