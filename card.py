@@ -527,12 +527,13 @@ class Sacrifice(tornado.web.RequestHandler):
 
             # get player info
             rows = yield util.whdb.runQuery(
-                """SELECT money, warLord FROM playerInfos
+                """SELECT money, warLord, bands FROM playerInfos
                         WHERE userId = %s"""
                 ,(user_id, )
             )
             money = rows[0][0]
             warlord = rows[0][1]
+            bands = json.loads(rows[0][2])
 
             # get cards info
             card_ids = [master] + sacrificers
@@ -607,11 +608,33 @@ class Sacrifice(tornado.web.RequestHandler):
             if money < 0:
                 raise Exception("not enough money")
 
-            yield util.whdb.runOperation(
-                """UPDATE playerInfos SET money=%s
-                        WHERE userId=%s"""
-                ,(money, user_id)
-            )
+            # yield util.whdb.runOperation(
+            #     """UPDATE playerInfos SET money=%s
+            #             WHERE userId=%s"""
+            #     ,(money, user_id)
+            # )
+
+            # del from band if need
+            inband = False
+            for band in bands:
+                for idx, member in enumerate(band["members"]):
+                    if member in sacrificers:
+                        band["members"][idx] = None
+                        inband = True
+            
+            # update playerInfo
+            if inband:
+                yield util.whdb.runOperation(
+                        """UPDATE playerInfos SET money=%s, bands=%s
+                                WHERE userId=%s"""
+                        ,(money, json.dumps(bands), user_id)
+                    )
+            else:
+                yield util.whdb.runOperation(
+                        """UPDATE playerInfos SET money=%s
+                                WHERE userId=%s"""
+                        ,(money, user_id)
+                    )
 
             # update card
             yield util.whdb.runOperation(

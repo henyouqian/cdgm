@@ -15,7 +15,7 @@ func staticFile(w http.ResponseWriter, r *http.Request) {
 
 func test() {
 	glog.Infoln(tblCard["101"])
-	cardAttr, _ := calcCardAttr(101, 10)
+	cardAttr, _ := calcCardAttr(101, 1)
 	glog.Infoln(cardAttr)
 
 	type ccc struct {

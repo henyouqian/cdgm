@@ -7,7 +7,6 @@ import (
 )
 
 func dbSimple(w http.ResponseWriter, r *http.Request) {
-	defer lwutil.HandleError(w)
 	lwutil.CheckMathod(r, "GET")
 
 	// db
@@ -28,7 +27,6 @@ func dbSimple(w http.ResponseWriter, r *http.Request) {
 }
 
 func dbBatch(w http.ResponseWriter, r *http.Request) {
-	defer lwutil.HandleError(w)
 	lwutil.CheckMathod(r, "GET")
 
 	// db
@@ -56,6 +54,6 @@ func dbBatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func regLab() {
-	http.HandleFunc("/lab/dbsimple", dbSimple)
-	http.HandleFunc("/lab/dbbatch", dbBatch)
+	http.Handle("/lab/dbsimple", lwutil.ReqHandler(dbSimple))
+	http.Handle("/lab/dbbatch", lwutil.ReqHandler(dbBatch))
 }
