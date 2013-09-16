@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/henyouqian/lwUtil"
+	"github.com/henyouqian/lwutil"
 	"net/http"
 )
 

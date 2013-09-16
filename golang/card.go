@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/golang/glog"
-	"github.com/henyouqian/lwUtil"
+	"github.com/henyouqian/lwutil"
 	"strconv"
 	"strings"
 )

@@ -1,7 +1,9 @@
 package main
 
 import (
-	"github.com/henyouqian/lwUtil"
+	"encoding/json"
+	//"fmt"
+	"github.com/henyouqian/lwutil"
 )
 
 type rowCard struct {
@@ -38,11 +40,23 @@ type rowCardLevel struct {
 	Exp   uint32
 }
 
+type rowStore struct {
+	Id      uint32
+	ItemId  uint32
+	Price   uint32
+	Num     uint32
+	Name    string
+	Comment string
+	IconId  uint32
+}
+
 var (
 	tblCard             map[string]rowCard
 	tblCardGrowth       map[string]rowCardGrowth
 	tblCardLevel        map[string]rowCardLevel
 	tblWarlordCardLevel map[string]rowCardLevel
+	tblStore            []rowStore
+	goodsReply          []byte
 )
 
 func init() {
@@ -53,5 +67,32 @@ func init() {
 	err = lwutil.LoadCsvTbl("../data/cardLevels.csv", []string{"level"}, &tblCardLevel)
 	lwutil.PanicIfError(err)
 	err = lwutil.LoadCsvTbl("../data/levels.csv", []string{"level"}, &tblWarlordCardLevel)
+	lwutil.PanicIfError(err)
+
+	err = lwutil.LoadCsvArray("../data/shops.csv", &tblStore)
+	lwutil.PanicIfError(err)
+
+	type Goods struct {
+		GoodsId uint32
+		Price   uint32
+		IconId  uint32
+		ItemId  uint32
+		Name    string
+		Comment string
+	}
+
+	goodsList := make([]Goods, 0, 8)
+	for _, v := range tblStore {
+		goods := Goods{
+			v.Id,
+			v.Price,
+			v.IconId,
+			v.ItemId,
+			v.Name,
+			v.Comment,
+		}
+		goodsList = append(goodsList, goods)
+	}
+	goodsReply, err = json.Marshal(&goodsList)
 	lwutil.PanicIfError(err)
 }

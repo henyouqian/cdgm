@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang/glog"
-	"github.com/henyouqian/lwUtil"
+	"github.com/henyouqian/lwutil"
 	"net/http"
 	"runtime"
 )
@@ -41,13 +41,16 @@ func test() {
 
 func main() {
 	var port int
-	flag.IntVar(&port, "port", 9999, "server port")
+	flag.IntVar(&port, "port", 8889, "server port")
 	flag.Parse()
 
 	http.HandleFunc("/static/", staticFile)
 
 	regLab()
-	test()
+	regAuth()
+	regStore()
+
+	//test()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 

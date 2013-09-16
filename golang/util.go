@@ -9,7 +9,7 @@ import (
 )
 
 var redisPool *redis.Pool
-var authDB *sql.DB
+var accountDB *sql.DB
 var whDB *sql.DB
 var testDB *sql.DB
 
@@ -27,8 +27,8 @@ func init() {
 		},
 	}
 
-	authDB = opendb("auth_db")
-	authDB.SetMaxIdleConns(10)
+	accountDB = opendb("account_db")
+	accountDB.SetMaxIdleConns(10)
 
 	whDB = opendb("wh_db")
 	whDB.SetMaxIdleConns(10)
