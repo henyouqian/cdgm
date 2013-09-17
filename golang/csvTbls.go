@@ -136,6 +136,11 @@ func init() {
 		}
 		newsList = append(newsList, news)
 	}
-	newsReply, err = json.Marshal(&newsList)
+
+	type NewReply struct {
+		News []News `json:"news"`
+	}
+	newsRp := NewReply{newsList}
+	newsReply, err = json.Marshal(&newsRp)
 	lwutil.PanicIfError(err)
 }
