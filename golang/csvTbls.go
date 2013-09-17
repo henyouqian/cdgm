@@ -108,7 +108,13 @@ func init() {
 		}
 		goodsList = append(goodsList, goods)
 	}
-	goodsReply, err = json.Marshal(&goodsList)
+
+	type GoodsReply struct {
+		Goods []Goods `json:"goods"`
+	}
+	goodsRp := GoodsReply{goodsList}
+
+	goodsReply, err = json.Marshal(&goodsRp)
 	lwutil.PanicIfError(err)
 
 	//news
@@ -130,7 +136,7 @@ func init() {
 	for _, v := range tblNewsList {
 		news := News{
 			v.Id,
-			false,
+			true,
 			v.Date,
 			v.Title,
 		}

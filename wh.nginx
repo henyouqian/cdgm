@@ -28,6 +28,13 @@ server {
         rewrite (.*) /static/robots.txt;
     }
 
+	location /go {
+        root /home/liwei/projects/cdgm/golang/static;
+        if ($query_string) {
+            expires max;
+        }
+    }
+
     location /whapi/store {
         proxy_pass_header Server;
         proxy_set_header Host $http_host;
