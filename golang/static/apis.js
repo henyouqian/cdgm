@@ -15,8 +15,26 @@ function Controller($scope, $http) {
 			"apis":[
 				{
 					"name": "list",
-					"method": "POST",
+					"method": "GET",
 					"data": ""
+				},{
+					"name": "buy",
+					"method": "POST",
+					"data": {"goodsId": 0, "num": 1}
+				},
+			]
+		},
+		{
+			"path":"news",
+			"apis":[
+				{
+					"name": "list",
+					"method": "GET",
+					"data": ""
+				},{
+					"name": "read",
+					"method": "POST",
+					"data": {"newsId": 1}
 				},
 			]
 		},

@@ -176,7 +176,7 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 	err = func() error {
 		tx, err := whDB.Begin()
 		if err != nil {
-			lwutil.NewErr(err)
+			return lwutil.NewErr(err)
 		}
 		defer lwutil.EndTx(tx, &err)
 

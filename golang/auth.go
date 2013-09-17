@@ -54,7 +54,7 @@ func newSession(w http.ResponseWriter, rc redis.Conn, userid uint64, username st
 }
 
 func findSession(w http.ResponseWriter, r *http.Request) (*Session, error) {
-	usertoken := r.FormValue("token")
+	usertoken := r.URL.Query().Get("token")
 	if usertoken == "" {
 		usertokenCookie, err := r.Cookie("token")
 		if err == nil {

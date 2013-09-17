@@ -49,6 +49,7 @@ func main() {
 	regLab()
 	regAuth()
 	regStore()
+	regNews()
 
 	//test()
 

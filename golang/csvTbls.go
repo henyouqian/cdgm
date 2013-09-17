@@ -50,13 +50,23 @@ type rowStore struct {
 	IconId  uint32
 }
 
+type rowNews struct {
+	Id          uint32
+	Date        string
+	Title       string
+	NewsContent string
+	PicUrl      string
+}
+
 var (
 	tblCard             map[string]rowCard
 	tblCardGrowth       map[string]rowCardGrowth
 	tblCardLevel        map[string]rowCardLevel
 	tblWarlordCardLevel map[string]rowCardLevel
-	tblStore            []rowStore
+	tblStore            map[string]rowStore
 	goodsReply          []byte
+	tblNews             map[string]rowNews
+	newsReply           []byte
 )
 
 func init() {
@@ -69,7 +79,12 @@ func init() {
 	err = lwutil.LoadCsvTbl("../data/levels.csv", []string{"level"}, &tblWarlordCardLevel)
 	lwutil.PanicIfError(err)
 
-	err = lwutil.LoadCsvArray("../data/shops.csv", &tblStore)
+	//store
+	err = lwutil.LoadCsvTbl("../data/shops.csv", []string{"id"}, &tblStore)
+	lwutil.PanicIfError(err)
+
+	var tblStoreList []rowStore
+	err = lwutil.LoadCsvArray("../data/shops.csv", &tblStoreList)
 	lwutil.PanicIfError(err)
 
 	type Goods struct {
@@ -82,7 +97,7 @@ func init() {
 	}
 
 	goodsList := make([]Goods, 0, 8)
-	for _, v := range tblStore {
+	for _, v := range tblStoreList {
 		goods := Goods{
 			v.Id,
 			v.Price,
@@ -94,5 +109,33 @@ func init() {
 		goodsList = append(goodsList, goods)
 	}
 	goodsReply, err = json.Marshal(&goodsList)
+	lwutil.PanicIfError(err)
+
+	//news
+	err = lwutil.LoadCsvTbl("../data/news.csv", []string{"id"}, &tblNews)
+	lwutil.PanicIfError(err)
+
+	var tblNewsList []rowNews
+	err = lwutil.LoadCsvArray("../data/news.csv", &tblNewsList)
+	lwutil.PanicIfError(err)
+
+	type News struct {
+		NewsId   uint32 `json:"newsId"`
+		IsUnread bool   `json:"isUnread"`
+		Date     string `json:"date"`
+		Title    string `json:"title"`
+	}
+
+	newsList := make([]News, 0, 8)
+	for _, v := range tblNewsList {
+		news := News{
+			v.Id,
+			false,
+			v.Date,
+			v.Title,
+		}
+		newsList = append(newsList, news)
+	}
+	newsReply, err = json.Marshal(&newsList)
 	lwutil.PanicIfError(err)
 }
