@@ -15,6 +15,14 @@ server {
     # Allow file uploads
     client_max_body_size 50M;
 
+	location /go {
+		autoindex on;
+        root /home/liwei/projects/cdgm/golang/static;
+        if ($query_string) {
+            expires max;
+        }
+    }
+
     location ^~ / {
         root /home/liwei/projects/cdgm/www;
         if ($query_string) {
@@ -26,13 +34,6 @@ server {
     }
     location = /robots.txt {
         rewrite (.*) /static/robots.txt;
-    }
-
-	location /go {
-        root /home/liwei/projects/cdgm/golang/static;
-        if ($query_string) {
-            expires max;
-        }
     }
 
     location /whapi/store {
