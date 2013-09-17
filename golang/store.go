@@ -16,6 +16,6 @@ func storeList(w http.ResponseWriter, r *http.Request) {
 	w.Write(goodsReply)
 }
 
-func regAuth() {
+func regStore() {
 	http.Handle("/whapi/store/list", lwutil.ReqHandler(storeList))
 }

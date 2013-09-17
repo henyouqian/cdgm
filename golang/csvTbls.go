@@ -73,12 +73,12 @@ func init() {
 	lwutil.PanicIfError(err)
 
 	type Goods struct {
-		GoodsId uint32
-		Price   uint32
-		IconId  uint32
-		ItemId  uint32
-		Name    string
-		Comment string
+		GoodsId uint32 `json:"goodsId"`
+		Price   uint32 `json:"price"`
+		IconId  uint32 `json:"iconId"`
+		ItemId  uint32 `json:"itemId"`
+		Name    string `json:"name"`
+		Comment string `json:"comment"`
 	}
 
 	goodsList := make([]Goods, 0, 8)

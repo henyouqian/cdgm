@@ -123,6 +123,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 	lwutil.WriteResponse(w, usertoken)
 }
 
-func regStore() {
+func regAuth() {
 	http.Handle("/authapi/login", lwutil.ReqHandler(login))
 }

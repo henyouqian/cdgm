@@ -41,7 +41,7 @@ func test() {
 
 func main() {
 	var port int
-	flag.IntVar(&port, "port", 8889, "server port")
+	flag.IntVar(&port, "port", 9001, "server port")
 	flag.Parse()
 
 	http.HandleFunc("/static/", staticFile)
