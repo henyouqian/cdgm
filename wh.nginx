@@ -11,24 +11,25 @@ upstream goserver {
 
 server {
     listen 80;
+	server_name localhost;
 
     # Allow file uploads
     client_max_body_size 50M;
 
-	location /go {
-		autoindex on;
-        root /home/liwei/projects/cdgm/golang/static;
-        if ($query_string) {
-            expires max;
-        }
-    }
-
-    location ^~ / {
+	location ^~ / {
         root /home/liwei/projects/cdgm/www;
         if ($query_string) {
             expires max;
         }
     }
+
+	location /go {
+        alias /home/liwei/projects/cdgm/golang/static;
+        if ($query_string) {
+            expires max;
+        }
+    }
+
     location = /favicon.ico {
         rewrite (.*) /static/favicon.ico;
     }
