@@ -43,3 +43,4 @@ log/
 config.py
 tools/configFormat/output/
 golang/golang
+*.rdb
