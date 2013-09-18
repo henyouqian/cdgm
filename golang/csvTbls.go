@@ -67,6 +67,7 @@ var (
 	goodsReply          []byte
 	tblNews             map[string]rowNews
 	newsReply           []byte
+	tblNewsList         []rowNews
 )
 
 func init() {
@@ -121,7 +122,6 @@ func init() {
 	err = lwutil.LoadCsvTbl("../data/news.csv", []string{"id"}, &tblNews)
 	lwutil.PanicIfError(err)
 
-	var tblNewsList []rowNews
 	err = lwutil.LoadCsvArray("../data/news.csv", &tblNewsList)
 	lwutil.PanicIfError(err)
 
@@ -141,6 +141,11 @@ func init() {
 			v.Title,
 		}
 		newsList = append(newsList, news)
+	}
+
+	//reverse
+	for i, j := 0, len(newsList)-1; i < j; i, j = i+1, j-1 {
+		newsList[i], newsList[j] = newsList[j], newsList[i]
 	}
 
 	type NewReply struct {

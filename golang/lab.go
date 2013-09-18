@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
+	"sort"
 )
 
 func dbSimple(w http.ResponseWriter, r *http.Request) {
@@ -56,4 +58,10 @@ func dbBatch(w http.ResponseWriter, r *http.Request) {
 func regLab() {
 	http.Handle("/lab/dbsimple", lwutil.ReqHandler(dbSimple))
 	http.Handle("/lab/dbbatch", lwutil.ReqHandler(dbBatch))
+}
+
+func lab() {
+	l := []int{3, 35, 23, 6, 22}
+	sort.Sort(sort.Reverse(sort.IntSlice(l)))
+	glog.Infoln(l)
 }

@@ -51,7 +51,7 @@ func main() {
 	regStore()
 	regNews()
 
-	//test()
+	lab()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 

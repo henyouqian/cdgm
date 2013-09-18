@@ -7,4 +7,5 @@ const (
 	WARLORD_MAX = 126
 
 	WAGON_IDX_MAX = 2
+	MAX_NEWS      = 10
 )
