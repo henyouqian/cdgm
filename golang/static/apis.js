@@ -6,7 +6,7 @@ function Controller($scope, $http) {
 				{
 					"name": "login",
 					"method": "GET",
-					"data": {"Username":"admin", "Password":"admin"}
+					"data": {"username":"admin", "password":"admin"}
 				},
 			]
 		},
@@ -20,7 +20,7 @@ function Controller($scope, $http) {
 				},{
 					"name": "buy",
 					"method": "POST",
-					"data": {"goodsId": 0, "num": 1}
+					"data": {"goodsId": 1, "num": 1}
 				},
 			]
 		},

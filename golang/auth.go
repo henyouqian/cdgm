@@ -82,7 +82,7 @@ func findSession(w http.ResponseWriter, r *http.Request) (*Session, error) {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
-	lwutil.CheckMathod(r, "POST")
+	lwutil.CheckMathod(r, "GET")
 
 	// input
 	var input struct {
@@ -90,8 +90,9 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Password  string
 		Appsecret string
 	}
-	err := lwutil.DecodeRequestBody(r, &input)
-	lwutil.CheckError(err, "err_decode_body")
+	values := r.URL.Query()
+	input.Username = values.Get("username")
+	input.Password = values.Get("password")
 
 	if input.Username == "" || input.Password == "" {
 		lwutil.SendError("err_input", "")
@@ -108,7 +109,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	// get userid
 	row := accountDB.QueryRow("SELECT id FROM user_account WHERE username=? AND password=?", input.Username, pwsha)
 	var userid uint64
-	err = row.Scan(&userid)
+	err := row.Scan(&userid)
 	lwutil.CheckError(err, "err_not_match")
 
 	// new session

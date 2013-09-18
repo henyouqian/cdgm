@@ -60,8 +60,16 @@ func regLab() {
 	http.Handle("/lab/dbbatch", lwutil.ReqHandler(dbBatch))
 }
 
-func lab() {
+func g() {
+	glog.Infoln("g")
+}
+
+func s() {
 	l := []int{3, 35, 23, 6, 22}
 	sort.Sort(sort.Reverse(sort.IntSlice(l)))
 	glog.Infoln(l)
+}
+
+func lab() {
+
 }
