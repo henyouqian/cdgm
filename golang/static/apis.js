@@ -5,7 +5,7 @@ function Controller($scope, $http) {
 			"apis":[
 				{
 					"name": "login",
-					"method": "POST",
+					"method": "GET",
 					"data": {"Username":"admin", "Password":"admin"}
 				},
 			]
