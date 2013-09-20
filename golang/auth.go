@@ -53,7 +53,7 @@ func newSession(w http.ResponseWriter, rc redis.Conn, userid uint64, username st
 	return usertoken, err
 }
 
-func findSession(w http.ResponseWriter, r *http.Request) (*Session, error) {
+func findSession(w http.ResponseWriter, r *http.Request, rc redis.Conn) (*Session, error) {
 	usertoken := r.URL.Query().Get("token")
 	if usertoken == "" {
 		usertokenCookie, err := r.Cookie("token")
@@ -64,9 +64,10 @@ func findSession(w http.ResponseWriter, r *http.Request) (*Session, error) {
 		}
 	}
 
-	//redis
-	rc := redisPool.Get()
-	defer rc.Close()
+	if rc == nil {
+		rc = redisPool.Get()
+		defer rc.Close()
+	}
 
 	sessionBytes, err := redis.Bytes(rc.Do("get", usertoken))
 	if err != nil {

@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/henyouqian/lwutil"
 	"time"
 )
 
-var redisPool *redis.Pool
-var accountDB *sql.DB
-var whDB *sql.DB
-var testDB *sql.DB
+var (
+	redisPool *redis.Pool
+	accountDB *sql.DB
+	whDB      *sql.DB
+	testDB    *sql.DB
+	kvDB      *sql.DB
+)
 
 func init() {
 	redisPool = &redis.Pool{
@@ -34,7 +38,12 @@ func init() {
 	whDB.SetMaxIdleConns(10)
 
 	testDB = opendb("test")
-	testDB.SetMaxIdleConns(10)
+	testDB.SetMaxIdleConns(2)
+
+	kvDB = opendb("kv_db")
+	kvDB.SetMaxIdleConns(10)
+
+	lwutil.StartKV(kvDB, redisPool)
 }
 
 func opendb(dbname string) *sql.DB {

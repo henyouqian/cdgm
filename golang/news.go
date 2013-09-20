@@ -13,11 +13,14 @@ import (
 func newsList(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "GET")
 
-	session, err := findSession(w, r)
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	session, err := findSession(w, r, rc)
 	lwutil.CheckError(err, "err_auth")
 
 	//
-	v, err := getKV(fmt.Sprintf("readList/%d", session.Userid))
+	v, err := lwutil.GetKV(fmt.Sprintf("readList/%d", session.Userid), rc)
 	lwutil.CheckError(err, "err_kv")
 	if v == nil {
 		v = []byte("[]")
@@ -69,7 +72,10 @@ func newsList(w http.ResponseWriter, r *http.Request) {
 func newsRead(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "POST")
 
-	session, err := findSession(w, r)
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	session, err := findSession(w, r, rc)
 	lwutil.CheckError(err, "err_auth")
 
 	//input
@@ -86,7 +92,7 @@ func newsRead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//record read id
-	v, err := getKV(fmt.Sprintf("readList/%d", session.Userid))
+	v, err := lwutil.GetKV(fmt.Sprintf("readList/%d", session.Userid), rc)
 	lwutil.CheckError(err, "err_kv")
 	var readList []int
 	if v != nil {
@@ -105,7 +111,7 @@ func newsRead(w http.ResponseWriter, r *http.Request) {
 	s, err := json.Marshal(&readList)
 	lwutil.CheckError(err, "")
 
-	err = setKV(fmt.Sprintf("readList/%d", session.Userid), s)
+	err = lwutil.SetKV(fmt.Sprintf("readList/%d", session.Userid), s, rc)
 	lwutil.CheckError(err, "err_kv")
 
 	//output

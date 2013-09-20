@@ -17,7 +17,7 @@ func storeList(w http.ResponseWriter, r *http.Request) {
 func storeBuy(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "POST")
 
-	session, err := findSession(w, r)
+	session, err := findSession(w, r, nil)
 	lwutil.CheckError(err, "err_auth")
 
 	//input
