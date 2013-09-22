@@ -44,7 +44,7 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 		instList = append(instList, inst)
 	}
 
-	// out
+	//out
 	type Out struct {
 		Instance []Instance `json:"instance"`
 	}
@@ -54,6 +54,13 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 
 func instanceZoneList(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "POST")
+
+	//in
+	var in struct {
+		InstanceID uint32
+	}
+	err := lwutil.DecodeRequestBody(r, &in)
+	lwutil.CheckError(err, "err_decode_body")
 
 	type Zone struct {
 		ZoneId        uint32   `json:"zoneId"`
@@ -70,33 +77,37 @@ func instanceZoneList(w http.ResponseWriter, r *http.Request) {
 		DropCardIds   []uint32 `json:"dropCardIds"`
 		DropItemIds   []uint32 `json:"dropItemIds"`
 	}
-	zones := make([]Zone, len(tblInstanceZoneList))
+	zones := make([]Zone, 0, 8)
 
-	for i, v := range tblInstanceZoneList {
-		zones[i].ZoneId = v.ZoneId
-		zones[i].ResourceId = v.ResourceId
-		zones[i].Name = v.Name
-		zones[i].Comment = v.Comment
-		zones[i].Difficulty = v.Difficulty
-		zones[i].LevelRestrict = v.LevelRestrict
-		zones[i].XpCost = v.XpCost
-		zones[i].ZoneNo = v.ZoneNo
-		zones[i].NextZoneId = v.NextZoneId
-		zones[i].Price = v.Price
-		zones[i].BgmId = v.BgmId
-		zones[i].DropCardIds = []uint32{v.DropCard1Id, v.DropCard2Id, v.DropCard3Id, v.DropCard4Id, v.DropCard5Id, v.DropCard6Id}
-		zones[i].DropItemIds = []uint32{v.DropItem1Id, v.DropItem2Id, v.DropItem3Id, v.DropItem4Id, v.DropItem5Id, v.DropItem6Id}
-		for ii, vv := range zones[i].DropCardIds {
-			if vv == 0 {
-				zones[i].DropCardIds = zones[i].DropCardIds[:ii]
-				break
+	for _, v := range tblInstanceZoneList {
+		if v.InstanceID == in.InstanceID {
+			var zone Zone
+			zone.ZoneId = v.ZoneId
+			zone.ResourceId = v.ResourceId
+			zone.Name = v.Name
+			zone.Comment = v.Comment
+			zone.Difficulty = v.Difficulty
+			zone.LevelRestrict = v.LevelRestrict
+			zone.XpCost = v.XpCost
+			zone.ZoneNo = v.ZoneNo
+			zone.NextZoneId = v.NextZoneId
+			zone.Price = v.Price
+			zone.BgmId = v.BgmId
+			zone.DropCardIds = []uint32{v.DropCard1Id, v.DropCard2Id, v.DropCard3Id, v.DropCard4Id, v.DropCard5Id, v.DropCard6Id}
+			zone.DropItemIds = []uint32{v.DropItem1Id, v.DropItem2Id, v.DropItem3Id, v.DropItem4Id, v.DropItem5Id, v.DropItem6Id}
+			for ii, vv := range zone.DropCardIds {
+				if vv == 0 {
+					zone.DropCardIds = zone.DropCardIds[:ii]
+					break
+				}
 			}
-		}
-		for ii, vv := range zones[i].DropItemIds {
-			if vv == 0 {
-				zones[i].DropItemIds = zones[i].DropItemIds[:ii]
-				break
+			for ii, vv := range zone.DropItemIds {
+				if vv == 0 {
+					zone.DropItemIds = zone.DropItemIds[:ii]
+					break
+				}
 			}
+			zones = append(zones, zone)
 		}
 	}
 
