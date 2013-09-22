@@ -71,6 +71,33 @@ type rowInstance struct {
 	CoolDown      uint32
 }
 
+type rowInstanceZone struct {
+	ZoneId        uint32
+	InstanceID    uint32
+	ResourceId    uint32
+	Name          string
+	Comment       string
+	Difficulty    uint32
+	LevelRestrict uint32
+	XpCost        uint32
+	ZoneNo        uint32
+	NextZoneId    uint32
+	Price         uint32
+	BgmId         uint32
+	DropCard1Id   uint32
+	DropCard2Id   uint32
+	DropCard3Id   uint32
+	DropCard4Id   uint32
+	DropCard5Id   uint32
+	DropCard6Id   uint32
+	DropItem1Id   uint32
+	DropItem2Id   uint32
+	DropItem3Id   uint32
+	DropItem4Id   uint32
+	DropItem5Id   uint32
+	DropItem6Id   uint32
+}
+
 var (
 	tblCard             map[string]rowCard
 	tblCardGrowth       map[string]rowCardGrowth
@@ -82,6 +109,8 @@ var (
 	tblNewsList         []rowNews
 	tblInstance         map[string]rowInstance
 	tblInstanceList     []rowInstance
+	tblInstanceZone     map[string]rowInstanceZone
+	tblInstanceZoneList []rowInstanceZone
 )
 
 func init() {
@@ -146,5 +175,13 @@ func init() {
 
 	// instance list
 	err = lwutil.LoadCsvArray("../data/instance.csv", &tblInstanceList)
+	lwutil.PanicIfError(err)
+
+	//instance zone
+	err = lwutil.LoadCsvTbl("../data/instanceZones.csv", []string{"zoneId"}, &tblInstanceZone)
+	lwutil.PanicIfError(err)
+
+	// instance zone list
+	err = lwutil.LoadCsvArray("../data/instanceZones.csv", &tblInstanceZoneList)
 	lwutil.PanicIfError(err)
 }
