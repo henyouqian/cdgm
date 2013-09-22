@@ -50,6 +50,7 @@ func main() {
 	regAuth()
 	regStore()
 	regNews()
+	regInstance()
 
 	lab()
 

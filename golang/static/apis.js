@@ -1,7 +1,9 @@
 function Controller($scope, $http) {
+
 	$scope.apilists = [
 		{
-			"path":"auth",
+			"tab":"auth",
+			"path":"authapi",
 			"apis":[
 				{
 					"name": "login",
@@ -11,7 +13,8 @@ function Controller($scope, $http) {
 			]
 		},
 		{
-			"path":"store",
+			"tab":"store",
+			"path":"whapi/store",
 			"apis":[
 				{
 					"name": "list",
@@ -25,7 +28,8 @@ function Controller($scope, $http) {
 			]
 		},
 		{
-			"path":"news",
+			"tab":"news",
+			"path":"whapi/news",
 			"apis":[
 				{
 					"name": "list",
@@ -35,6 +39,25 @@ function Controller($scope, $http) {
 					"name": "read",
 					"method": "POST",
 					"data": {"newsId": 1}
+				},
+			]
+		},
+		{
+			"tab":"instance",
+			"path":"whapi/instance",
+			"apis":[
+				{
+					"name": "list",
+					"method": "GET",
+					"data": ""
+				},{
+					"name": "zonelist",
+					"method": "POST",
+					"data": {"instanceID": 123}
+				},{
+					"name": "enterZone",
+					"method": "POST",
+					"data": {"zoneid": 123, "bandidx":1}
 				},
 			]
 		},
@@ -50,33 +73,47 @@ function Controller($scope, $http) {
 			theme: "elegant",
 		}
 	);
+	var historyCodeMirror = CodeMirror.fromTextArea(historyTextArea, 
+		{
+			theme: "elegant",
+			readOnly: true
+		}
+	);
+	historyCodeMirror.setSize("100%", 600)
+	sendCodeMirror.addKeyMap({
+		"Ctrl-,": function(cm) {
+			alert("back")
+		},
+		"Ctrl-.": function(cm) {
+			alert("front")
+		}
+	}) 
 
-	$scope.selectedApiPath = ""
+	CodeMirror.signal(sendCodeMirror, "keydown", 2)
+
 	$scope.currApi = null
 
 	$scope.onApiClick = function(api, path) {
 		if ($scope.currApi != api) {
 			$("#btn-send").removeAttr("disabled")
 			$scope.currApi = api
-			$scope.currApi.path = path
-			var apipath = "whapi/"+$scope.currApi.path+"/"
-			if ($scope.currApi.path == "auth") {
-				apipath = "authapi/"
-			}
-			$scope.currUrl = apipath+$scope.currApi.name
+			$scope.currUrl = path+"/"+$scope.currApi.name
 			if (api.data) {
 				sendCodeMirror.doc.setValue(JSON.stringify(api.data, null, '\t'))
 			} else {
 				sendCodeMirror.doc.setValue("")
 			}
+			
+			// recvCodeMirror.doc.setValue("")
 		}
 	}
 
 	$scope.queryTick = 0
-
+	var lastHisText = ""
 	$scope.send = function() {
 		var url = "../"+$scope.currUrl
 		var input = sendCodeMirror.doc.getValue()
+		var inputText = input
 		if (input) {
 			try {
 				input = JSON.parse(input)
@@ -85,35 +122,53 @@ function Controller($scope, $http) {
 				return
 			}	
 		}
-		var t = window.performance.now()
+
+		var onReceive = function(json) {
+			printQueryTick()
+			var replyText = JSON.stringify(json, null, '\t')
+			recvCodeMirror.doc.setValue(replyText)
+
+			//history
+			var hisDoc = historyCodeMirror.getDoc()
+			hisDoc.setCursor({line: 0, ch: 0})
+
+			inputText = "\t"+inputText.replace(/\n/g, "\n\t");
+			replyText = "\t"+replyText.replace(/\n/g, "\n\t");
+
+			var hisText = "=> " + $scope.currUrl + "\n" + inputText + "\n<=\n" + replyText + "\n"
+			hisText += "------------------------\n"
+			if (lastHisText != hisText) {
+				lastHisText = hisText
+				hisDoc.replaceSelection(hisText, "start")
+			}
+
+			//input history
+
+		}
+
+		var onFail = function(obj) {
+			printQueryTick()
+			var text = obj.status + ":" + obj.statusText + "\n\n" + JSON.stringify(obj.responseJSON, null, '\t')
+			recvCodeMirror.doc.setValue(text)
+		}
+
 		function printQueryTick() {
 			$scope.$apply(function(){
 				$scope.queryTick = Math.round(window.performance.now() - t)
 			});
 		}
+		var t = window.performance.now()
 		if ($scope.currApi.method == "GET") {
-			$.getJSON(url, input, function(json){
-				printQueryTick()
-				recvCodeMirror.doc.setValue(JSON.stringify(json, null, '\t'))
-			})
-			.fail(function(obj) {
-				printQueryTick()
-				var text = obj.status + ":" + obj.statusText + "\n\n" + JSON.stringify(obj.responseJSON, null, '\t')
-				recvCodeMirror.doc.setValue(text) 
-			})
+			$.getJSON(url, input, onReceive)
+			.fail(onFail)
 		}else if ($scope.currApi.method == "POST") {
-			$.post(url, sendCodeMirror.doc.getValue(), function(json){
-				printQueryTick()
-				recvCodeMirror.doc.setValue(JSON.stringify(json, null, '\t'))
-			}, "json")
-			.fail(function(obj) {
-				printQueryTick()
-				var text = obj.status + ":" + obj.statusText + "\n\n" + JSON.stringify(obj.responseJSON, null, '\t')
-				recvCodeMirror.doc.setValue(text) 
-			})
+			$.post(url, sendCodeMirror.doc.getValue(), onReceive, "json")
+			.fail(onFail)
 		}
 	}
 
-	
+	$('#collapseOne').on('shown.bs.collapse', function () {
+		historyCodeMirror.refresh()
+	})
 }
 

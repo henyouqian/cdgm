@@ -58,6 +58,19 @@ type rowNews struct {
 	PicUrl      string
 }
 
+type rowInstance struct {
+	Id            uint32
+	Name          string
+	Type          uint32
+	LevelRestrict uint32
+	ZoneRestrict  uint32
+	TimesRestrict uint32
+	DisplayOrder  uint32
+	OpenDate      string
+	CloseDate     string
+	CoolDown      uint32
+}
+
 var (
 	tblCard             map[string]rowCard
 	tblCardGrowth       map[string]rowCardGrowth
@@ -66,8 +79,9 @@ var (
 	tblStore            map[string]rowStore
 	goodsReply          []byte
 	tblNews             map[string]rowNews
-	newsReply           []byte
 	tblNewsList         []rowNews
+	tblInstance         map[string]rowInstance
+	tblInstanceList     []rowInstance
 )
 
 func init() {
@@ -122,36 +136,15 @@ func init() {
 	err = lwutil.LoadCsvTbl("../data/news.csv", []string{"id"}, &tblNews)
 	lwutil.PanicIfError(err)
 
+	// news list
 	err = lwutil.LoadCsvArray("../data/news.csv", &tblNewsList)
 	lwutil.PanicIfError(err)
 
-	type News struct {
-		NewsId   uint32 `json:"newsId"`
-		IsUnread bool   `json:"isUnread"`
-		Date     string `json:"date"`
-		Title    string `json:"title"`
-	}
+	//instance
+	err = lwutil.LoadCsvTbl("../data/instance.csv", []string{"id"}, &tblInstance)
+	lwutil.PanicIfError(err)
 
-	newsList := make([]News, 0, 8)
-	for _, v := range tblNewsList {
-		news := News{
-			v.Id,
-			true,
-			v.Date,
-			v.Title,
-		}
-		newsList = append(newsList, news)
-	}
-
-	//reverse
-	for i, j := 0, len(newsList)-1; i < j; i, j = i+1, j-1 {
-		newsList[i], newsList[j] = newsList[j], newsList[i]
-	}
-
-	type NewReply struct {
-		News []News `json:"news"`
-	}
-	newsRp := NewReply{newsList}
-	newsReply, err = json.Marshal(&newsRp)
+	// instance list
+	err = lwutil.LoadCsvArray("../data/instance.csv", &tblInstanceList)
 	lwutil.PanicIfError(err)
 }
