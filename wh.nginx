@@ -17,14 +17,14 @@ server {
     client_max_body_size 50M;
 
 	location ^~ / {
-        root /home/liwei/projects/cdgm/www;
+        root /home/wh/cdgm/www;
         if ($query_string) {
             expires max;
         }
     }
 
 	location /go {
-        alias /home/liwei/projects/cdgm/golang/static;
+        alias /home/wh/cdgm/golang/static;
         if ($query_string) {
             expires max;
         }
@@ -47,6 +47,15 @@ server {
     }
 
 	location /whapi/news {
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Scheme $scheme;
+        proxy_pass http://goserver;
+    }
+
+	location /whapi/instance {
         proxy_pass_header Server;
         proxy_set_header Host $http_host;
         proxy_redirect off;
