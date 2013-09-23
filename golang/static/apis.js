@@ -79,20 +79,30 @@ function Controller($scope, $http) {
 			readOnly: true
 		}
 	);
+	sendCodeMirror.setSize("100%", 400)
 	historyCodeMirror.setSize("100%", 600)
 	sendCodeMirror.addKeyMap({
 		"Ctrl-,": function(cm) {
 			var hisList = inputHistory[$scope.currUrl]
 			if (isdef(hisList)) {
-				inputHisIdx = Math.max(0, Math.min(hisList.length-1, inputHisIdx-1))
-				sendCodeMirror.doc.setValue(hisList[inputHisIdx])
+				var idx = Math.max(0, Math.min(hisList.length-1, inputHisIdx-1))
+				if (inputHisIdx != idx) {
+					inputHisIdx = idx
+					sendCodeMirror.doc.setValue(hisList[inputHisIdx][0])
+					recvCodeMirror.doc.setValue(hisList[inputHisIdx][1])
+				}
+				
 			}
 		},
 		"Ctrl-.": function(cm) {
 			var hisList = inputHistory[$scope.currUrl]
 			if (isdef(hisList)) {
-				inputHisIdx = Math.max(0, Math.min(hisList.length-1, inputHisIdx+1))
-				sendCodeMirror.doc.setValue(hisList[inputHisIdx])
+				var idx = Math.max(0, Math.min(hisList.length-1, inputHisIdx+1))
+				if (inputHisIdx != idx) {
+					inputHisIdx = idx
+					sendCodeMirror.doc.setValue(hisList[inputHisIdx][0])
+					recvCodeMirror.doc.setValue(hisList[inputHisIdx][1])
+				}
 			}
 		},
 		"Esc":function(cm) {
@@ -102,6 +112,7 @@ function Controller($scope, $http) {
 			} else {
 				sendCodeMirror.doc.setValue("")
 			}
+			recvCodeMirror.doc.setValue("")
 		}
 	}) 
 
@@ -120,16 +131,18 @@ function Controller($scope, $http) {
 			$scope.currApi = api
 			$scope.currUrl = path+"/"+$scope.currApi.name
 			inputHisIdx = 0
-			if (api.data) {
-				var hisList = inputHistory[$scope.currUrl]
-				if (isdef(hisList)) {
-					inputHisIdx = hisList.length-1
-					sendCodeMirror.doc.setValue(hisList[inputHisIdx])
-				} else {
-					sendCodeMirror.doc.setValue(JSON.stringify(api.data, null, '\t'))
-				}
+			var hisList = inputHistory[$scope.currUrl]
+			if (isdef(hisList)) {
+				inputHisIdx = hisList.length-1
+				sendCodeMirror.doc.setValue(hisList[inputHisIdx][0])
+				recvCodeMirror.doc.setValue(hisList[inputHisIdx][1])
 			} else {
-				sendCodeMirror.doc.setValue("")
+				if (api.data) {
+					sendCodeMirror.doc.setValue(JSON.stringify(api.data, null, '\t'))
+				}else{
+					sendCodeMirror.doc.setValue("")
+				}
+				recvCodeMirror.doc.setValue("")
 			}
 		}
 		sendCodeMirror.focus()
@@ -158,10 +171,10 @@ function Controller($scope, $http) {
 			var hisDoc = historyCodeMirror.getDoc()
 			hisDoc.setCursor({line: 0, ch: 0})
 
-			inputText = "\t"+inputText.replace(/\n/g, "\n\t");
-			replyText = "\t"+replyText.replace(/\n/g, "\n\t");
+			inputTextTab = "\t"+inputText.replace(/\n/g, "\n\t");
+			replyTextTab = "\t"+replyText.replace(/\n/g, "\n\t");
 
-			var hisText = "=> " + $scope.currUrl + "\n" + inputText + "\n<=\n" + replyText + "\n"
+			var hisText = "=> " + $scope.currUrl + "\n" + inputTextTab + "\n<=\n" + replyTextTab + "\n"
 			hisText += "------------------------\n"
 			if (lastHisText != hisText) {
 				lastHisText = hisText
@@ -171,10 +184,10 @@ function Controller($scope, $http) {
 				if (isdef(inputHistory[sendUrl])) {
 					var inHisList = inputHistory[sendUrl]
 					if (inHisList[inHisList.length-1] != sendInput) {
-						inputHistory[sendUrl].push(sendInput)
+						inputHistory[sendUrl].push([sendInput, replyText])
 					}
 				} else {
-					inputHistory[sendUrl] = [sendInput]
+					inputHistory[sendUrl] = [[sendInput, replyText]]
 				}
 				inputHisIdx = inputHistory[sendUrl].length-1
 			}
