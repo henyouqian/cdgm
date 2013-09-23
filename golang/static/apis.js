@@ -91,7 +91,6 @@ function Controller($scope, $http) {
 					sendCodeMirror.doc.setValue(hisList[inputHisIdx][0])
 					recvCodeMirror.doc.setValue(hisList[inputHisIdx][1])
 				}
-				
 			}
 		},
 		"Ctrl-.": function(cm) {
