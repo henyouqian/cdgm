@@ -39,7 +39,7 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 			v.OpenDate,
 			v.CloseDate,
 			v.CoolDown,
-			0,
+			v.TimesRestrict,
 		}
 		instList = append(instList, inst)
 	}

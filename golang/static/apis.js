@@ -82,14 +82,35 @@ function Controller($scope, $http) {
 	historyCodeMirror.setSize("100%", 600)
 	sendCodeMirror.addKeyMap({
 		"Ctrl-,": function(cm) {
-			alert("back")
+			var hisList = inputHistory[$scope.currUrl]
+			if (isdef(hisList)) {
+				inputHisIdx = Math.max(0, Math.min(hisList.length-1, inputHisIdx-1))
+				sendCodeMirror.doc.setValue(hisList[inputHisIdx])
+			}
 		},
 		"Ctrl-.": function(cm) {
-			alert("front")
+			var hisList = inputHistory[$scope.currUrl]
+			if (isdef(hisList)) {
+				inputHisIdx = Math.max(0, Math.min(hisList.length-1, inputHisIdx+1))
+				sendCodeMirror.doc.setValue(hisList[inputHisIdx])
+			}
+		},
+		"Esc":function(cm) {
+			var api = $scope.currApi
+			if (api && api.data) {
+				sendCodeMirror.doc.setValue(JSON.stringify(api.data, null, '\t'))
+			} else {
+				sendCodeMirror.doc.setValue("")
+			}
 		}
 	}) 
 
 	CodeMirror.signal(sendCodeMirror, "keydown", 2)
+
+	var inputHistory = {}
+	var sendInput = ""
+	var sendUrl=""
+	var inputHisIdx = 0
 
 	$scope.currApi = null
 
@@ -98,20 +119,25 @@ function Controller($scope, $http) {
 			$("#btn-send").removeAttr("disabled")
 			$scope.currApi = api
 			$scope.currUrl = path+"/"+$scope.currApi.name
+			inputHisIdx = 0
 			if (api.data) {
-				sendCodeMirror.doc.setValue(JSON.stringify(api.data, null, '\t'))
+				var hisList = inputHistory[$scope.currUrl]
+				if (isdef(hisList)) {
+					inputHisIdx = hisList.length-1
+					sendCodeMirror.doc.setValue(hisList[inputHisIdx])
+				} else {
+					sendCodeMirror.doc.setValue(JSON.stringify(api.data, null, '\t'))
+				}
 			} else {
 				sendCodeMirror.doc.setValue("")
 			}
-			
-			// recvCodeMirror.doc.setValue("")
 		}
+		sendCodeMirror.focus()
 	}
 
 	$scope.queryTick = 0
 	var lastHisText = ""
 	$scope.send = function() {
-		var url = "../"+$scope.currUrl
 		var input = sendCodeMirror.doc.getValue()
 		var inputText = input
 		if (input) {
@@ -140,10 +166,19 @@ function Controller($scope, $http) {
 			if (lastHisText != hisText) {
 				lastHisText = hisText
 				hisDoc.replaceSelection(hisText, "start")
+
+				//input history
+				if (isdef(inputHistory[sendUrl])) {
+					var inHisList = inputHistory[sendUrl]
+					if (inHisList[inHisList.length-1] != sendInput) {
+						inputHistory[sendUrl].push(sendInput)
+					}
+				} else {
+					inputHistory[sendUrl] = [sendInput]
+				}
+				inputHisIdx = inputHistory[sendUrl].length-1
 			}
-
-			//input history
-
+			sendCodeMirror.focus()
 		}
 
 		var onFail = function(obj) {
@@ -157,6 +192,10 @@ function Controller($scope, $http) {
 				$scope.queryTick = Math.round(window.performance.now() - t)
 			});
 		}
+
+		sendInput = inputText
+		sendUrl = $scope.currUrl
+		var url = "/"+sendUrl
 		var t = window.performance.now()
 		if ($scope.currApi.method == "GET") {
 			$.getJSON(url, input, onReceive)
@@ -171,4 +210,3 @@ function Controller($scope, $http) {
 		historyCodeMirror.refresh()
 	})
 }
-

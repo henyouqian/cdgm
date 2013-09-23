@@ -1,4 +1,4 @@
-id,name,types,levelRestrict,displayOrder,openDate,closeDate,timesRestrict,coolDown,zoneRestrict
+id,name,type,levelRestrict,displayOrder,openDate,closeDate,timesRestrict,coolDown,zoneRestrict
 1,史萊姆的逆襲,1,20,2,0,0,1,43200,0
 2,寶石礦場,1,30,3,0,0,1,43200,0
 3,死亡回廊,1,50,4,0,0,1,43200,0
