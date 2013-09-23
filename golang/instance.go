@@ -3,10 +3,11 @@ package main
 import (
 	//_ "github.com/go-sql-driver/mysql"
 	//"encoding/json"
-	//"fmt"
 	//"github.com/golang/glog"
+	"fmt"
 	"github.com/henyouqian/lwutil"
 	"net/http"
+	"time"
 )
 
 func instanceList(w http.ResponseWriter, r *http.Request) {
@@ -28,6 +29,19 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 
 	instList := make([]Instance, 0, 8)
 	for _, v := range tblInstanceList {
+		openDate := ""
+		closeDate := ""
+		if v.OpenDate != "0" {
+			t, err := time.ParseInLocation("2006-01-02", v.OpenDate, time.Local)
+			lwutil.CheckError(err, "")
+			openDate = fmt.Sprintf("%d月%d日", t.Month(), t.Day())
+		}
+		if v.CloseDate != "0" {
+			t, err := time.ParseInLocation("2006-01-02", v.CloseDate, time.Local)
+			lwutil.CheckError(err, "")
+			closeDate = fmt.Sprintf("%d月%d日", t.Month(), t.Day())
+		}
+
 		inst := Instance{
 			v.Id,
 			v.Name,
@@ -36,8 +50,8 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 			v.ZoneRestrict,
 			v.TimesRestrict,
 			v.DisplayOrder,
-			v.OpenDate,
-			v.CloseDate,
+			openDate,
+			closeDate,
 			v.CoolDown,
 			v.TimesRestrict,
 		}
@@ -79,8 +93,12 @@ func instanceZoneList(w http.ResponseWriter, r *http.Request) {
 	}
 	zones := make([]Zone, 0, 8)
 
+	lastZone := uint32(0)
 	for _, v := range tblInstanceZoneList {
 		if v.InstanceID == in.InstanceID {
+			if lastZone == 0 {
+				lastZone = v.ZoneId
+			}
 			var zone Zone
 			zone.ZoneId = v.ZoneId
 			zone.ResourceId = v.ResourceId
@@ -116,7 +134,7 @@ func instanceZoneList(w http.ResponseWriter, r *http.Request) {
 		LastZone     uint32 `json:"lastZone"`
 		InstanceZone []Zone `json:"instanceZone"`
 	}
-	out := Out{0, zones}
+	out := Out{lastZone, zones}
 	lwutil.WriteResponse(w, out)
 }
 
