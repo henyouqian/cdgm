@@ -2,11 +2,12 @@ package main
 
 import (
 	//_ "github.com/go-sql-driver/mysql"
-	//"encoding/json"
 	//"github.com/golang/glog"
+	"encoding/json"
 	"fmt"
 	"github.com/henyouqian/lwutil"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -138,7 +139,135 @@ func instanceZoneList(w http.ResponseWriter, r *http.Request) {
 	lwutil.WriteResponse(w, out)
 }
 
+func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
+	lwutil.CheckMathod(r, "POST")
+
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	session, err := findSession(w, r, rc)
+	lwutil.CheckError(err, "err_auth")
+
+	//input
+	var in struct {
+		ZoneId  uint32
+		BandIdx uint32
+	}
+	err = lwutil.DecodeRequestBody(r, &in)
+	lwutil.CheckError(err, "err_decode_body")
+
+	//get player info
+	row := whDB.QueryRow("SELECT bands, inZoneId FROM playerInfos WHERE userId=?", session.Userid)
+	var bandsJs []byte
+	var inZoneId uint32
+	err = row.Scan(&bandsJs, &inZoneId)
+	lwutil.CheckError(err, "")
+
+	//parse band
+	type Band struct {
+		Formation uint32
+		Members   []uint32
+	}
+	var bands []Band
+	err = json.Unmarshal(bandsJs, &bands)
+	lwutil.CheckError(err, "")
+
+	if in.BandIdx >= uint32(len(bands)) {
+		lwutil.SendError("err_input", fmt.Sprintf("invalid band index:%d", in.BandIdx))
+	}
+
+	//check zone id
+	if inZoneId != 0 {
+		lwutil.SendError("err_in_zone", "alread in zone")
+	}
+
+	//instance zone data
+	instZone, ok := tblInstanceZone[strconv.FormatUint(uint64(in.ZoneId), 10)]
+	if !ok {
+		lwutil.SendError("err_input", fmt.Sprintf("invalid zoneid:%d", in.ZoneId))
+	}
+
+	//instance data
+	inst, ok := tblInstance[strconv.FormatUint(uint64(instZone.InstanceID), 10)]
+	if !ok {
+		lwutil.SendError("", fmt.Sprintf("invalid instanceId:%d", instZone.InstanceID))
+	}
+	_ = inst
+
+	//some check...
+
+	//
+
+	//out
+	type OutObj []uint32
+
+	type OutEvent struct {
+		X           uint32 `json:"x"`
+		Y           uint32 `json:"y"`
+		StartDialog uint32 `json:"startDialog"`
+		EndDialog   uint32 `json:"endDialog"`
+		Obj         int32  `json:"obj"`
+	}
+
+	type OutBandMember struct {
+		Id uint32 `json:"id"`
+		Hp uint32 `json:"hp"`
+	}
+	type OutBand struct {
+		Formation uint32          `json:"formation"`
+		Members   []OutBandMember `json:"members"`
+	}
+
+	type OutVec2 struct {
+		X uint32 `json:"x"`
+		Y uint32 `json:"y"`
+	}
+
+	type Out struct {
+		Error            string     `json:"error"`
+		ZoneId           uint32     `json:"zoneId"`
+		StartPos         OutVec2    `json:"startPos"`
+		GoalPos          OutVec2    `json:"goalPos"`
+		CurrPos          OutVec2    `json:"currPos"`
+		RedCase          uint32     `json:"redCase"`
+		GoldCase         uint32     `json:"goldCase"`
+		Objs             []OutObj   `json:"objs"`
+		Events           []OutEvent `json:"events"`
+		Band             []OutBand  `json:"band"`
+		EnterDialogue    uint32     `json:"enterDialogue"`
+		CompleteDialogue uint32     `json:"completeDialogue"`
+		PlayerRank       uint32     `json:"playerRank"`
+		PlayerScore      uint32     `json:"playerScore"`
+		Xp               uint32     `json:"xp"`
+		XpAddRemain      uint32     `json:"xpAddRemain"`
+		Whcoin           uint32     `json:"whcoin"`
+		Temp             interface{}
+	}
+	out := Out{
+		Error:            "",
+		ZoneId:           0,
+		StartPos:         OutVec2{0, 0},
+		GoalPos:          OutVec2{0, 0},
+		CurrPos:          OutVec2{0, 0},
+		RedCase:          0,
+		GoldCase:         0,
+		Objs:             []OutObj{{2, 3, 4}, {4, 3, 2}},
+		Events:           []OutEvent{{}, {}},
+		Band:             []OutBand{{Members: []OutBandMember{}}},
+		EnterDialogue:    0,
+		CompleteDialogue: 0,
+		PlayerRank:       0,
+		PlayerScore:      0,
+		Xp:               0,
+		XpAddRemain:      0,
+		Whcoin:           0,
+		Temp:             bands,
+	}
+	lwutil.WriteResponse(w, out)
+}
+
 func regInstance() {
 	http.Handle("/whapi/instance/list", lwutil.ReqHandler(instanceList))
 	http.Handle("/whapi/instance/zonelist", lwutil.ReqHandler(instanceZoneList))
+	http.Handle("/whapi/instance/enterzone", lwutil.ReqHandler(instanceEnterZone))
 }

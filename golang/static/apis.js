@@ -55,9 +55,9 @@ function Controller($scope, $http) {
 					"method": "POST",
 					"data": {"instanceID": 123}
 				},{
-					"name": "enterZone",
+					"name": "enterzone",
 					"method": "POST",
-					"data": {"zoneid": 123, "bandidx":1}
+					"data": {"zoneid": 500001, "bandidx":0}
 				},
 			]
 		},
@@ -79,7 +79,8 @@ function Controller($scope, $http) {
 			readOnly: true
 		}
 	);
-	sendCodeMirror.setSize("100%", 400)
+	sendCodeMirror.setSize("100%", 500)
+	recvCodeMirror.setSize("100%", 500)
 	historyCodeMirror.setSize("100%", 600)
 	sendCodeMirror.addKeyMap({
 		"Ctrl-,": function(cm) {

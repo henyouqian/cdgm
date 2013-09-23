@@ -71,5 +71,5 @@ func s() {
 }
 
 func lab() {
-
+	parseMaps()
 }

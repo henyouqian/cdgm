@@ -51,6 +51,7 @@ func main() {
 	regStore()
 	regNews()
 	regInstance()
+	regZone()
 
 	lab()
 
