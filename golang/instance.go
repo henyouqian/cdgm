@@ -2,9 +2,9 @@ package main
 
 import (
 	//_ "github.com/go-sql-driver/mysql"
-	//"github.com/golang/glog"
 	"encoding/json"
 	"fmt"
+	//"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"strconv"
@@ -157,17 +157,20 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckError(err, "err_decode_body")
 
 	//get player info
-	row := whDB.QueryRow("SELECT bands, inZoneId FROM playerInfos WHERE userId=?", session.Userid)
+	row := whDB.QueryRow("SELECT bands, inZoneId, xp, maxXp, lastXpTime, whCoin FROM playerInfos WHERE userId=?", session.Userid)
 	var bandsJs []byte
 	var inZoneId uint32
-	err = row.Scan(&bandsJs, &inZoneId)
+	var xp uint32
+	var maxXp uint32
+	var lastXpTimeStr string
+	var whCoin uint32
+	err = row.Scan(&bandsJs, &inZoneId, &xp, &maxXp, &lastXpTimeStr, &whCoin)
+	lwutil.CheckError(err, "")
+
+	lastXpTime, err := time.ParseInLocation("2006-01-02 15:04:05", lastXpTimeStr, time.Local)
 	lwutil.CheckError(err, "")
 
 	//parse band
-	type Band struct {
-		Formation uint32
-		Members   []uint32
-	}
 	var bands []Band
 	err = json.Unmarshal(bandsJs, &bands)
 	lwutil.CheckError(err, "")
@@ -175,6 +178,31 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	if in.BandIdx >= uint32(len(bands)) {
 		lwutil.SendError("err_input", fmt.Sprintf("invalid band index:%d", in.BandIdx))
 	}
+
+	currBand := bands[in.BandIdx]
+
+	//update xp
+	now := lwutil.GetRedisTime()
+	if lastXpTime.Unix() > now.Unix() {
+		lastXpTime = now
+	}
+	dt := now.Sub(lastXpTime)
+	dSec := int32(dt.Seconds())
+	dxp := int32(dSec / XP_ADD_DURATION)
+	xpAddRemain := int32(0)
+	if dxp > 0 {
+		xp = uint32(lwutil.Min(int64(maxXp), int64(int32(xp)+dxp)))
+	}
+	if xp == maxXp {
+		lastXpTime = now
+	} else {
+		t := dSec % XP_ADD_DURATION
+		xpAddRemain = XP_ADD_DURATION - t
+		lastXpTime = now.Add(time.Duration(-t) * time.Second)
+	}
+
+	_, err = whDB.Exec("UPDATE playerInfos SET xp=?, lastXpTime=? WHERE userId=?", xp, lastXpTime, session.Userid)
+	lwutil.CheckError(err, "")
 
 	//check zone id
 	if inZoneId != 0 {
@@ -194,13 +222,25 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = inst
 
-	//some check...
+	//some instance restrict checking...
 
-	//
+	//gen cache
+	cache, err := genCache(in.ZoneId, true, session.Userid, currBand)
+	lwutil.CheckError(err, "")
 
 	//out
-	type OutObj []uint32
+	// out obj
+	type OutObj [3]int32
+	outObjs := make([]OutObj, len(cache.Objs))
+	i := 0
+	for k, v := range cache.Objs {
+		var x, y int32
+		fmt.Sscanf(k, "%d,%d", &x, &y)
+		outObjs[i] = [3]int32{x, y, v}
+		i++
+	}
 
+	// out event
 	type OutEvent struct {
 		X           uint32 `json:"x"`
 		Y           uint32 `json:"y"`
@@ -209,18 +249,30 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		Obj         int32  `json:"obj"`
 	}
 
+	// out band
 	type OutBandMember struct {
-		Id uint32 `json:"id"`
+		Id uint64 `json:"id"`
 		Hp uint32 `json:"hp"`
 	}
+
 	type OutBand struct {
 		Formation uint32          `json:"formation"`
 		Members   []OutBandMember `json:"members"`
+	}
+	var outband OutBand
+	outband.Formation = cache.Band.Formation
+	for _, mem := range cache.Band.Members {
+		outband.Members = append(outband.Members, OutBandMember{mem[0], uint32(mem[1])})
 	}
 
 	type OutVec2 struct {
 		X uint32 `json:"x"`
 		Y uint32 `json:"y"`
+	}
+
+	mapRow, ok := tblMap[strconv.Itoa(int(in.ZoneId))]
+	if !ok {
+		lwutil.SendError("", fmt.Sprintf("no map in tblMaps: zoneId=%d", in.ZoneId))
 	}
 
 	type Out struct {
@@ -233,7 +285,7 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		GoldCase         uint32     `json:"goldCase"`
 		Objs             []OutObj   `json:"objs"`
 		Events           []OutEvent `json:"events"`
-		Band             []OutBand  `json:"band"`
+		Band             OutBand    `json:"band"`
 		EnterDialogue    uint32     `json:"enterDialogue"`
 		CompleteDialogue uint32     `json:"completeDialogue"`
 		PlayerRank       uint32     `json:"playerRank"`
@@ -241,27 +293,25 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		Xp               uint32     `json:"xp"`
 		XpAddRemain      uint32     `json:"xpAddRemain"`
 		Whcoin           uint32     `json:"whcoin"`
-		Temp             interface{}
 	}
 	out := Out{
 		Error:            "",
-		ZoneId:           0,
-		StartPos:         OutVec2{0, 0},
-		GoalPos:          OutVec2{0, 0},
-		CurrPos:          OutVec2{0, 0},
-		RedCase:          0,
-		GoldCase:         0,
-		Objs:             []OutObj{{2, 3, 4}, {4, 3, 2}},
+		ZoneId:           cache.ZoneId,
+		StartPos:         OutVec2{cache.StartPos[0], cache.StartPos[1]},
+		GoalPos:          OutVec2{cache.GoalPos[0], cache.GoalPos[1]},
+		CurrPos:          OutVec2{cache.CurrPos[0], cache.CurrPos[1]},
+		RedCase:          cache.RedCase,
+		GoldCase:         cache.GoldCase,
+		Objs:             outObjs,
 		Events:           []OutEvent{{}, {}},
-		Band:             []OutBand{{Members: []OutBandMember{}}},
-		EnterDialogue:    0,
-		CompleteDialogue: 0,
+		Band:             outband,
+		EnterDialogue:    mapRow.EnterDialog,
+		CompleteDialogue: mapRow.CompleteDialog,
 		PlayerRank:       0,
 		PlayerScore:      0,
-		Xp:               0,
-		XpAddRemain:      0,
-		Whcoin:           0,
-		Temp:             bands,
+		Xp:               xp,
+		XpAddRemain:      uint32(xpAddRemain),
+		Whcoin:           whCoin,
 	}
 	lwutil.WriteResponse(w, out)
 }

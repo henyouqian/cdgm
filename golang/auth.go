@@ -125,6 +125,16 @@ func login(w http.ResponseWriter, r *http.Request) {
 	lwutil.WriteResponse(w, usertoken)
 }
 
+func authInfo(w http.ResponseWriter, r *http.Request) {
+	lwutil.CheckMathod(r, "POST")
+
+	session, err := findSession(w, r, nil)
+	lwutil.CheckError(err, "err_auth")
+
+	lwutil.WriteResponse(w, session)
+}
+
 func regAuth() {
 	http.Handle("/authapi/login", lwutil.ReqHandler(login))
+	http.Handle("/authapi/info", lwutil.ReqHandler(authInfo))
 }

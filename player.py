@@ -160,7 +160,7 @@ class GetInfo(tornado.web.RequestHandler):
                 last_xp_time = curr_time
             else:
                 t = dt % XP_ADD_DURATION
-                reply["xpAddRemain"] = dt % XP_ADD_DURATION
+                reply["xpAddRemain"] = XP_ADD_DURATION - t
                 last_xp_time = curr_time - timedelta(seconds = t)
             reply["xp"] = xp
 
@@ -676,7 +676,7 @@ class GetTime(tornado.web.RequestHandler):
                 last_xp_time = curr_time
             else:
                 t = dt % XP_ADD_DURATION
-                xp_add_remain = dt % XP_ADD_DURATION
+                xp_add_remain = XP_ADD_DURATION - t
                 last_xp_time = curr_time - timedelta(seconds = t)
 
             #update ap

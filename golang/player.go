@@ -16,3 +16,8 @@ func addItems(items Items, adding []ItemInfo) {
 		items[v.Id] += v.Count
 	}
 }
+
+type Band struct {
+	Formation uint32
+	Members   []uint64
+}

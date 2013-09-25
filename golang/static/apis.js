@@ -9,6 +9,10 @@ function Controller($scope, $http) {
 					"name": "login",
 					"method": "GET",
 					"data": {"username":"admin", "password":"admin"}
+				},{
+					"name": "info",
+					"method": "POST",
+					"data": ""
 				},
 			]
 		},
@@ -171,8 +175,8 @@ function Controller($scope, $http) {
 			var hisDoc = historyCodeMirror.getDoc()
 			hisDoc.setCursor({line: 0, ch: 0})
 
-			inputTextTab = "\t"+inputText.replace(/\n/g, "\n\t");
-			replyTextTab = "\t"+replyText.replace(/\n/g, "\n\t");
+			inputTextTab = "\t"+inputText.replace(/\n/g, "\n\t")
+			replyTextTab = "\t"+replyText.replace(/\n/g, "\n\t")
 
 			var hisText = "=> " + $scope.currUrl + "\n" + inputTextTab + "\n<=\n" + replyTextTab + "\n"
 			hisText += "------------------------\n"
@@ -196,7 +200,12 @@ function Controller($scope, $http) {
 
 		var onFail = function(obj) {
 			printQueryTick()
-			var text = obj.status + ":" + obj.statusText + "\n\n" + JSON.stringify(obj.responseJSON, null, '\t')
+			var t = JSON.stringify(obj.responseJSON, null, '\t')
+			if (isdef(t))
+				t = t.replace(/\\n/g, "\n")
+			if (isdef(t))
+				t = t.replace(/\\t/g, "  ")
+			var text = obj.status + ":" + obj.statusText + "\n\n" + t
 			recvCodeMirror.doc.setValue(text)
 		}
 

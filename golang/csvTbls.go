@@ -98,6 +98,54 @@ type rowInstanceZone struct {
 	DropItem6Id   uint32
 }
 
+type rowMap struct {
+	ItemProb       float32 `json:"item%"`
+	MonsterProb    float32 `json:"monster%"`
+	EventProb      float32 `json:"event%"`
+	PvpProb        float32 `json:"PVP%"`
+	WoodProb       float32 `json:"wood%"`
+	RedCaseProb    float32 `json:"treasure%"`
+	GoldCaseProb   float32 `json:"chest%"`
+	LittleGoldProb float32 `json:"littlegold%"`
+	BigGoldProb    float32 `json:"biggold%"`
+	Monster1ID     uint32  `json:"monster1ID"`
+	Monster2ID     uint32  `json:"monster2ID"`
+	Monster3ID     uint32  `json:"monster3ID"`
+	Monster4ID     uint32  `json:"monster4ID"`
+	Monster5ID     uint32  `json:"monster5ID"`
+	Monster6ID     uint32  `json:"monster6ID"`
+	Monster7ID     uint32  `json:"monster7ID"`
+	Monster8ID     uint32  `json:"monster8ID"`
+	Monster9ID     uint32  `json:"monster9ID"`
+	Monster10ID    uint32  `json:"monster10ID"`
+	EnterDialog    uint32  `json:"enterzonerdialogueID"`
+	CompleteDialog uint32  `json:"completezonedialogueID"`
+}
+
+type rowEvent struct {
+	Id              uint32
+	EventType       uint32
+	Repeat          uint32
+	StartdialogueID uint32
+	OverdialogueID  uint32
+	MonsterID       uint32
+	Item1ID         uint32
+	Amount1         uint32
+	Item2ID         uint32
+	Amount2         uint32
+	Item3ID         uint32
+	Amount3         uint32
+	Card1ID         uint32
+	Card2ID         uint32
+	Card3ID         uint32
+}
+
+type rowMapEvent struct {
+	MapId     uint32
+	TileValue uint32
+	EventId   uint32
+}
+
 var (
 	tblCard             map[string]rowCard
 	tblCardGrowth       map[string]rowCardGrowth
@@ -111,6 +159,9 @@ var (
 	tblInstanceList     []rowInstance
 	tblInstanceZone     map[string]rowInstanceZone
 	tblInstanceZoneList []rowInstanceZone
+	tblMap              map[string]rowMap
+	tblEvent            map[string]rowEvent
+	tblMapEvent         map[string]rowMapEvent
 )
 
 func init() {
@@ -184,4 +235,17 @@ func init() {
 	// instance zone list
 	err = lwutil.LoadCsvArray("../data/instanceZones.csv", &tblInstanceZoneList)
 	lwutil.PanicIfError(err)
+
+	//map
+	err = lwutil.LoadCsvTbl("../data/maps.csv", []string{"zoneID"}, &tblMap)
+	lwutil.PanicIfError(err)
+
+	//event
+	err = lwutil.LoadCsvTbl("../data/events.csv", []string{"ID"}, &tblEvent)
+	lwutil.PanicIfError(err)
+
+	//mapEvent
+	err = lwutil.LoadCsvTbl("../data/mapevents.csv", []string{"mapid", "tilevalue"}, &tblMapEvent)
+	lwutil.PanicIfError(err)
+
 }
