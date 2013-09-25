@@ -135,6 +135,7 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 
 	var out zoneCache
 	out.Objs = make(map[string]int32)
+	out.Events = make(map[string]int32)
 
 	//objs
 	for tileKey, v := range zoneData {

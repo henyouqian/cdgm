@@ -248,6 +248,33 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		EndDialog   uint32 `json:"endDialog"`
 		Obj         int32  `json:"obj"`
 	}
+	outEvents := make([]OutEvent, 0, 8)
+
+	for xyStr, eventId := range cache.Events {
+		tblRow, ok := tblEvent[strconv.FormatUint(uint64(eventId), 10)]
+		if !ok {
+			lwutil.SendError("", fmt.Sprintf("invalid eventId: %d", eventId))
+		}
+
+		var outEvent OutEvent
+		fmt.Sscanf(xyStr, "%d,%d", &outEvent.X, &outEvent.Y)
+		outEvent.StartDialog = tblRow.StartdialogueID
+		outEvent.EndDialog = tblRow.OverdialogueID
+
+		//
+		if tblRow.MonsterID != 0 {
+			outEvent.Obj = int32(-tblRow.MonsterID)
+		} else if tblRow.Item1ID != 0 {
+			itemMap := map[uint32]uint32{18: 4, 19: 5, 20: 2, 21: 3}
+			obj, ok := itemMap[tblRow.Item1ID]
+			if !ok {
+				lwutil.SendError("", fmt.Sprintf("invalid Item1ID: %d", tblRow.Item1ID))
+			}
+			outEvent.Obj = int32(obj)
+		}
+
+		outEvents = append(outEvents, outEvent)
+	}
 
 	// out band
 	type OutBandMember struct {
@@ -303,7 +330,7 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		RedCase:          cache.RedCase,
 		GoldCase:         cache.GoldCase,
 		Objs:             outObjs,
-		Events:           []OutEvent{{}, {}},
+		Events:           outEvents,
 		Band:             outband,
 		EnterDialogue:    mapRow.EnterDialog,
 		CompleteDialogue: mapRow.CompleteDialog,
