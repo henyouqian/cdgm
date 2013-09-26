@@ -157,17 +157,20 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckError(err, "err_decode_body")
 
 	//get player info
-	row := whDB.QueryRow("SELECT bands, inZoneId, xp, maxXp, lastXpTime, whCoin FROM playerInfos WHERE userId=?", session.Userid)
+	row := whDB.QueryRow("SELECT bands, inZoneId, xp, maxXp, lastXpTime, whCoin, UTC_TIMESTAMP() FROM playerInfos WHERE userId=?", session.Userid)
 	var bandsJs []byte
 	var inZoneId uint32
 	var xp uint32
 	var maxXp uint32
 	var lastXpTimeStr string
 	var whCoin uint32
-	err = row.Scan(&bandsJs, &inZoneId, &xp, &maxXp, &lastXpTimeStr, &whCoin)
+	var nowStr string
+	err = row.Scan(&bandsJs, &inZoneId, &xp, &maxXp, &lastXpTimeStr, &whCoin, &nowStr)
 	lwutil.CheckError(err, "")
 
-	lastXpTime, err := time.ParseInLocation("2006-01-02 15:04:05", lastXpTimeStr, time.Local)
+	lastXpTime, err := time.ParseInLocation("2006-01-02 15:04:05", lastXpTimeStr, time.UTC)
+	lwutil.CheckError(err, "")
+	now, err := time.ParseInLocation("2006-01-02 15:04:05", nowStr, time.UTC)
 	lwutil.CheckError(err, "")
 
 	//parse band
@@ -182,7 +185,6 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	currBand := bands[in.BandIdx]
 
 	//update xp
-	now := lwutil.GetRedisTime()
 	if lastXpTime.Unix() > now.Unix() {
 		lastXpTime = now
 	}
@@ -201,13 +203,10 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		lastXpTime = now.Add(time.Duration(-t) * time.Second)
 	}
 
-	_, err = whDB.Exec("UPDATE playerInfos SET xp=?, lastXpTime=? WHERE userId=?", xp, lastXpTime, session.Userid)
-	lwutil.CheckError(err, "")
-
 	//check zone id
-	if inZoneId != 0 {
-		lwutil.SendError("err_in_zone", "alread in zone")
-	}
+	//if inZoneId != 0 {
+	//	lwutil.SendError("err_in_zone", "alread in zone")
+	//}
 
 	//instance zone data
 	instZone, ok := tblInstanceZone[strconv.FormatUint(uint64(in.ZoneId), 10)]
@@ -275,6 +274,13 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 
 		outEvents = append(outEvents, outEvent)
 	}
+
+	//update db
+	cacheJs, err := json.Marshal(cache)
+	lwutil.CheckError(err, "")
+	_, err = whDB.Exec(`UPDATE playerInfos SET zoneCache=?, inZoneId=?, currentBand=?, xp=?, lastXpTime=?
+                WHERE userid=?`, cacheJs, in.ZoneId, in.BandIdx, xp, lastXpTime, session.Userid)
+	lwutil.CheckError(err, "")
 
 	// out band
 	type OutBandMember struct {
