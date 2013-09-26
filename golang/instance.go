@@ -320,6 +320,9 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		Xp               uint32     `json:"xp"`
 		XpAddRemain      uint32     `json:"xpAddRemain"`
 		Whcoin           uint32     `json:"whcoin"`
+		BgmId            uint32     `json:"bgmId"`
+		ResourceId       uint32     `json:"resourceId"`
+		BattleBgId       string     `json:"battleBgId"`
 	}
 	out := Out{
 		Error:            "",
@@ -339,6 +342,9 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		Xp:               xp,
 		XpAddRemain:      uint32(xpAddRemain),
 		Whcoin:           whCoin,
+		BgmId:            mapRow.BgmID,
+		ResourceId:       mapRow.ResourceId,
+		BattleBgId:       mapRow.BattleBgId,
 	}
 	lwutil.WriteResponse(w, out)
 }

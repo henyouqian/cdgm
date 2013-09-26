@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"sort"
+	"time"
 )
 
 func dbSimple(w http.ResponseWriter, r *http.Request) {
@@ -68,6 +70,86 @@ func s() {
 	l := []int{3, 35, 23, 6, 22}
 	sort.Sort(sort.Reverse(sort.IntSlice(l)))
 	glog.Infoln(l)
+}
+
+func jsonCompStructVsMap() {
+	type OutVec2 struct {
+		X uint32
+		Y uint32
+	}
+	type Out struct {
+		Error            string  `json:"error"`
+		ZoneId           uint32  `json:"zoneId"`
+		StartPos         OutVec2 `json:"startPos"`
+		GoalPos          OutVec2 `json:"goalPos"`
+		CurrPos          OutVec2 `json:"currPos"`
+		RedCase          uint32  `json:"redCase"`
+		GoldCase         uint32  `json:"goldCase"`
+		Objs             string  `json:"objs"`
+		Events           string  `json:"events"`
+		Band             string  `json:"band"`
+		EnterDialogue    uint32  `json:"enterDialogue"`
+		CompleteDialogue uint32  `json:"completeDialogue"`
+		PlayerRank       uint32  `json:"playerRank"`
+		PlayerScore      uint32  `json:"playerScore"`
+		Xp               uint32  `json:"xp"`
+		XpAddRemain      uint32  `json:"xpAddRemain"`
+		Whcoin           uint32  `json:"whcoin"`
+	}
+
+	t := time.Now().UnixNano()
+	for i := 0; i < 1000; i++ {
+		out := map[string]interface{}{
+			"error":            "",
+			"zoneId":           11,
+			"startPos":         OutVec2{1, 2},
+			"goalPos":          OutVec2{1, 2},
+			"currPos":          OutVec2{1, 2},
+			"redCase":          11,
+			"goldCase":         22,
+			"objs":             "xx",
+			"events":           "xx",
+			"band":             "xx",
+			"enterDialoguev":   11,
+			"completeDialogue": 11,
+			"playerRank":       0,
+			"payerScore":       0,
+			"xp":               44,
+			"xpAddRemain":      33,
+			"whcoin":           22,
+		}
+		json.Marshal(out)
+	}
+	t1 := time.Now().UnixNano()
+	glog.Infoln(t1 - t)
+
+	t = t1
+	for i := 0; i < 1000; i++ {
+		out := Out{
+			Error:            "",
+			ZoneId:           11,
+			StartPos:         OutVec2{1, 2},
+			GoalPos:          OutVec2{1, 2},
+			CurrPos:          OutVec2{1, 2},
+			RedCase:          11,
+			GoldCase:         22,
+			Objs:             "xx",
+			Events:           "xx",
+			Band:             "xx",
+			EnterDialogue:    11,
+			CompleteDialogue: 11,
+			PlayerRank:       0,
+			PlayerScore:      0,
+			Xp:               44,
+			XpAddRemain:      33,
+			Whcoin:           22,
+		}
+		json.Marshal(out)
+
+	}
+
+	t1 = time.Now().UnixNano()
+	glog.Infoln(t1 - t)
 }
 
 func lab() {

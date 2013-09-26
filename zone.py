@@ -141,9 +141,12 @@ def trans_cache_to_client(cache):
     out["events"] = outevents
 
     # dialogue
-    enter_diag, complete_diag = map(int, map_tbl.gets(cache["zoneId"], "enterzonerdialogueID", "completezonedialogueID"))
-    out["enterDialogue"] = enter_diag
-    out["completeDialogue"] = complete_diag
+    enter_diag, complete_diag, bgmid, resid, btlbgid = map_tbl.gets(cache["zoneId"], "enterzonerdialogueID", "completezonedialogueID", "bgmID", "resourceId", "battleBgId")
+    out["enterDialogue"] = int(enter_diag)
+    out["completeDialogue"] = int(complete_diag)
+    out["bgmId"] = int(bgmid)
+    out["resourceId"] = int(resid)
+    out["battleBgId"] = btlbgid
 
     return out
 

@@ -120,6 +120,9 @@ type rowMap struct {
 	Monster10ID    uint32  `json:"monster10ID"`
 	EnterDialog    uint32  `json:"enterzonerdialogueID"`
 	CompleteDialog uint32  `json:"completezonedialogueID"`
+	BgmID          uint32  `json:"bgmID"`
+	ResourceId     uint32  `json:"resourceId"`
+	BattleBgId     string  `json:"battleBgId"`
 }
 
 type rowEvent struct {
