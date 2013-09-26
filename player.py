@@ -417,7 +417,7 @@ class UseItem(tornado.web.RequestHandler):
 
             # query items info
             rows = yield util.whdb.runQuery(
-                """ SELECT items, ap, maxAp, zoneCache, xp, maxXp FROM playerInfos
+                """ SELECT items, ap, maxAp, zoneCache, xp, maxXp, lastApTime, lastXpTime, UTC_TIMESTAMP() FROM playerInfos
                         WHERE userId=%s"""
                 ,(user_id, )
             )
@@ -428,6 +428,10 @@ class UseItem(tornado.web.RequestHandler):
             zoneCache = row[3]
             xp = row[4]
             maxXp = row[5]
+            lastApTime = row[6]
+            lastXpTime = row[7]
+            currTime = row[8]
+
 
             def consumeItem(items, num):
                 item_num = items.get(str(item_id), 0)
@@ -438,6 +442,9 @@ class UseItem(tornado.web.RequestHandler):
                 return remain
 
             item_id = int(item_id)
+
+            apAddRemain = 0
+            xpAddRemain = 0
 
             # use item
             ## recover all ap
@@ -585,12 +592,15 @@ class UseItem(tornado.web.RequestHandler):
                     dxp = 1
 
                 item_num = consumeItem(items, dxp)
-                print type(dxp)
                 yield util.whdb.runOperation(
                     """ UPDATE playerInfos SET items=%s, xp=xp+%s
                             WHERE userId=%s"""
                     ,(json.dumps(items), dxp, user_id)
                 )
+                if xp == maxXp:
+                    xpAddRemain = 0
+                else:
+                    xpAddRemain = XP_ADD_DURATION - (currTime-lastXpTime) % XP_ADD_DURATION
 
             ## recover all xp
             elif item_id == 11:
@@ -621,11 +631,20 @@ class UseItem(tornado.web.RequestHandler):
                             WHERE userId=%s"""
                     ,(json.dumps(items), ap, user_id)
                 )
+
+                if ap == maxAp:
+                    apAddRemain = 0
+                else:
+                    apAddRemain = AP_ADD_DURATION - (currTime-lastApTime) % AP_ADD_DURATION
             
             # reply
             reply = util.new_reply()
             reply["itemId"] = int(item_id)
             reply["itemNum"] = item_num
+            reply["ap"] = ap
+            reply["apAddRemain"] = apAddRemain
+            reply["xp"] = xp
+            reply["xpAddRemain"] = xpAddRemain
             self.write(json.dumps(reply))
             
         except:

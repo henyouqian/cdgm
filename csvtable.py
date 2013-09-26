@@ -14,7 +14,9 @@ class PlacementTbl(object):
                     path = root + "/" + filename
                     zoneid = nameext[0]
                     with open(path, "rb") as f:
+                        print "begin"
                         data = json.load(f)
+                        print "end"
 
                         layers = data["layers"]
                         width = data["width"]
