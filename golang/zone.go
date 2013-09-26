@@ -92,18 +92,18 @@ type BandCache struct {
 }
 
 type zoneCache struct {
-	ZoneId    uint32
-	Objs      map[string]int32
-	StartPos  [2]uint32
-	GoalPos   [2]uint32
-	CurrPos   [2]uint32
-	LastPos   [2]uint32
-	RedCase   uint32
-	GoldCase  uint32
-	MonGrpId  int32
-	Events    map[string]int32
-	Band      BandCache
-	CatchMons []uint32
+	ZoneId    uint32           `json:"zoneId"`
+	Objs      map[string]int32 `json:"objs"`
+	StartPos  [2]uint32        `json:"startPos"`
+	GoalPos   [2]uint32        `json:"goalPos"`
+	CurrPos   [2]uint32        `json:"currPos"`
+	LastPos   [2]uint32        `json:"lastPos"`
+	RedCase   uint32           `json:"redCase"`
+	GoldCase  uint32           `json:"goldCase"`
+	MonGrpId  int32            `json:"monGrpId"`
+	Events    map[string]int32 `json:"events"`
+	Band      BandCache        `json:"band"`
+	CatchMons []uint32         `json:"catchMons"`
 }
 
 func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCache, error) {
