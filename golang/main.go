@@ -46,6 +46,11 @@ func main() {
 
 	http.HandleFunc("/static/", staticFile)
 
+	//shit code
+	lwutil.HttpCodeInternalServerError = http.StatusOK
+	lwutil.HttpCodeBadRequest = http.StatusOK
+
+	//reg
 	regLab()
 	regAuth()
 	regStore()
