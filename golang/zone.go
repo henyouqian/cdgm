@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/golang/glog"
+	//"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"io/ioutil"
 	"math/rand"
@@ -139,7 +139,7 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 
 	//objs
 	for tileKey, v := range zoneData {
-		var randIdx uint32
+		randIdx := int32(-1)
 		switch v {
 		case TILE_ALL:
 			randIdx = rand1all.get()
@@ -175,8 +175,11 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 
 		switch randIdx {
 		case 0: //case or gold
-			itemType := rand2item.get() + 1 //itemtype from 1 to 5
-			out.Objs[tileKey] = int32(itemType)
+			r := rand2item.get()
+			if r >= 0 {
+				itemType := r + 1 //itemtype from 1 to 5
+				out.Objs[tileKey] = int32(itemType)
+			}
 		case 1: //battle
 			n := len(monGrpIds)
 			if n > 0 {
@@ -188,10 +191,7 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 		case 3: //pvp
 			out.Objs[tileKey] = 6
 		}
-
 	}
-
-	glog.Infoln(monGrpIds, out.Objs)
 
 	//band
 	var bandMemberIdsStr []string
