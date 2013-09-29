@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"math/rand"
 	"time"
@@ -63,6 +64,7 @@ func newWeightedRandom(totalWeight float32, weights ...float32) *WeightedRandom 
 	var w WeightedRandom
 	sum := float32(0)
 	for _, weight := range weights {
+		glog.Infoln(weight)
 		sum += weight
 		w.uppers = append(w.uppers, sum)
 	}
@@ -74,6 +76,7 @@ func newWeightedRandom(totalWeight float32, weights ...float32) *WeightedRandom 
 	for i, v := range w.uppers {
 		w.uppers[i] = v / sum
 	}
+	glog.Infoln(w.uppers)
 
 	return &w
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	//"fmt"
+	//"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 )
 
@@ -99,32 +100,32 @@ type rowInstanceZone struct {
 }
 
 type rowMap struct {
-	ItemProb        float32 `json:"item%"`
-	MonsterProb     float32 `json:"monster%"`
-	EventProb       float32 `json:"event%"`
-	PvpProb         float32 `json:"PVP%"`
-	OnlyItemProb    float32 `json:"onlyitem%"`
-	OnlyMonsterProb float32 `json:"onlymonster%"`
-	WoodProb        float32 `json:"wood%"`
-	RedCaseProb     float32 `json:"treasure%"`
-	GoldCaseProb    float32 `json:"chest%"`
-	LittleGoldProb  float32 `json:"littlegold%"`
-	BigGoldProb     float32 `json:"biggold%"`
-	Monster1ID      uint32  `json:"monster1ID"`
-	Monster2ID      uint32  `json:"monster2ID"`
-	Monster3ID      uint32  `json:"monster3ID"`
-	Monster4ID      uint32  `json:"monster4ID"`
-	Monster5ID      uint32  `json:"monster5ID"`
-	Monster6ID      uint32  `json:"monster6ID"`
-	Monster7ID      uint32  `json:"monster7ID"`
-	Monster8ID      uint32  `json:"monster8ID"`
-	Monster9ID      uint32  `json:"monster9ID"`
-	Monster10ID     uint32  `json:"monster10ID"`
-	EnterDialog     uint32  `json:"enterzonerdialogueID"`
-	CompleteDialog  uint32  `json:"completezonedialogueID"`
-	BgmID           uint32  `json:"bgmID"`
-	ResourceId      uint32  `json:"resourceId"`
-	BattleBgId      string  `json:"battleBgId"`
+	ItemProb               float32
+	MonsterProb            float32
+	EventProb              float32
+	PvpProb                float32
+	OnlyItemProb           float32
+	OnlyMonsterProb        float32
+	WoodProb               float32
+	RedCaseProb            float32
+	GoldCaseProb           float32
+	LittleGoldProb         float32
+	BigGoldProb            float32
+	Monster1ID             uint32
+	Monster2ID             uint32
+	Monster3ID             uint32
+	Monster4ID             uint32
+	Monster5ID             uint32
+	Monster6ID             uint32
+	Monster7ID             uint32
+	Monster8ID             uint32
+	Monster9ID             uint32
+	Monster10ID            uint32
+	EnterzonerdialogueID   uint32
+	CompletezonedialogueID uint32
+	BgmID                  uint32
+	ResourceId             uint32
+	BattleBgId             string
 }
 
 type rowEvent struct {

@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	//"github.com/golang/glog"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"io/ioutil"
 	"math/rand"
@@ -127,7 +127,7 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 	monGrpIdsTmp := []uint32{mapRow.Monster1ID, mapRow.Monster2ID, mapRow.Monster3ID, mapRow.Monster4ID, mapRow.Monster5ID,
 		mapRow.Monster6ID, mapRow.Monster7ID, mapRow.Monster8ID, mapRow.Monster9ID, mapRow.Monster10ID}
 	monGrpIds := make([]uint32, 0, len(monGrpIdsTmp))
-	for _, monGrpId := range monGrpIds {
+	for _, monGrpId := range monGrpIdsTmp {
 		if monGrpId != 0 {
 			monGrpIds = append(monGrpIds, monGrpId)
 		}
@@ -190,6 +190,8 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 		}
 
 	}
+
+	glog.Infoln(monGrpIds, out.Objs)
 
 	//band
 	var bandMemberIdsStr []string
