@@ -600,7 +600,7 @@ class UseItem(tornado.web.RequestHandler):
                 if xp == maxXp:
                     xpAddRemain = 0
                 else:
-                    dt = currTime - last_xp_time
+                    dt = currTime - lastXpTime
                     dt = int(dt.total_seconds())
                     xpAddRemain = XP_ADD_DURATION - dt % XP_ADD_DURATION
 
@@ -637,7 +637,7 @@ class UseItem(tornado.web.RequestHandler):
                 if ap == maxAp:
                     apAddRemain = 0
                 else:
-                    dt = currTime - last_xp_time
+                    dt = currTime - lastApTime
                     dt = int(dt.total_seconds())
                     apAddRemain = AP_ADD_DURATION - dt % AP_ADD_DURATION
             
