@@ -87,8 +87,8 @@ func getZoneData(zoneid uint32) (map[string]uint8, error) {
 }
 
 type BandCache struct {
-	Formation uint32
-	Members   [][2]uint64
+	Formation uint32      `json:"formation"`
+	Members   [][2]uint64 `json:"members"`
 }
 
 type zoneCache struct {
@@ -118,8 +118,8 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 
 	//weighted rand
 	rand1all := newWeightedRandom(1.0, mapRow.ItemProb, mapRow.MonsterProb, mapRow.EventProb, mapRow.PvpProb)
-	rand1item := newWeightedRandom(1.0, mapRow.ItemProb+mapRow.MonsterProb, 0, mapRow.EventProb, mapRow.PvpProb)
-	rand1mon := newWeightedRandom(1.0, 0, mapRow.ItemProb+mapRow.MonsterProb, mapRow.EventProb, mapRow.PvpProb)
+	rand1item := newWeightedRandom(1.0, mapRow.OnlyItemProb, 0, mapRow.EventProb, mapRow.PvpProb)
+	rand1mon := newWeightedRandom(1.0, 0, mapRow.OnlyMonsterProb, mapRow.EventProb, mapRow.PvpProb)
 
 	rand2item := newWeightedRandom(1.0, mapRow.WoodProb, mapRow.RedCaseProb, mapRow.GoldCaseProb, mapRow.LittleGoldProb, mapRow.BigGoldProb)
 

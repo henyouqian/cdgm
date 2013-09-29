@@ -99,30 +99,32 @@ type rowInstanceZone struct {
 }
 
 type rowMap struct {
-	ItemProb       float32 `json:"item%"`
-	MonsterProb    float32 `json:"monster%"`
-	EventProb      float32 `json:"event%"`
-	PvpProb        float32 `json:"PVP%"`
-	WoodProb       float32 `json:"wood%"`
-	RedCaseProb    float32 `json:"treasure%"`
-	GoldCaseProb   float32 `json:"chest%"`
-	LittleGoldProb float32 `json:"littlegold%"`
-	BigGoldProb    float32 `json:"biggold%"`
-	Monster1ID     uint32  `json:"monster1ID"`
-	Monster2ID     uint32  `json:"monster2ID"`
-	Monster3ID     uint32  `json:"monster3ID"`
-	Monster4ID     uint32  `json:"monster4ID"`
-	Monster5ID     uint32  `json:"monster5ID"`
-	Monster6ID     uint32  `json:"monster6ID"`
-	Monster7ID     uint32  `json:"monster7ID"`
-	Monster8ID     uint32  `json:"monster8ID"`
-	Monster9ID     uint32  `json:"monster9ID"`
-	Monster10ID    uint32  `json:"monster10ID"`
-	EnterDialog    uint32  `json:"enterzonerdialogueID"`
-	CompleteDialog uint32  `json:"completezonedialogueID"`
-	BgmID          uint32  `json:"bgmID"`
-	ResourceId     uint32  `json:"resourceId"`
-	BattleBgId     string  `json:"battleBgId"`
+	ItemProb        float32 `json:"item%"`
+	MonsterProb     float32 `json:"monster%"`
+	EventProb       float32 `json:"event%"`
+	PvpProb         float32 `json:"PVP%"`
+	OnlyItemProb    float32 `json:"onlyitem%"`
+	OnlyMonsterProb float32 `json:"onlymonster%"`
+	WoodProb        float32 `json:"wood%"`
+	RedCaseProb     float32 `json:"treasure%"`
+	GoldCaseProb    float32 `json:"chest%"`
+	LittleGoldProb  float32 `json:"littlegold%"`
+	BigGoldProb     float32 `json:"biggold%"`
+	Monster1ID      uint32  `json:"monster1ID"`
+	Monster2ID      uint32  `json:"monster2ID"`
+	Monster3ID      uint32  `json:"monster3ID"`
+	Monster4ID      uint32  `json:"monster4ID"`
+	Monster5ID      uint32  `json:"monster5ID"`
+	Monster6ID      uint32  `json:"monster6ID"`
+	Monster7ID      uint32  `json:"monster7ID"`
+	Monster8ID      uint32  `json:"monster8ID"`
+	Monster9ID      uint32  `json:"monster9ID"`
+	Monster10ID     uint32  `json:"monster10ID"`
+	EnterDialog     uint32  `json:"enterzonerdialogueID"`
+	CompleteDialog  uint32  `json:"completezonedialogueID"`
+	BgmID           uint32  `json:"bgmID"`
+	ResourceId      uint32  `json:"resourceId"`
+	BattleBgId      string  `json:"battleBgId"`
 }
 
 type rowEvent struct {

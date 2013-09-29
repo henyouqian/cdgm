@@ -34,10 +34,12 @@ def gen_cache(zoneid, islastZone):
     monsterrate = float(map_tbl.get_value(maprow, "monster%"))
     eventrate = float(map_tbl.get_value(maprow, "event%"))
     pvprate = float(map_tbl.get_value(maprow, "PVP%"))
+    onlyitem = float(map_tbl.get_value(maprow, "onlyitem%"))
+    onlymonster = float(map_tbl.get_value(maprow, "onlymonster%"))
 
     rand1all = util.WeightedRandom(1.0, itemrate, monsterrate, eventrate, pvprate)
-    rand1item = util.WeightedRandom(1.0, itemrate + monsterrate, 0, eventrate, pvprate)
-    rand1mon = util.WeightedRandom(1.0, 0, itemrate + monsterrate, eventrate, pvprate)
+    rand1item = util.WeightedRandom(1.0, onlyitem, 0, eventrate, pvprate)
+    rand1mon = util.WeightedRandom(1.0, 0, onlymonster, eventrate, pvprate)
 
     woodrate = float(map_tbl.get_value(maprow, "wood%"))
     treasurerate = float(map_tbl.get_value(maprow, "treasure%"))
