@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.32-0ubuntu0.12.04.1)
 # Database: wh_db
-# Generation Time: 2013-08-19 05:24:54 +0000
+# Generation Time: 2013-09-24 12:16:41 +0000
 # ************************************************************
 
 
@@ -71,7 +71,7 @@ DROP TABLE IF EXISTS `playerInfos`;
 
 CREATE TABLE `playerInfos` (
   `userId` int(10) unsigned NOT NULL,
-  `name` varchar(40) CHARACTER SET utf8 NOT NULL DEFAULT '',
+  `name` varchar(40) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT '',
   `whCoin` int(10) unsigned NOT NULL DEFAULT '0',
   `warLord` bigint(20) unsigned NOT NULL COMMENT 'war lord card entity id',
   `money` int(10) unsigned NOT NULL DEFAULT '1000',
@@ -81,12 +81,12 @@ CREATE TABLE `playerInfos` (
   `maxTradeNum` tinyint(5) unsigned NOT NULL,
   `xp` smallint(5) unsigned NOT NULL,
   `maxXp` smallint(5) unsigned NOT NULL,
-  `lastXpTime` timestamp NULL DEFAULT NULL,
+  `lastXpTime` timestamp NOT NULL DEFAULT '2000-01-01 00:00:00',
   `ap` smallint(5) unsigned NOT NULL,
   `maxAp` smallint(5) unsigned NOT NULL,
-  `lastApTime` timestamp NULL DEFAULT NULL,
+  `lastApTime` timestamp NOT NULL DEFAULT '2000-01-01 00:00:00',
   `lastFormation` smallint(5) unsigned NOT NULL DEFAULT '1',
-  `currentBand` tinyint(3) unsigned DEFAULT '0',
+  `currentBand` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `zoneCache` text,
   `items` text NOT NULL,
   `bands` text NOT NULL,
