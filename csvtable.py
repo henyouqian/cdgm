@@ -87,7 +87,7 @@ class PvpWinRewardTbl(object):
 plc_tbl = PlacementTbl()
 case_tbl = CaseTbl()
 
-card_tbl = util.CsvTbl("data/cards.csv", "ID")
+card_tbl = util.CsvTbl("data/cards.csv", "id")
 grow_tbl = util.CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
 evo_tbl = util.CsvTblMulKey("data/cardEvolutions.csv", "masterCardId", "evolverCardId")
 evo_cost_tbl = util.CsvTblMulKey("data/cardEvolutionCosts.csv", "masterCardRarity", "evolverCardRarity")
@@ -113,10 +113,12 @@ pvp_rank_reward_tbl = util.parse_csv("data/pvpRankRewards.csv")
 
 wagon_desc_tbl = util.CsvTbl("data/wagonDesc.csv", "id")
 
+inst_zone_tbl = util.CsvTbl("data/instanceZones.csv", "zoneId")
+
 
 tables = [card_tbl, grow_tbl, evo_tbl, evo_cost_tbl, skill_tbl, skill_level_tbl, warlord_level_tbl, card_level_tbl, 
     map_tbl, mongrp_tbl, zone_tbl, mon_card_tbl, evt_tbl, map_evt_tbl, fmt_tbl, pvp_match_tbl, pvp_test_data_tbl, 
-    wagon_desc_tbl]
+    wagon_desc_tbl, inst_zone_tbl]
 
 
 def csv_reload():
