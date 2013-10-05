@@ -421,7 +421,7 @@ class CreateTestData(tornado.web.RequestHandler):
             for card_row_key in card_tbl.iter_rowkeys():
                 username = card_tbl.get(card_row_key, "name")
                 proto, price, hp, atk, dfs, wis, agi, maxlv, skillid1, skillid2= \
-                    map(int, card_tbl.gets(card_row_key, "ID", "price", \
+                    map(int, card_tbl.gets(card_row_key, "id", "price", \
                     "maxhp", "maxatk", "maxdef", "maxwis", "maxagi", "maxlevel", "skillid1", "skillid2"))
 
                 cards = [{
