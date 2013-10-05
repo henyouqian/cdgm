@@ -777,7 +777,7 @@ class BattleResult(tornado.web.RequestHandler):
             dropId = drops_tbl.drop(500001)
             if dropId:
                 if dropId > 0:
-                    evt_items.append({"id":dropId, num:1})
+                    evt_items.append({"id":dropId, "num":1})
                 if dropId < 0:
                     evt_cards.append(-dropId)
 
