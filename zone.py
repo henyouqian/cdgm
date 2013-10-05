@@ -33,7 +33,7 @@ def gen_cache(zoneid, islastZone):
     itemrate = float(map_tbl.get_value(maprow, "itemProb"))
     monsterrate = float(map_tbl.get_value(maprow, "monsterProb"))
     eventrate = float(map_tbl.get_value(maprow, "eventProb"))
-    pvprate = float(map_tbl.get_value(maprow, "PVP%"))
+    pvprate = float(map_tbl.get_value(maprow, "PVPProb"))
     onlyitem = float(map_tbl.get_value(maprow, "onlyitemProb"))
     onlymonster = float(map_tbl.get_value(maprow, "onlymonsterProb"))
 
@@ -804,6 +804,11 @@ class BattleResult(tornado.web.RequestHandler):
             if evt_cards:
                 proto_levels = [[c, 1] for c in evt_cards]
                 evt_cards = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
+
+            # drops
+            inst_zone_row = inst_zone_tbl.get_row(cache["zoneId"])
+            if inst_zone_row:
+                pass
 
             # delete events
             if poskey in cache["events"]:

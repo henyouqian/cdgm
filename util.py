@@ -54,7 +54,7 @@ class CsvTbl(object):
                     self.body[row[keycolidx]] = row
 
     def get_row(self, key):
-        return self.body[str(key)]
+        return self.body.get(str(key))
 
     def get_value(self, row, colname):
         return row[self.header[colname]]
