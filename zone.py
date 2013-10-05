@@ -773,6 +773,14 @@ class BattleResult(tornado.web.RequestHandler):
                 evt_items = [item for item in evt_items if item["id"]]
                 evt_cards = [card for card in evt_cards if card]
 
+            # drops
+            dropId = drops_tbl.drop(500001)
+            if dropId:
+                if dropId > 0:
+                    evt_items.append({"id":dropId, num:1})
+                if dropId < 0:
+                    evt_cards.append(-dropId)
+
             # add items
             money_add = 0
             # red_case_add = 0
@@ -804,11 +812,6 @@ class BattleResult(tornado.web.RequestHandler):
             if evt_cards:
                 proto_levels = [[c, 1] for c in evt_cards]
                 evt_cards = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
-
-            # drops
-            inst_zone_row = inst_zone_tbl.get_row(cache["zoneId"])
-            if inst_zone_row:
-                pass
 
             # delete events
             if poskey in cache["events"]:

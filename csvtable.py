@@ -84,55 +84,95 @@ class PvpWinRewardTbl(object):
         return self._tbl.get(wincount, None)
 
 
-plc_tbl = PlacementTbl()
-case_tbl = CaseTbl()
+class DropsTbl(object):
+    def __init__(self):
+        tbl = util.parse_csv("data/drops.csv")
+        self._tbl = {}
+        for row in tbl:
+            idv = int(row["id"])
+            dropsInfo = {'prob': float(row['prob']), 'amount': int(row['amount']), 'objid': int(row['objid'])}
+            if idv in self._tbl:
+                self._tbl[idv].append(dropsInfo)
+            else:
+                self._tbl[idv] = [dropsInfo]
 
-card_tbl = util.CsvTbl("data/cards.csv", "id")
-grow_tbl = util.CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
-evo_tbl = util.CsvTblMulKey("data/cardEvolutions.csv", "masterCardId", "evolverCardId")
-evo_cost_tbl = util.CsvTblMulKey("data/cardEvolutionCosts.csv", "masterCardRarity", "evolverCardRarity")
-skill_tbl = util.CsvTbl("data/skills.csv", "id")
-skill_level_tbl = util.CsvTblMulKey("data/skillLevels.csv", "rarity", "level")
-warlord_level_tbl = util.CsvTbl("data/levels.csv", "level")
-card_level_tbl = util.CsvTbl("data/cardLevels.csv", "level")
-
-map_tbl = util.CsvTbl("data/maps.csv", "zoneID")
-mongrp_tbl = util.CsvTbl("data/monsters.csv", "ID")
-zone_tbl = util.CsvTbl("data/zones.csv", "id")
-mon_card_tbl = util.CsvTbl("data/monstercards.csv", "ID")
-evt_tbl = util.CsvTbl("data/events.csv", "ID")
-map_evt_tbl = util.CsvTblMulKey("data/mapevents.csv", "mapid", "tilevalue")
-
-fmt_tbl = util.CsvTbl("data/formations.csv", "id")
-
-pvp_match_tbl = util.CsvTbl("data/pvpmatch.csv", "id")
-pvp_test_data_tbl = util.CsvTbl("data/pvpTestData.csv", "ID")
-
-pvp_win_reward_tbl = PvpWinRewardTbl()
-pvp_rank_reward_tbl = util.parse_csv("data/pvpRankRewards.csv")
-
-wagon_desc_tbl = util.CsvTbl("data/wagonDesc.csv", "id")
-
-inst_zone_tbl = util.CsvTbl("data/instanceZones.csv", "zoneId")
+    def drop(self, zoneid):
+        zoneDrops = self._tbl.get(zoneid)
+        if zoneDrops:
+            weights = [v['prob'] for v in zoneDrops]
+            rand = util.WeightedRandom(1.0, *weights)
+            r = rand.get()
+            if r == -1:
+                return None
+            return zoneDrops[r]["objid"]
 
 
-tables = [card_tbl, grow_tbl, evo_tbl, evo_cost_tbl, skill_tbl, skill_level_tbl, warlord_level_tbl, card_level_tbl, 
-    map_tbl, mongrp_tbl, zone_tbl, mon_card_tbl, evt_tbl, map_evt_tbl, fmt_tbl, pvp_match_tbl, pvp_test_data_tbl, 
-    wagon_desc_tbl, inst_zone_tbl]
+plc_tbl = None
+case_tbl = None
+
+card_tbl = None
+grow_tbl = None
+evo_tbl = None
+evo_cost_tbl = None
+skill_tbl = None
+skill_level_tbl = None
+warlord_level_tbl = None
+card_level_tbl = None
+map_tbl = None
+mongrp_tbl = None
+zone_tbl = None
+mon_card_tbl = None
+evt_tbl = None
+map_evt_tbl = None
+fmt_tbl = None
+pvp_match_tbl = None
+pvp_test_data_tbl = None
+pvp_win_reward_tbl = None
+pvp_rank_reward_tbl = None
+wagon_desc_tbl = None
+drops_tbl = None
+
 
 
 def csv_reload():
-    for tbl in tables:
-        tbl.reload()
+    global plc_tbl, case_tbl, card_tbl, grow_tbl, evo_tbl, evo_cost_tbl, skill_tbl, skill_level_tbl
+    global warlord_level_tbl, card_level_tbl, map_tbl, mongrp_tbl, zone_tbl, mon_card_tbl, evt_tbl
+    global map_evt_tbl, fmt_tbl, pvp_match_tbl, pvp_test_data_tbl, pvp_win_reward_tbl
+    global pvp_rank_reward_tbl, wagon_desc_tbl, drops_tbl
 
-    global plc_tbl, case_tbl
     plc_tbl = PlacementTbl()
     case_tbl = CaseTbl()
 
-    global pvp_win_reward_tbl
-    pvp_win_reward_tbl = PvpWinRewardTbl()
+    card_tbl = util.CsvTbl("data/cards.csv", "id")
+    grow_tbl = util.CsvTblMulKey("data/cardGrowthMappings.csv", "type", "level")
+    evo_tbl = util.CsvTblMulKey("data/cardEvolutions.csv", "masterCardId", "evolverCardId")
+    evo_cost_tbl = util.CsvTblMulKey("data/cardEvolutionCosts.csv", "masterCardRarity", "evolverCardRarity")
+    skill_tbl = util.CsvTbl("data/skills.csv", "id")
+    skill_level_tbl = util.CsvTblMulKey("data/skillLevels.csv", "rarity", "level")
+    warlord_level_tbl = util.CsvTbl("data/levels.csv", "level")
+    card_level_tbl = util.CsvTbl("data/cardLevels.csv", "level")
 
-    logging.info("csv reloaded.")
+    map_tbl = util.CsvTbl("data/maps.csv", "zoneID")
+    mongrp_tbl = util.CsvTbl("data/monsters.csv", "ID")
+    zone_tbl = util.CsvTbl("data/zones.csv", "id")
+    mon_card_tbl = util.CsvTbl("data/monstercards.csv", "ID")
+    evt_tbl = util.CsvTbl("data/events.csv", "ID")
+    map_evt_tbl = util.CsvTblMulKey("data/mapevents.csv", "mapid", "tilevalue")
+
+    fmt_tbl = util.CsvTbl("data/formations.csv", "id")
+
+    pvp_match_tbl = util.CsvTbl("data/pvpmatch.csv", "id")
+    pvp_test_data_tbl = util.CsvTbl("data/pvpTestData.csv", "ID")
+
+    pvp_win_reward_tbl = PvpWinRewardTbl()
+    pvp_rank_reward_tbl = util.parse_csv("data/pvpRankRewards.csv")
+
+    wagon_desc_tbl = util.CsvTbl("data/wagonDesc.csv", "id")
+
+    drops_tbl = DropsTbl()
+
+
+csv_reload()
 
 def send_reload(host, port):
     f = urllib2.urlopen("http://%s:%s/internal/reloadCsv"%(host, port))
