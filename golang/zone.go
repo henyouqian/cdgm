@@ -163,7 +163,7 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 
 				evtRow, ok := tblEvent[strconv.Itoa(int(eventId))]
 				if !ok {
-					lwutil.SendError("", fmt.Sprintf("evnet not found:eventId=%d", eventId))
+					lwutil.SendError("", fmt.Sprintf("event not found:eventId=%d", eventId))
 				}
 
 				if isLastZone || evtRow.Repeat != 0 {

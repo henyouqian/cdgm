@@ -4,7 +4,7 @@ import (
 	//_ "github.com/go-sql-driver/mysql"
 	"encoding/json"
 	"fmt"
-	//"github.com/golang/glog"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"strconv"
@@ -226,6 +226,22 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	//gen cache
 	cache, err := genCache(in.ZoneId, true, session.Userid, currBand)
 	lwutil.CheckError(err, "")
+
+	//save last instance zone id
+	key := fmt.Sprintf("lastInstZoneId/user=%d&inst=%d", session.Userid, instZone.InstanceID)
+	lastInstZoneIdRaw, err := lwutil.GetKV(key, rc)
+	lwutil.CheckError(err, "")
+	lastInstZoneId := uint32(0)
+	if lastInstZoneIdRaw != nil {
+		json.Unmarshal(lastInstZoneIdRaw, &lastInstZoneId)
+	}
+	if instZone.ZoneId > lastInstZoneId {
+		bt, err := json.Marshal(instZone.ZoneId)
+		lwutil.CheckError(err, "")
+		err = lwutil.SetKV(key, bt, rc)
+		lwutil.CheckError(err, "")
+	}
+	glog.Infoln(lastInstZoneId)
 
 	//out
 	// out obj
