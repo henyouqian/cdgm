@@ -4,7 +4,7 @@ import (
 	//_ "github.com/go-sql-driver/mysql"
 	"encoding/json"
 	"fmt"
-	"github.com/golang/glog"
+	//"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"strconv"
@@ -70,11 +70,17 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 func instanceZoneList(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "POST")
 
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	session, err := findSession(w, r, rc)
+	lwutil.CheckError(err, "err_auth")
+
 	//in
 	var in struct {
 		InstanceID uint32
 	}
-	err := lwutil.DecodeRequestBody(r, &in)
+	err = lwutil.DecodeRequestBody(r, &in)
 	lwutil.CheckError(err, "err_decode_body")
 
 	type Zone struct {
@@ -95,6 +101,12 @@ func instanceZoneList(w http.ResponseWriter, r *http.Request) {
 	zones := make([]Zone, 0, 8)
 
 	lastZone := uint32(0)
+
+	key := fmt.Sprintf("lastInstZoneId/user=%d&inst=%d", session.Userid, in.InstanceID)
+	err = lwutil.GetKV2(key, &lastZone, rc)
+	if err != lwutil.ErrNoRows {
+		lwutil.CheckError(err, "")
+	}
 	for _, v := range tblInstanceZoneList {
 		if v.InstanceID == in.InstanceID {
 			if lastZone == 0 {
@@ -229,19 +241,16 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 
 	//save last instance zone id
 	key := fmt.Sprintf("lastInstZoneId/user=%d&inst=%d", session.Userid, instZone.InstanceID)
-	lastInstZoneIdRaw, err := lwutil.GetKV(key, rc)
-	lwutil.CheckError(err, "")
 	lastInstZoneId := uint32(0)
-	if lastInstZoneIdRaw != nil {
-		json.Unmarshal(lastInstZoneIdRaw, &lastInstZoneId)
+	err = lwutil.GetKV2(key, &lastInstZoneId, rc)
+	if err != lwutil.ErrNoRows {
+		lwutil.CheckError(err, "")
 	}
+
 	if instZone.ZoneId > lastInstZoneId {
-		bt, err := json.Marshal(instZone.ZoneId)
-		lwutil.CheckError(err, "")
-		err = lwutil.SetKV(key, bt, rc)
+		err = lwutil.SetKV2(key, instZone.ZoneId, rc)
 		lwutil.CheckError(err, "")
 	}
-	glog.Infoln(lastInstZoneId)
 
 	//out
 	// out obj
@@ -311,7 +320,10 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	var outband OutBand
 	outband.Formation = cache.Band.Formation
 	for _, mem := range cache.Band.Members {
-		outband.Members = append(outband.Members, OutBandMember{mem[0], uint32(mem[1])})
+		switch mem := mem.(type) {
+		case [2]uint64:
+			outband.Members = append(outband.Members, OutBandMember{mem[0], uint32(mem[1])})
+		}
 	}
 
 	type OutVec2 struct {

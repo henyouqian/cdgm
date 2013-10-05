@@ -87,8 +87,8 @@ func getZoneData(zoneid uint32) (map[string]uint8, error) {
 }
 
 type BandCache struct {
-	Formation uint32      `json:"formation"`
-	Members   [][2]uint64 `json:"members"`
+	Formation uint32        `json:"formation"`
+	Members   []interface{} `json:"members"`
 }
 
 type zoneCache struct {
@@ -204,7 +204,7 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
         WHERE id IN (` + strings.Join(bandMemberIdsStr, ",") + `) AND ownerId=?`)
 	rows, err := whDB.Query(sql, userId)
 	lwutil.CheckError(err, "")
-	var members [][2]uint64
+	memMap := make(map[uint64]uint32)
 	for rows.Next() {
 		var (
 			id        uint64
@@ -215,9 +215,20 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 		if err := rows.Scan(&id, &hp, &hpCrystal, &hpExtra); err != nil {
 			lwutil.CheckError(err, "")
 		}
-		members = append(members, [2]uint64{id, uint64(hp + hpCrystal + hpExtra)})
+		memMap[id] = hp + hpCrystal + hpExtra
 	}
 	lwutil.CheckError(rows.Err(), "")
+
+	//
+	var members []interface{}
+	for _, memid := range band.Members {
+		if memid != 0 {
+			members = append(members, [2]uint64{memid, uint64(memMap[memid])})
+		} else {
+			members = append(members, nil)
+		}
+	}
+
 	out.Band = BandCache{band.Formation, members}
 
 	//out
