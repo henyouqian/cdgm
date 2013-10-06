@@ -597,6 +597,9 @@ class UseItem(tornado.web.RequestHandler):
                             WHERE userId=%s"""
                     ,(json.dumps(items), dxp, user_id)
                 )
+                
+                xp += dxp
+
                 if xp == maxXp:
                     xpAddRemain = 0
                 else:

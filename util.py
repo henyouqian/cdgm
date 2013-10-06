@@ -280,6 +280,7 @@ class WeightedRandom(object):
 
 # redis
 redis_pool = []
+redis_time_diff = 0
 
 def init_redis():
     for __ in xrange(2):
@@ -287,13 +288,21 @@ def init_redis():
         c.connect()
         redis_pool.append([c, time.time()+config.redis_conn_life])
 
+    # global redis_time_diff
+    # redisTime = yield redis().time()
+    # redis_time_diff = int(redisTime - time.time())
+    # print redis_time_diff
+
 def redis():
+    print "sss"
     ct = random.choice(redis_pool)
+    print "sss"
     if (not ct[0].connection.connected()) or time.time() > ct[1]:
         # ct[0].disconnect()
         ct[0] = brukva.Client(**config.redis)
         ct[0].connect()
         ct[1] = time.time() + config.redis_conn_life
+
     return ct[0].async
 
 def redis_pipe():
@@ -357,3 +366,9 @@ def init_logger(debug):
     handler = logging.handlers.TimedRotatingFileHandler("log/wh.log", when='midnight', interval=1)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
+# kv
+
+
+def setkv(key, value):
+    pass
