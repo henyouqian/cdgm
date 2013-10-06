@@ -22,3 +22,4 @@ id,name,comment,type,cantrade,tradepoint,spritename
 21,高級寶箱,華麗的金屬箱，富貴的象徵。,1,0,0,iconTreasureBoxLv3
 22,小葫蘆,回覆10點體力值。,0,0,0,iconLittleCalabash
 23,萬能水晶,,0,0,0,iconCrystalRand
+24,鑽石,,0,0,0,iconWHCoin
