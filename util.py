@@ -388,7 +388,6 @@ def setkv(key, value, callback):
     pipe.set(k, v)
     pipe.zadd("kvz", expireTime, k)
     yield redis_pipe_execute(pipe)
-    print "xxxxxxxxxxxx", k, v
     callback(None)
     
 
