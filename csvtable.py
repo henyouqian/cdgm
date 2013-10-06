@@ -97,7 +97,7 @@ class DropsTbl(object):
                 self._tbl[idv] = [dropsInfo]
 
     def drop(self, zoneid):
-        zoneDrops = self._tbl.get(zoneid)
+        zoneDrops = self._tbl.get(int(zoneid))
         if zoneDrops:
             weights = [v['prob'] for v in zoneDrops]
             rand = util.WeightedRandom(1.0, *weights)
@@ -176,6 +176,9 @@ def csv_reload():
 
 
 csv_reload()
+
+for i in xrange(10):
+    print drops_tbl.drop("500001")
 
 def send_reload(host, port):
     f = urllib2.urlopen("http://%s:%s/internal/reloadCsv"%(host, port))
