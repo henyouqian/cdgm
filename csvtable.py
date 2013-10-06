@@ -131,6 +131,7 @@ pvp_win_reward_tbl = None
 pvp_rank_reward_tbl = None
 wagon_desc_tbl = None
 drops_tbl = None
+inst_zone_tbl = None
 
 
 
@@ -138,7 +139,7 @@ def csv_reload():
     global plc_tbl, case_tbl, card_tbl, grow_tbl, evo_tbl, evo_cost_tbl, skill_tbl, skill_level_tbl
     global warlord_level_tbl, card_level_tbl, map_tbl, mongrp_tbl, zone_tbl, mon_card_tbl, evt_tbl
     global map_evt_tbl, fmt_tbl, pvp_match_tbl, pvp_test_data_tbl, pvp_win_reward_tbl
-    global pvp_rank_reward_tbl, wagon_desc_tbl, drops_tbl
+    global pvp_rank_reward_tbl, wagon_desc_tbl, drops_tbl, inst_zone_tbl
 
     plc_tbl = PlacementTbl()
     case_tbl = CaseTbl()
@@ -170,6 +171,8 @@ def csv_reload():
     wagon_desc_tbl = util.CsvTbl("data/wagonDesc.csv", "id")
 
     drops_tbl = DropsTbl()
+
+    inst_zone_tbl = util.CsvTbl("data/instanceZones.csv", "zoneId")
 
 
 csv_reload()

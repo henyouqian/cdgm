@@ -25,6 +25,11 @@ TILE_START = 2      # start tile
 TILE_GOAL = 3       # goal tile
 
 TILE_EVENT_RANGE = xrange(11, 21)
+
+def isInstanceZone(zoneid):
+    if zoneid > 500000:
+        return True
+    return False
         
 
 def gen_cache(zoneid, islastZone):
@@ -1130,7 +1135,21 @@ class Complete(tornado.web.RequestHandler):
                                     band["members"][idx] = None
                                     break
 
+            # instance zone
+            if isInstanceZone(zoneid):
+                try:
+                    instId, nextZoneId = map(int, inst_zone_tbl.gets(zoneid, "instanceID", "nextZoneID"))
+                except:
+                    pass
+                else:
+                    key = "lastInstZoneId/user=%d&inst=%d" % (userid, instId)
+                    lastInstZoneId = yield util.getkv(key)
 
+                    if not lastInstZoneId:
+                        lastInstZoneId = 0
+
+                    if nextZoneId > lastInstZoneId:
+                        yield util.setkv(key, nextZoneId)
 
             # db store
             yield util.whdb.runOperation(

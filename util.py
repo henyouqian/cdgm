@@ -388,6 +388,7 @@ def setkv(key, value, callback):
     pipe.set(k, v)
     pipe.zadd("kvz", expireTime, k)
     yield redis_pipe_execute(pipe)
+    print "xxxxxxxxxxxx", k, v
     callback(None)
     
 
@@ -401,10 +402,13 @@ def getkv(key, callback):
         callback(json.loads(v))
         return
     else:
-        rows = yield util.kvdb.runQuery(
+        rows = yield kvdb.runQuery(
             """ SELECT v FROM kvs WHERE k=%s"""
             ,(key, )
         )
+        if not rows:
+            callback(None)
+            return
         row = rows[0]
         if not row:
             callback(None)
@@ -417,7 +421,7 @@ def getkv(key, callback):
         k = "kv/"+key
         pipe.set(k, row[0])
         pipe.zadd("kvz", expireTime, k)
-        yield util.redis_pipe_execute(pipe)
+        yield redis_pipe_execute(pipe)
 
         callback(json.loads(row[0]))
         return
