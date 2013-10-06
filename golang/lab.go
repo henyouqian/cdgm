@@ -152,6 +152,16 @@ func jsonCompStructVsMap() {
 	glog.Infoln(t1 - t)
 }
 
+func kv() {
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	lwutil.SetKV2("aaa", "ccc", rc)
+	var aaa string
+	lwutil.GetKV2("aaa", &aaa, rc)
+	glog.Infoln(aaa)
+}
+
 func lab() {
 
 }

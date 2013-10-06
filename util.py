@@ -10,6 +10,8 @@ import logging
 import os
 from tornado import options
 import toredis
+import gamedata
+import json
 import __builtin__
 
 
@@ -282,21 +284,21 @@ class WeightedRandom(object):
 redis_pool = []
 redis_time_diff = 0
 
+import redis as sredis
+
 def init_redis():
     for __ in xrange(2):
         c = brukva.Client(**config.redis)
         c.connect()
         redis_pool.append([c, time.time()+config.redis_conn_life])
 
-    # global redis_time_diff
-    # redisTime = yield redis().time()
-    # redis_time_diff = int(redisTime - time.time())
-    # print redis_time_diff
+    global redis_time_diff
+    r = sredis.StrictRedis(**config.redis)
+    redisTime, _ = r.time()
+    redis_time_diff = int(redisTime - time.time())
 
 def redis():
-    print "sss"
     ct = random.choice(redis_pool)
-    print "sss"
     if (not ct[0].connection.connected()) or time.time() > ct[1]:
         # ct[0].disconnect()
         ct[0] = brukva.Client(**config.redis)
@@ -320,21 +322,24 @@ def redis_pipe_execute(pipe):
 # database
 authdb = None
 whdb = None
+kvdb = None
 ar = None
 toredis_pool = None
 
 def init_db(): 
-    global authdb, whdb, ar, toredis_pool
+    global authdb, whdb, kvdb, ar, toredis_pool
     authdb = adb.Database(**config.auth_db)
     whdb = adb.Database(**config.wh_db)
+    kvdb = adb.Database(**config.kv_db)
     ar = aredis.Redis()
     toredis_pool = toredis.client.ClientPool()
 
 
 def stop_db():
-    global authdb, whdb, ar, toredis_pool
+    global authdb, whdb, kvdb, ar, toredis_pool
     authdb.stop()
     whdb.stop()
+    kvdb.stop()
     ar.stop()
 
     del toredis_pool
@@ -369,6 +374,50 @@ def init_logger(debug):
 
 # kv
 
+def getRedisTimeUnix():
+    return int(time.time())+redis_time_diff
 
-def setkv(key, value):
-    pass
+@adisp.async
+@adisp.process
+def setkv(key, value, callback):
+    expireTime = getRedisTimeUnix() + gamedata.CACHE_LIFE_SEC
+    v = json.dumps(value)
+
+    pipe = redis_pipe()
+    k = "kv/"+key
+    pipe.set(k, v)
+    pipe.zadd("kvz", expireTime, k)
+    yield redis_pipe_execute(pipe)
+    callback(None)
+    
+
+@adisp.async
+@adisp.process
+def getkv(key, callback):
+    k = "kv/"+key
+    v = yield redis().get(k)
+
+    if v:
+        callback(json.loads(v))
+        return
+    else:
+        rows = yield util.kvdb.runQuery(
+            """ SELECT v FROM kvs WHERE k=%s"""
+            ,(key, )
+        )
+        row = rows[0]
+        if not row:
+            callback(None)
+            return
+
+        # write to redis
+        expireTime = getRedisTimeUnix() + gamedata.CACHE_LIFE_SEC
+
+        pipe = redis_pipe()
+        k = "kv/"+key
+        pipe.set(k, row[0])
+        pipe.zadd("kvz", expireTime, k)
+        yield util.redis_pipe_execute(pipe)
+
+        callback(json.loads(row[0]))
+        return

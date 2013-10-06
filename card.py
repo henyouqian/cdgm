@@ -212,16 +212,15 @@ class GetPact(tornado.web.RequestHandler):
 
             # check and calc payment
             # only item (include bronze coin and silver coin, not wh coin) can mulitply numbers
-            if cost_item_id != 0:
-                cost_num *= num
-                pact_num *= num
+            cost_num *= num
+            pact_num *= num 
 
             card_ids = []
             for i in xrange(pact_num):
                 card_ids.append(get_card_from_pact(pact_id))
 
             # wh_coin
-            if cost_item_id == 0:
+            if cost_item_id == 24:
                 if wh_coin < cost_num:
                     raise Exception("not enough whcoin:wh_conin=%s < cost_num%s" % (wh_coin, cost_num))
                 wh_coin -= cost_num
