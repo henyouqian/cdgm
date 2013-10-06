@@ -40,7 +40,6 @@ env
 archive/
 t.py
 log/
-config.py
 tools/configFormat/output/
 golang/golang
 *.rdb
