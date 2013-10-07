@@ -161,8 +161,13 @@ func kv() {
 		B string
 	}
 	in := s{23, "ggg"}
+	_ = in
+	in2 := map[string]interface{}{
+		"A": 55,
+		"B": "bbb",
+	}
 	var out s
-	lwutil.SetKV2("aaa", &in, rc)
+	lwutil.SetKV2("aaa", in2, rc)
 	lwutil.GetKV2("aaa", &out, rc)
 	glog.Infoln(in)
 }

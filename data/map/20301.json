@@ -50,7 +50,7 @@
          "name":"path",
          "opacity":0.300000011920929,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":70,
          "x":0,
          "y":0
@@ -61,7 +61,7 @@
          "name":"event",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":70,
          "x":0,
          "y":0

@@ -9,9 +9,9 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 8,2,1,詛咒,降低敵方敵方3名隊員智力。,2,0,0.5,3,0,0,7,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
 9,2,1,緩速,降低敵方3名隊員敏捷。,2,0,0.5,4,0,0,7,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
 10,4,2,疾風迅影,對敵方全體隊員造成基於敏捷的傷害。,3,3,1,0,0,0,8,40,22,skill_large,damage_wind,damage_wind,11,30,0
-11,4,2,火炎之殤,對敵方全體隊員造成大量火系傷害。,4,2,2,0,0,0,8,17,20,magic_fire,damage_fire,damage_fire,11,30,0
-12,4,2,冰霜之殤,對敵方所有隊員造成冰系傷害，且一定几率冰凍。,4,2,1,3,0.3,0,8,18,21,magic_brrizard,damage_ice,damage_ice,11,30,0
-13,4,2,劇毒之殤,對敵方全體隊員造成一次毒傷害。,4,2,1,1,1,0,8,19,23,magic_poison,damage_poison,damage_poison,11,30,0
+11,4,2,火炎之殤,對敵方全體隊員造成大量火系傷害。,4,2,2,0,0,0,8,17,20,magic_fire,damage_fire,damage_fire,11,30,3
+12,4,2,冰霜之殤,對敵方所有隊員造成冰系傷害，且一定几率冰凍。,4,2,1,3,0.3,0,8,18,21,magic_brrizard,damage_ice,damage_ice,11,30,3
+13,4,2,劇毒之殤,對敵方全體隊員造成一次毒傷害。,4,2,1,1,1,0,8,19,23,magic_poison,damage_poison,damage_poison,11,30,3
 14,4,2,三位一體,聯合左右隊員一起攻擊。,5,1,1,1,0,0,2,40,4,skill_large,hit_midium,damage_middle,11,30,0
 15,4,2,Copycat,Copy the action of the previous familiar.,0,0,1,0,0,0,0,40,4,skill_large,hit_midium,damage_middle,11,30,0
 16,4,2,重生,復活相鄰隊員，回復大量生命值。,6,0,1,0,0,0,2,8,28,magic_large,skill_revive,skill_revive,12,50,0
@@ -21,9 +21,9 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 20,3,2,復活,復活1名相鄰隊員，回復少量生命值。,6,0,1,0,0,0,1,7,28,magic_midium,skill_revive,skill_revive,12,50,0
 21,3,2,再生,復活1名相鄰隊員，回復大量生命值。,6,0,1,0,0,0,1,7,28,skill_midium,skill_revive,skill_revive,12,50,0
 22,3,2,Cleanse,Cure the afflictions of one familiar.,0,0,1,0,0,0,0,38,4,skill_small,hit_midium,damage_middle,11,30,0
-23,3,2,火炎吐息,對2名敵人造成大量火系傷害。,4,2,2.5,0,0,0,7,17,20,magic_fire,damage_fire,damage_fire,11,30,0
-24,3,2,冰霜吐息,對敵方所有隊員造成大量冰系傷害，且一定几率冰凍。,4,2,2,3,0.3,0,7,18,21,magic_brrizard,damage_ice,damage_ice,11,30,0
-25,3,2,劇毒吐息,對3名敵人造成毒系吐息傷害。,4,2,1,1,1,0,7,19,23,magic_poison,damage_poison,damage_poison,11,30,0
+23,3,2,火炎吐息,對2名敵人造成大量火系傷害。,4,2,2.5,0,0,0,7,17,20,magic_fire,damage_fire,damage_fire,11,30,3
+24,3,2,冰霜吐息,對敵方所有隊員造成大量冰系傷害，且一定几率冰凍。,4,2,2,3,0.3,0,7,18,21,magic_brrizard,damage_ice,damage_ice,11,30,3
+25,3,2,劇毒吐息,對3名敵人造成毒系吐息傷害。,4,2,1,1,1,0,7,19,23,magic_poison,damage_poison,damage_poison,11,30,3
 26,3,2,治愈朮,回復左右隊友少量生命值。,18,4,1,0,0,0,2,7,27,magic_midium,skill_recover,skill_recover,11,30,0
 27,3,2,高級治愈朮,回復左右隊友大量生命值。,18,4,1,0,0,0,2,7,27,magic_midium,skill_recover,skill_recover,11,30,0
 28,3,2,毒牙,對1名敵人造成毒傷害。,4,2,1,1,1,0,5,6,23,magic_small,damage_poison,damage_poison,11,30,0
@@ -106,7 +106,7 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 105,4,1,破防4,降低敵方全體隊員防御。,2,0,0.4,2,0,0,8,7,14,magic_midium,decrease_quard,decrease_quard,13,70,0
 106,4,1,詛咒4,降低敵方全體隊員智力。,2,0,0.4,3,0,0,8,7,16,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
 107,4,1,緩速4,降低敵方全體隊員敏捷。,2,0,0.4,4,0,0,8,7,15,magic_midium,decrease_quickness,decrease_quickness,13,70,0
-108,4,2,冰風暴,對敵方所有隊員造成大量冰系傷害。,4,2,2,0,0,0,8,18,21,magic_large,damage_ice,damage_ice,11,30,0
+108,4,2,冰風暴,對敵方所有隊員造成大量冰系傷害。,4,2,2,0,0,0,8,18,21,magic_large,damage_ice,damage_ice,11,30,2
 109,4,2,十萬伏特,對敵方所有隊員造成大量雷系傷害,4,2,2,0,0,0,8,8,44,magic_large,hit_midium,damage_middle,11,30,0
 110,4,2,瞬影殺,對敵方全體隊員造成基於敏捷的大量傷害。,4,3,2,0,0,0,8,40,22,skill_large,damage_wind,damage_wind,11,30,0
 111,3,2,噩夢,對3名敵人造成基於智力的傷害。,4,2,1,0,0,0,16,6,22,magic_small,damage_wind,damage_wind,11,30,0
@@ -115,7 +115,7 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 114,4,2,磁暴,對3名敵人造成巨量雷系傷害。,4,2,2.5,0,0,0,7,8,44,magic_large,hit_midium,damage_middle,11,30,0
 115,3,2,劇毒侵襲,對3名敵人造成大量毒傷害。,3,1,1.5,1,1,0,16,39,23,skill_midium,damage_poison,damage_poison,11,30,0
 116,4,2,群體回復朮,回復所有隊員少量生命值。,18,4,0.7,0,0,0,4,8,27,magic_large,skill_recover,skill_recover,11,30,0
-117,4,2,火球朮,召喚火球對敵方所有隊員造成傷害。,4,2,1,0,0,0,8,8,20,magic_large,damage_fire,damage_fire,11,30,0
+117,4,2,火球朮,召喚火球對敵方所有隊員造成傷害。,4,2,1,0,0,0,8,8,20,magic_large,damage_fire,damage_fire,11,30,2
 118,4,2,橫掃千軍,對敵方全體隊員造成一次基於攻擊的傷害。,3,1,1,0,0,0,8,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 119,4,2,閃電風暴,召喚閃電對隨機6名敵人造成傷害。,4,2,0.9,0,0,0,17,8,44,magic_large,hit_midium,damage_middle,11,30,0
 120,4,1,聖佑2,增加全體隊員智力和防御。,1,0,0.2,3,2,0,4,7,61,magic_midium,increase_inteligence,increase_inteligence,13,70,0
@@ -136,11 +136,11 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 135,3,1,吐息盾2,減少全體隊員吐息傷害。,1,0,0.4,7,0,0,4,7,53,magic_midium,increase_inteligence,increase_inteligence,13,70,0
 136,3,1,吐息盾,減少自己及左右隊員吐息傷害。,1,0,0.7,7,0,0,3,7,53,magic_midium,increase_inteligence,increase_inteligence,13,70,0
 137,3,2,封印斬,對隨機4名敵人造成物理傷害，并且一定几率沉默對方。,3,1,1,5,0.3,3,19,39,46,skill_midium,hit_midium,damage_middle,11,30,0
-138,3,2,颶風斬,對隨機2名敵人造成巨量物理傷害。,3,1,3,0,0,0,23,39,4,skill_midium,hit_midium,damage_middle,11,30,0
-139,2,2,狂風斬,對隨機2名敵人造成大量物理傷害。,3,1,2,0,0,0,23,38,3,skill_small,hit_small,damage_small,11,30,0
+138,3,2,颶風斬,對隨機2名敵人造成巨量物理傷害。,3,1,3,0,0,0,21,39,4,skill_midium,hit_midium,damage_middle,11,30,1
+139,2,2,狂風斬,對隨機2名敵人造成大量物理傷害。,3,1,2,0,0,0,21,38,3,skill_small,hit_small,damage_small,11,30,1
 140,2,2,電拳,攻擊時有較高几率造成敵方麻痺。,3,1,1,2,0.7,0,5,6,26,magic_small,status_stun,status_stun,13,70,0
 141,4,2,烈焰風暴,對隨機6名敵人造成火系傷害。,4,2,0.9,0,0,0,17,8,20,magic_large,damage_fire,damage_fire,11,30,0
-142,4,2,爆裂斬,對隨機5名敵人造成物理傷害。,3,1,0.9,0,0,0,20,40,3,skill_large,hit_small,damage_small,11,30,0
+142,4,2,爆裂斬,對隨機5名敵人造成物理傷害。,3,1,0.9,0,0,0,20,40,3,skill_large,hit_small,damage_small,11,30,1
 143,4,2,死亡盛宴,對敵方所有隊員造成傷害，且一定几率秒殺。,7,1,1,0.1,0,0,8,39,30,skill_midium,skill_critical_hit,skill_critical_hit,11,30,0
 144,3,2,烈風斬,對4名敵人造成物理傷害。,4,2,1,0,0,0,19,7,22,magic_midium,damage_wind,damage_wind,11,30,0
 145,4,2,群體回復朮2,回復所有隊員大量生命值。,18,4,2,0,0,0,4,8,27,magic_large,skill_recover,skill_recover,11,30,0
@@ -148,51 +148,51 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 147,3,2,奪命斬,對隨機3名敵人造成傷害且一定几率至其殘廢。,4,2,1,4,0.3,0,16,6,42,skill_small,hit_small,damage_small,11,30,0
 148,3,2,緩速斬,對隨機3名敵人造成大量傷害且一定几率降低對方敏捷。,22,2,1.5,4,0.3,0.2,16,7,22,magic_midium,damage_wind,damage_wind,11,30,0
 149,3,2,破防斬,對隨機3名敵人造成傷害且一定几率降低對方防御。,21,1,1,2,0.3,0.2,8,38,4,skill_midium,hit_midium,damage_middle,11,30,0
-150,3,3,不屈,在血量大於50%時不會被秒殺。,20,0,0.5,0,0,0,21,58,58,skill_power,skill_power,skill_power,13,70,0
+150,3,3,不屈,在血量大於50%時不會被秒殺。,20,0,0.5,0,0,0,23,58,58,skill_power,skill_power,skill_power,13,70,0
 151,3,2,遠程爆破,對后排隨機3名敵人造成大量傷害。,4,1,1.5,0,0,0,18,39,4,skill_midium,hit_midium,damage_middle,11,30,0
-152,3,2,狂暴拳,用鐵拳攻擊對3名敵人，造成大量傷害。,4,1,1.7,0,0,0,7,39,55,skill_midium,hit_midium,damage_middle,11,30,0
-153,3,2,旋風斬,利用手上的雙刀對隨機2名敵人造成巨量傷害.,4,1,3,0,0,0,23,39,56,skill_midium,hit_large,damage_large,11,30,0
+152,4,2,狂暴拳,用鐵拳攻擊隨機3名敵人，造成大量傷害。,3,1,1.7,0,0,0,7,39,55,skill_midium,hit_midium,damage_middle,11,30,959
+153,4,2,旋風斬,利用手上的雙刀對隨機2名敵人造成巨量傷害.,3,1,3,0,0,0,21,39,4,skill_midium,hit_midium,damage_middle,11,30,2226
 154,4,5,復仇 2,為相鄰隊友抵擋傷害并反擊大量傷害。,14,1,1.5,0,0,0,2,40,4,skill_large,hit_midium,damage_middle,12,50,0
-155,3,2,火之咆哮,對隨機3名敵人進行火焰打擊，并一定幾率降低敵方攻擊力。,22,2,1.5,1,0.3,0.2,16,7,20,magic_midium,damage_fire,damage_fire,11,30,0
-156,2,2,天罰,對隨機2名敵人造成基於敏捷的大量傷害。,3,3,2,0,0,0,23,38,3,skill_small,hit_small,damage_small,11,30,0
+155,3,2,火之咆哮,對隨機3名敵人進行火焰打擊，并一定幾率降低敵方攻擊力。,22,2,1.5,1,0.3,0.2,16,7,20,magic_midium,damage_fire,damage_fire,11,30,750
+156,2,2,天罰,對隨機2名敵人造成基於敏捷的大量傷害。,3,3,2,0,0,0,21,38,3,skill_small,hit_small,damage_small,11,30,2274
 157,4,1,振奮,增加全體隊員10%屬性。,1,0,0.1,9,0,0,4,7,59,magic_midium,increase_attack,increase_attack,13,70,0
 158,3,1,魔法盾 3,減少全體隊員50%的魔法傷害。,1,0,0.5,6,0,0,4,7,52,magic_midium,increase_inteligence,increase_inteligence,13,70,0
 159,3,2,Rubber Arm,對敵人後排造成大量傷害。,3,1,1.5,0,0,0,14,39,4,skill_midium,hit_midium,damage_middle,11,30,0
-160,3,2,Ice Fang,對3名敵人造成大量冰系傷害且一定幾率使其進入冰凍狀態。,4,1,1.5,3,0.3,0,16,38,21,skill_small,damage_ice,damage_ice,11,30,0
-161,3,2,Shadow Strike,對隨機4名敵人造成基於敏捷的傷害。,3,3,1,0,0,0,19,39,55,skill_midium,hit_midium,damage_middle,11,30,0
+160,3,2,Ice Fang,對3名敵人造成大量冰系傷害且一定幾率使其進入冰凍狀態。,4,1,1.5,3,0.3,0,16,38,21,skill_small,damage_ice,damage_ice,11,30,1678
+161,3,2,Shadow Strike,對隨機4名敵人造成基於敏捷的傷害。,3,3,1,0,0,0,19,39,55,skill_midium,hit_midium,damage_middle,11,30,2274
 162,4,2,Ice Fog,對敵方所有成員造成冰系傷害。,4,2,1,0,0,0,8,8,21,magic_large,damage_ice,damage_ice,11,30,0
-163,4,2,Poison Mist,對3名敵人造成巨量毒系傷害，且一定幾率使其中毒。,4,2,2.3,1,0.3,0,7,8,23,magic_large,damage_poison,damage_poison,11,30,0
+163,4,2,Poison Mist,對3名敵人造成巨量毒系傷害，且一定幾率使其中毒。,4,2,2.3,1,0.3,0,7,8,23,magic_large,damage_poison,damage_poison,11,30,599
 164,4,1,天佑 2,增加全體隊員攻擊和智力。,1,0,0.2,1,3,0,4,7,61,magic_midium,increase_attack,increase_attack,13,70,0
 165,4,2,Furious Cannon,對所有敵人造成火系傷害，且一定幾率降低對方攻擊。,22,2,1,1,0.3,0.5,8,7,20,magic_midium,damage_fire,damage_fire,11,30,0
-166,4,3,Payback,當受到攻擊時一定幾率返擊，給對方造成巨量傷害。,13,1,2.3,0,0,0,21,39,4,skill_midium,hit_midium,damage_middle,12,50,0
+166,4,3,Payback,當受到攻擊時一定幾率返擊，給對方造成巨量傷害。,13,1,2.3,0,0,0,23,39,4,skill_midium,hit_midium,damage_middle,12,50,0
 167,3,1,Bulwark,減少自己及相鄰隊員受到的物理傷害。,1,0,0.4,5,0,0,3,7,49,magic_midium,increase_quard,increase_quard,13,70,0
 168,4,2,Frost and Ice,對隨機6名敵人造成傷害，且一定幾率使其進入冰凍狀態。,4,2,0.8,3,0.3,0,17,6,21,magic_large,damage_ice,damage_ice,11,30,0
 169,4,1,Silent Cheer,增加左右兩邊隊員技能釋放概率。,1,0,0.2,8,0,0,2,7,54,magic_midium,increase_quickness,increase_quickness,13,70,0
 170,4,2,War Dance,對敵方前排及中排造成基於敏捷的大量傷害。,4,3,1.5,0,0,0,15,39,4,skill_midium,hit_midium,damage_middle,11,30,0
-171,2,2,Magic Arrow,對隨機2名敵人造成基於智力的大量傷害。,4,2,2,0,0,0,23,6,34,magic_small,skill_arrow,skill_arrow,11,30,0
+171,2,2,Magic Arrow,對隨機2名敵人造成基於智力的大量傷害。,4,2,2,0,0,0,21,6,34,magic_small,skill_arrow,skill_arrow,11,30,0
 172,3,1,Sealed Lips,一定幾率阻止2名敵人在3個回合內不可使用技能。,19,0,0,5,0.3,3,6,7,46,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
 174,3,1,Take Wing,增加自己及相鄰隊員的敏捷。,1,3,0.3,4,0,0,3,7,11,magic_midium,increase_quickness,increase_quickness,13,70,0
-175,4,2,Lifesaver,回覆相鄰隊友大量生命值。,18,4,2,0,0,0,2,8,27,magic_large,skill_recover,skill_recover,11,30,0
-177,4,1,Divine Shield,閃避大部份物理攻擊。,1,0,0.65,5,0,0,21,7,49,magic_midium,increase_quard,increase_quard,13,70,0
+175,4,2,Lifesaver,回覆相鄰隊友大量生命值。,18,4,2,0,0,0,2,8,27,magic_large,skill_recover,skill_recover,11,30,2167
+177,4,1,Divine Shield,閃避大部份物理攻擊。,1,0,0.65,5,0,0,23,7,49,magic_midium,increase_quard,increase_quard,13,70,0
 178,3,2,Light Fist,對隨機3名敵人造成大量閃電傷害。,3,1,1.7,0,0,0,16,38,44,skill_small,hit_midium,damage_middle,11,30,0
-179,3,2,Sword of Justice,對隨機2名敵人造成巨量基於敏捷的傷害。,3,3,2.5,0,0,0,23,39,4,skill_midium,hit_midium,damage_middle,11,30,0
+179,3,2,Sword of Justice,對隨機2名敵人造成巨量基於敏捷的傷害。,3,3,2.5,0,0,0,21,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 180,4,5,Proxy Counter,當右邊的隊友受到攻擊時，對攻擊者進行反擊。,14,1,1,0,0,0,28,40,4,skill_large,hit_midium,damage_middle,12,50,0
 181,3,1,Veil of Protection,減少自己及相鄰隊員受到的魔法傷害。,1,0,0.4,6,0,0,3,7,52,magic_midium,increase_inteligence,increase_inteligence,13,70,0
 182,3,2,Freezing Pain,對任意位置的3名敵人造成大量冰系傷害。,4,2,1.7,0,0,0,7,7,21,magic_midium,damage_ice,damage_ice,11,30,0
 185,4,2,Thunderclap,對隨機5名敵人造成基於智力的傷害，且一定幾率麻痹對方。,4,2,0.7,2,0.3,0,20,6,44,magic_small,status_stun,status_stun,11,30,0
 186,2,2,Razor Claws,對2名敵人造成大量傷害，且一定幾率麻痹對方。,3,1,2,2,0.5,0,6,38,26,skill_small,status_stun,status_stun,11,30,0
-187,3,2,Mega Shot,對1名敵人造成極限傷害，且無視位置。,4,1,4,0,0,0,5,39,5,skill_midium,hit_large,damage_large,11,30,0
-188,2,2,Shatter Armor,對1名敵人造成巨量傷害，且一定幾率降低其防禦力。,21,1,3,2,0.3,0.3,5,38,55,skill_small,hit_midium,damage_middle,11,30,0
+187,3,2,Mega Shot,對1名敵人造成極限傷害，且無視位置。,4,1,4,0,0,0,5,39,5,skill_midium,hit_large,damage_large,11,30,2226
+188,2,2,Shatter Armor,對1名敵人造成巨量傷害，且一定幾率降低其防禦力。,21,1,3,2,0.3,0.3,5,38,55,skill_small,hit_midium,damage_middle,11,30,1250
 189,4,2,Demonic Stab,對敵方全體隊員造成傷害，且一定幾率致其無法行動。,3,1,1,4,0.3,0,8,38,42,skill_midium,hit_midium,damage_middle,11,30,0
 190,4,2,聚氣 II,休息一會合，下回合對2名敵人造成極限傷害。,9,1,4.2,0,0,0,6,38,56,skill_small,hit_midium,damage_middle,11,30,0
 191,3,2,Strong-Arm Tactics,對所有敵人造成傷害，且一定幾率降低攻擊力。,21,1,1,1,0.5,0.2,8,39,4,skill_midium,hit_midium,damage_middle,11,30,0
-192,3,2,Rear Blinkstrike,對敵方後排全體隊員造成基於敏捷的傷害。,3,3,1,0,0,0,14,39,4,skill_midium,hit_midium,damage_middle,11,30,0
-193,4,2,Angler,誰也不知道他會出什麽技能！,24,0,0,0,0,0,21,7,4,magic_midium,hit_midium,damage_middle,12,50,0
-194,3,2,Hell Strike,對2名敵人造成基於智力的傷害，且一定幾率秒殺。,7,2,1,0.15,0,0,23,39,30,skill_midium,skill_critical_hit,skill_critical_hit,11,30,0
-195,3,2,Warrior's Wrath,對隨機2名敵人造成基於攻擊的大量傷害。,3,1,2,0,0,0,23,39,4,skill_midium,hit_midium,damage_middle,11,30,0
+192,3,2,Rear Blinkstrike,對敵方後排全體隊員造成基於敏捷的傷害。,3,3,1,0,0,0,14,39,4,skill_midium,hit_midium,damage_middle,11,30,765
+193,4,2,Angler,誰也不知道他會出什麽技能！,24,0,0,0,0,0,23,7,4,magic_midium,hit_midium,damage_middle,12,50,0
+194,3,2,Hell Strike,對2名敵人造成基於智力的傷害，且一定幾率秒殺。,7,2,1,0.15,0,0,21,39,30,skill_midium,skill_critical_hit,skill_critical_hit,11,30,0
+195,3,2,Warrior's Wrath,對隨機2名敵人造成基於攻擊的大量傷害。,3,1,2,0,0,0,21,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 196,3,2,Spark Shot,對隨機4名敵人造成基於攻擊的傷害。,3,1,0.8,0,0,0,19,39,44,skill_midium,hit_midium,damage_middle,11,30,0
-197,4,2,Revitalize,回覆所有隊員大量生命值。,18,4,1.5,0,0,0,4,8,27,magic_large,skill_recover,skill_recover,11,30,0
-198,3,2,Flame Rasp,對3名敵人造成傷害。,4,2,1.3,0,0,0,7,17,20,magic_fire,damage_fire,damage_fire,11,30,0
+197,4,2,Revitalize,回覆所有隊員大量生命值。,18,4,1.5,0,0,0,4,8,27,magic_large,skill_recover,skill_recover,11,30,167
+198,3,2,Flame Rasp,對3名敵人造成傷害。,4,2,1.3,0,0,0,7,17,20,magic_fire,damage_fire,damage_fire,11,30,2226
 199,4,2,Cruelest Touch,對隨機6名敵人造成基於攻擊的傷害，且一定幾率使對方中毒。,3,1,0.75,1,0.25,0,17,40,23,skill_large,damage_poison,damage_poison,11,30,0
 200,3,1,Savage Lullaby,在戰鬥開始前一定幾率沉默3名敵人。,19,0,0,5,0.3,3,7,7,46,magic_midium,decrease_inteligence,decrease_inteligence,13,70,0
 201,4,2,Searing Blade,對隨機3名敵人造成基於攻擊的大量傷害。,3,1,2,0,0,0,16,39,57,skill_midium,hit_midium,damage_middle,11,30,0
@@ -200,7 +200,7 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 203,4,2,Trial by Ice,對2名敵人造成基於智力的大量水系傷害。,4,2,2,3,0.3,0,6,18,21,skill_large,hit_midium,damage_middle,11,30,0
 204,3,2,Frozen Spear,對1名敵人造成巨量傷害，且一定幾率冰凍。,4,2,3,3,0.7,0,5,6,21,magic_small,damage_ice,damage_ice,11,30,0
 205,2,2,Crushing Hammer,對敵方所有隊員造成物理攻擊，且一定幾率冰凍。,4,1,1,3,0.3,0,8,39,21,skill_midium,damage_ice,damage_ice,11,30,0
-206,2,2,Dance of Petals,對隨機3名敵人造成基於敏捷的攻擊，且無視位置。,4,3,1,0,0,0,16,38,3,skill_small,hit_small,damage_small,11,30,0
+206,2,2,Dance of Petals,對隨機3名敵人造成基於敏捷的攻擊，且無視位置。,4,3,1,0,0,0,16,38,3,skill_small,hit_small,damage_small,11,30,1998
 207,4,1,Camouflage,戰鬥開始前複製對方屬性和技能。,26,0,0,0,0,0,8,70,3,magic_midium,hit_small,damage_small,11,30,0
 208,4,2,Umbral Blade,對所有敵人造成物理傷害，且一定幾率降低其智力。,21,1,1,3,0.5,0.2,8,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 210,4,2,Poison Spout,對隨機4名敵人造成基於智力的魔法傷害，且一定幾率使其中毒。,4,2,1.2,1,0.3,0,19,19,23,magic_poison,damage_poison,damage_poison,11,30,0
@@ -210,12 +210,12 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 214,4,2,Blade of Madness,對敵方所有隊員造成基於攻擊的物理傷害。,3,1,1.35,0,0,0,8,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 215,3,2,Flaming Spear,對3名敵人造成傷害，且一定幾率麻痹對方。,3,1,1.3,2,0.3,0,7,39,20,skill_midium,damage_fire,damage_fire,11,30,0
 216,3,2,Bodycheck,對隨機2名敵人造成基於攻擊的大量傷害。,3,1,2.5,0,0,0,6,39,5,skill_midium,hit_large,damage_large,11,30,0
-217,3,2,Harrowing Trial,對隨機2名敵人造成基於智力的巨量傷害。,4,2,2.5,0,0,0,23,8,4,magic_large,hit_midium,damage_middle,11,30,0
-218,4,2,Boulder Toss,對敵方的中排及後排造成基於攻擊的大量傷害。,3,1,1.4,2,0.3,0,15,38,4,skill_midium,hit_midium,damage_middle,11,30,0
+217,3,2,Harrowing Trial,對隨機2名敵人造成基於智力的巨量傷害。,4,2,2.5,0,0,0,21,8,4,magic_large,hit_midium,damage_middle,11,30,0
+218,4,2,Boulder Toss,對敵方的前排及中排造成基於攻擊的大量傷害。,3,1,1.4,2,0.3,0,15,38,4,skill_midium,hit_midium,damage_middle,11,30,0
 219,4,2,Evil Eye,對敵方所有人造成基於敏捷的傷害，且一定幾率降低其敏捷。,21,3,1.2,4,0.3,0.3,8,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 220,3,2,Glaring Evil Eye,對3名敵人造成基於敏捷的傷害，且一定幾率降低其敏捷。,21,3,1.3,4,0.3,0.2,7,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 221,3,2,Skittering Darkness,對隨機3名敵人造成基於攻擊的大量傷害。,3,1,1.5,0,0,0,16,39,5,skill_large,hit_large,damage_large,11,30,0
-222,2,2,Boastful Blade,對隨機2名敵人造成基於攻擊的大量傷害。,3,1,1.9,0,0,0,23,39,4,skill_midium,hit_midium,damage_middle,11,30,0
+222,2,2,Boastful Blade,對隨機2名敵人造成基於攻擊的大量傷害。,3,1,1.9,0,0,0,21,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 223,3,2,Fire Master,對所有敵人造成基於智力的傷害。,4,2,0.7,0,0,0,8,7,20,magic_fire,damage_fire,damage_fire,11,30,0
 224,4,2,Feather Shot,對隨機3名敵人造成基於攻擊的巨量傷害。,4,1,2.1,0,0,0,16,40,34,skill_large,skill_arrow,skill_arrow,11,30,0
 225,4,2,Wings of Winter,對隨機5名敵人造成基於敏捷的傷害。,3,3,0.8,0,0,0,20,39,22,skill_midium,damage_wind,damage_wind,11,30,0
@@ -233,6 +233,6 @@ id,rarity,skillType,name,comment,skillFunc,skillCalcType,skillFuncArg1,skillFunc
 246,3,2,Wry Smile,對2名敵人造成基於攻擊的大量傷害。,3,1,2,0,0,0,6,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 247,4,2,Bragging Rights,對敵方的前排和中排造成基於攻擊的傷害。,3,1,1.2,0,0,0,15,39,4,skill_midium,hit_midium,damage_middle,11,30,0
 9998,2,2,炽焰法球,對隨機2名敵人造成火系傷害。,4,2,1.5,0,0,0,21,8,20,magic_large,damage_fire,damage_fire,11,30,0
-9999,3,2,陀螺飛舞,對隨機6名敵人造成基於敏捷的大量傷害。,3,3,1,0,0,0,17,39,55,skill_midium,hit_midium,damage_middle,11,30,0
+9999,4,2,陀螺飛舞,對隨機6名敵人造成基於敏捷的大量傷害。,3,3,1,0,0,0,17,39,55,skill_midium,hit_midium,damage_middle,11,30,2274
 10001,1,2,Default Attack,Default Attack Skill (Magic fire Attack),4,2,1,0,0,0,5,63,20,magic_small,hit_small,damage_small,100,100,0
 10002,1,2,Default Attack,Default Attack Skill (Attack),4,1,1,0,0,0,6,38,55,skill_small,hit_small,damage_small,100,100,0
