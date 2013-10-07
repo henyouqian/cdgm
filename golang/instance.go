@@ -11,8 +11,19 @@ import (
 	"time"
 )
 
+type TimesRestrict struct {
+	Times   uint32
+	YearDay uint32
+}
+
 func instanceList(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "GET")
+
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	session, err := findSession(w, r, rc)
+	lwutil.CheckError(err, "err_auth")
 
 	type Instance struct {
 		Id            uint32 `json:"id"`
@@ -28,6 +39,7 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 		RemainTimes   uint32 `json:"remainTimes"`
 	}
 
+	today := uint32(lwutil.GetRedisTime().YearDay())
 	instList := make([]Instance, 0, 8)
 	for _, v := range tblInstanceList {
 		openDate := ""
@@ -43,6 +55,25 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 			closeDate = fmt.Sprintf("%d月%d日", t.Month(), t.Day())
 		}
 
+		timesRemain := uint32(0)
+
+		var timesRestrict TimesRestrict
+		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", session.Userid, v.Id)
+		err := lwutil.GetKV2(key, &timesRestrict, rc)
+		if err == lwutil.ErrNoRows {
+			timesRemain = v.TimesRestrict
+		} else {
+			lwutil.CheckError(err, "")
+			if today != timesRestrict.YearDay {
+				timesRemain = v.TimesRestrict
+			} else {
+				timesRemain = v.TimesRestrict - timesRestrict.Times
+				if timesRemain < 0 {
+					timesRemain = 0
+				}
+			}
+		}
+
 		inst := Instance{
 			v.Id,
 			v.Name,
@@ -54,7 +85,7 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 			openDate,
 			closeDate,
 			v.CoolDown,
-			v.TimesRestrict,
+			timesRemain,
 		}
 		instList = append(instList, inst)
 	}
@@ -212,7 +243,6 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		lwutil.SendError("", fmt.Sprintf("invalid instanceId:%d", instZone.InstanceID))
 	}
-	_ = inst
 
 	//update xp
 	if lastXpTime.Unix() > now.Unix() {
@@ -243,10 +273,6 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	//some instance restrict checking...
 	// times restrict
 	if inst.TimesRestrict > 0 {
-		type TimesRestrict struct {
-			Times   uint32
-			YearDay uint32
-		}
 		var timesRestrict TimesRestrict
 		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", session.Userid, inst.Id)
 		err := lwutil.GetKV2(key, &timesRestrict, rc)
@@ -273,7 +299,10 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		}()
 
 		if !canPlay {
-			lwutil.SendError("err_times_restrict", "")
+			if whCoin < instZone.Price {
+				lwutil.SendError("err_times_restrict", "")
+			}
+			whCoin -= instZone.Price
 		}
 
 		lwutil.SetKV2(key, &timesRestrict, rc)
@@ -334,8 +363,8 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	//update db
 	cacheJs, err := json.Marshal(cache)
 	lwutil.CheckError(err, "")
-	_, err = whDB.Exec(`UPDATE playerInfos SET zoneCache=?, inZoneId=?, currentBand=?, xp=?, lastXpTime=?
-                WHERE userid=?`, cacheJs, in.ZoneId, in.BandIdx, xp, lastXpTime, session.Userid)
+	_, err = whDB.Exec(`UPDATE playerInfos SET zoneCache=?, inZoneId=?, currentBand=?, xp=?, lastXpTime=?, whCoin=?
+                WHERE userid=?`, cacheJs, in.ZoneId, in.BandIdx, xp, lastXpTime, whCoin, session.Userid)
 	lwutil.CheckError(err, "")
 
 	// out band
