@@ -57,7 +57,7 @@ function Controller($scope, $http) {
 				},{
 					"name": "zonelist",
 					"method": "POST",
-					"data": {"instanceID": 1}
+					"data": {"instanceID": 123}
 				},{
 					"name": "enterzone",
 					"method": "POST",

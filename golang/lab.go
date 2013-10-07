@@ -162,6 +162,18 @@ func kv() {
 	glog.Infoln(aaa)
 }
 
+func csv() {
+	type TestData struct {
+		Id     uint32
+		Objid  int32
+		Amount uint32
+		Prob   float32 `csv:"prob%"`
+	}
+	var tbl map[string]TestData
+	lwutil.LoadCsvMap("../data/test.csv", []string{"id"}, &tbl)
+	glog.Infof("%+v", tbl)
+}
+
 func lab() {
 
 }

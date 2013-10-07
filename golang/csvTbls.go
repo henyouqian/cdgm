@@ -171,17 +171,17 @@ var (
 )
 
 func init() {
-	err := lwutil.LoadCsvTbl("../data/cards.csv", []string{"ID"}, &tblCard)
+	err := lwutil.LoadCsvMap("../data/cards.csv", []string{"ID"}, &tblCard)
 	lwutil.PanicIfError(err)
-	err = lwutil.LoadCsvTbl("../data/cardGrowthMappings.csv", []string{"type", "level"}, &tblCardGrowth)
+	err = lwutil.LoadCsvMap("../data/cardGrowthMappings.csv", []string{"type", "level"}, &tblCardGrowth)
 	lwutil.PanicIfError(err)
-	err = lwutil.LoadCsvTbl("../data/cardLevels.csv", []string{"level"}, &tblCardLevel)
+	err = lwutil.LoadCsvMap("../data/cardLevels.csv", []string{"level"}, &tblCardLevel)
 	lwutil.PanicIfError(err)
-	err = lwutil.LoadCsvTbl("../data/levels.csv", []string{"level"}, &tblWarlordCardLevel)
+	err = lwutil.LoadCsvMap("../data/levels.csv", []string{"level"}, &tblWarlordCardLevel)
 	lwutil.PanicIfError(err)
 
 	//store
-	err = lwutil.LoadCsvTbl("../data/shops.csv", []string{"id"}, &tblStore)
+	err = lwutil.LoadCsvMap("../data/shops.csv", []string{"id"}, &tblStore)
 	lwutil.PanicIfError(err)
 
 	var tblStoreList []rowStore
@@ -219,7 +219,7 @@ func init() {
 	lwutil.PanicIfError(err)
 
 	//news
-	err = lwutil.LoadCsvTbl("../data/news.csv", []string{"id"}, &tblNews)
+	err = lwutil.LoadCsvMap("../data/news.csv", []string{"id"}, &tblNews)
 	lwutil.PanicIfError(err)
 
 	// news list
@@ -227,7 +227,7 @@ func init() {
 	lwutil.PanicIfError(err)
 
 	//instance
-	err = lwutil.LoadCsvTbl("../data/instance.csv", []string{"id"}, &tblInstance)
+	err = lwutil.LoadCsvMap("../data/instance.csv", []string{"id"}, &tblInstance)
 	lwutil.PanicIfError(err)
 
 	// instance list
@@ -235,7 +235,7 @@ func init() {
 	lwutil.PanicIfError(err)
 
 	//instance zone
-	err = lwutil.LoadCsvTbl("../data/instanceZones.csv", []string{"zoneId"}, &tblInstanceZone)
+	err = lwutil.LoadCsvMap("../data/instanceZones.csv", []string{"zoneId"}, &tblInstanceZone)
 	lwutil.PanicIfError(err)
 
 	// instance zone list
@@ -243,15 +243,15 @@ func init() {
 	lwutil.PanicIfError(err)
 
 	//map
-	err = lwutil.LoadCsvTbl("../data/maps.csv", []string{"zoneID"}, &tblMap)
+	err = lwutil.LoadCsvMap("../data/maps.csv", []string{"zoneID"}, &tblMap)
 	lwutil.PanicIfError(err)
 
 	//event
-	err = lwutil.LoadCsvTbl("../data/events.csv", []string{"ID"}, &tblEvent)
+	err = lwutil.LoadCsvMap("../data/events.csv", []string{"ID"}, &tblEvent)
 	lwutil.PanicIfError(err)
 
 	//mapEvent
-	err = lwutil.LoadCsvTbl("../data/mapevents.csv", []string{"mapid", "tilevalue"}, &tblMapEvent)
+	err = lwutil.LoadCsvMap("../data/mapevents.csv", []string{"mapid", "tilevalue"}, &tblMapEvent)
 	lwutil.PanicIfError(err)
 
 }

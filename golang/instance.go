@@ -234,25 +234,17 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//check and consume xp
+	if xp < instZone.XpCost {
+		lwutil.SendError("err_xp_not_enough", fmt.Sprintf("xp=%d, xpcost=%d", xp, instZone.XpCost))
+	}
+	xp -= instZone.XpCost
+	xp = uint32(lwutil.Truncate(int64(xp), int64(0), int64(maxXp)))
 
 	//some instance restrict checking...
 
 	//gen cache
 	cache, err := genCache(in.ZoneId, true, session.Userid, currBand)
 	lwutil.CheckError(err, "")
-
-	////save last instance zone id
-	//key := fmt.Sprintf("lastInstZoneId/user=%d&inst=%d", session.Userid, instZone.InstanceID)
-	//lastInstZoneId := uint32(0)
-	//err = lwutil.GetKV2(key, &lastInstZoneId, rc)
-	//if err != lwutil.ErrNoRows {
-	//	lwutil.CheckError(err, "")
-	//}
-
-	//if instZone.ZoneId > lastInstZoneId {
-	//	err = lwutil.SetKV2(key, instZone.ZoneId, rc)
-	//	lwutil.CheckError(err, "")
-	//}
 
 	//out
 	// out obj
