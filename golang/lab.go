@@ -156,10 +156,15 @@ func kv() {
 	rc := redisPool.Get()
 	defer rc.Close()
 
-	lwutil.SetKV2("aaa", "ccc", rc)
-	var aaa string
-	lwutil.GetKV2("aaa", &aaa, rc)
-	glog.Infoln(aaa)
+	type s struct {
+		A int
+		B string
+	}
+	in := s{23, "ggg"}
+	var out s
+	lwutil.SetKV2("aaa", &in, rc)
+	lwutil.GetKV2("aaa", &out, rc)
+	glog.Infoln(in)
 }
 
 func csv() {
@@ -168,9 +173,11 @@ func csv() {
 		Objid  int32
 		Amount uint32
 		Prob   float32 `csv:"prob%"`
+		Test   uint32
 	}
 	var tbl map[string]TestData
-	lwutil.LoadCsvMap("../data/test.csv", []string{"id"}, &tbl)
+	err := lwutil.LoadCsvMap("../data/test.csv", []string{"id"}, &tbl)
+	glog.Infoln(err)
 	glog.Infof("%+v", tbl)
 }
 

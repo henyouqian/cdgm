@@ -241,6 +241,43 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	xp = uint32(lwutil.Truncate(int64(xp), int64(0), int64(maxXp)))
 
 	//some instance restrict checking...
+	// times restrict
+	if inst.TimesRestrict > 0 {
+		type TimesRestrict struct {
+			Times   uint32
+			YearDay uint32
+		}
+		var timesRestrict TimesRestrict
+		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", session.Userid, inst.Id)
+		err := lwutil.GetKV2(key, &timesRestrict, rc)
+
+		canPlay := func() bool {
+			today := uint32(lwutil.GetRedisTime().YearDay())
+			if err != lwutil.ErrNoRows {
+				lwutil.CheckError(err, "")
+				if timesRestrict.YearDay == today {
+					if timesRestrict.Times >= inst.TimesRestrict {
+						return false
+					} else {
+						timesRestrict.Times++
+					}
+				} else {
+					timesRestrict.YearDay = today
+					timesRestrict.Times = 1
+				}
+			} else {
+				timesRestrict.YearDay = today
+				timesRestrict.Times = 1
+			}
+			return true
+		}()
+
+		if !canPlay {
+			lwutil.SendError("err_times_restrict", "")
+		}
+
+		lwutil.SetKV2(key, &timesRestrict, rc)
+	}
 
 	//gen cache
 	cache, err := genCache(in.ZoneId, true, session.Userid, currBand)
