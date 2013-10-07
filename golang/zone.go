@@ -121,7 +121,7 @@ func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCa
 	rand1item := newWeightedRandom(1.0, mapRow.OnlyItemProb, 0, mapRow.EventProb, mapRow.PvpProb)
 	rand1mon := newWeightedRandom(1.0, 0, mapRow.OnlyMonsterProb, mapRow.EventProb, mapRow.PvpProb)
 
-	rand2item := newWeightedRandom(1.0, mapRow.WoodProb, mapRow.RedCaseProb, mapRow.GoldCaseProb, mapRow.LittleGoldProb, mapRow.BigGoldProb)
+	rand2item := newWeightedRandom(1.0, mapRow.WoodProb, mapRow.TreasureProb, mapRow.ChestProb, mapRow.LittleGoldProb, mapRow.BigGoldProb)
 
 	//monster group
 	monGrpIdsTmp := []uint32{mapRow.Monster1ID, mapRow.Monster2ID, mapRow.Monster3ID, mapRow.Monster4ID, mapRow.Monster5ID,

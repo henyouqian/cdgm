@@ -185,6 +185,11 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	now, err := time.ParseInLocation("2006-01-02 15:04:05", nowStr, time.UTC)
 	lwutil.CheckError(err, "")
 
+	//check zone id
+	//if inZoneId != 0 {
+	//	lwutil.SendError("err_in_zone", "alread in zone")
+	//}
+
 	//parse band
 	var bands []Band
 	err = json.Unmarshal(bandsJs, &bands)
@@ -195,6 +200,19 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	currBand := bands[in.BandIdx]
+
+	//instance zone data
+	instZone, ok := tblInstanceZone[strconv.FormatUint(uint64(in.ZoneId), 10)]
+	if !ok {
+		lwutil.SendError("err_input", fmt.Sprintf("invalid zoneid:%d", in.ZoneId))
+	}
+
+	//instance data
+	inst, ok := tblInstance[strconv.FormatUint(uint64(instZone.InstanceID), 10)]
+	if !ok {
+		lwutil.SendError("", fmt.Sprintf("invalid instanceId:%d", instZone.InstanceID))
+	}
+	_ = inst
 
 	//update xp
 	if lastXpTime.Unix() > now.Unix() {
@@ -215,23 +233,7 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		lastXpTime = now.Add(time.Duration(-t) * time.Second)
 	}
 
-	//check zone id
-	//if inZoneId != 0 {
-	//	lwutil.SendError("err_in_zone", "alread in zone")
-	//}
-
-	//instance zone data
-	instZone, ok := tblInstanceZone[strconv.FormatUint(uint64(in.ZoneId), 10)]
-	if !ok {
-		lwutil.SendError("err_input", fmt.Sprintf("invalid zoneid:%d", in.ZoneId))
-	}
-
-	//instance data
-	inst, ok := tblInstance[strconv.FormatUint(uint64(instZone.InstanceID), 10)]
-	if !ok {
-		lwutil.SendError("", fmt.Sprintf("invalid instanceId:%d", instZone.InstanceID))
-	}
-	_ = inst
+	//check and consume xp
 
 	//some instance restrict checking...
 

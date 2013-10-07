@@ -42,13 +42,13 @@ type rowCardLevel struct {
 }
 
 type rowStore struct {
-	Id      uint32
-	ItemId  uint32
-	Price   uint32
-	Num     uint32
-	Name    string
-	Comment string
-	IconId  uint32
+	Id         uint32
+	ItemId     uint32
+	Price      uint32
+	Num        uint32
+	Name       string
+	Comment    string
+	ItemIconID uint32
 }
 
 type rowNews struct {
@@ -107,8 +107,8 @@ type rowMap struct {
 	OnlyItemProb           float32
 	OnlyMonsterProb        float32
 	WoodProb               float32
-	RedCaseProb            float32
-	GoldCaseProb           float32
+	TreasureProb           float32
+	ChestProb              float32
 	LittleGoldProb         float32
 	BigGoldProb            float32
 	Monster1ID             uint32
@@ -202,7 +202,7 @@ func init() {
 		goods := Goods{
 			v.Id,
 			v.Price,
-			v.IconId,
+			v.ItemIconID,
 			v.ItemId,
 			v.Name,
 			v.Comment,
