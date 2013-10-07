@@ -1108,7 +1108,7 @@ class Complete(tornado.web.RequestHandler):
                                 band["formation"] = new_last_formation
 
                 # delete the little girl
-                if zoneid == 10001:
+                if zoneid == 10002:
                     rows = yield util.whdb.runQuery(
                         """ SELECT id FROM cardEntities
                                 WHERE ownerId=%s AND protoId=130"""
