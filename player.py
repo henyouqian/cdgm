@@ -633,7 +633,7 @@ class UseItem(tornado.web.RequestHandler):
                 if ap == maxAp:
                     raise Exception("ap full")
 
-                ap += 5
+                ap += 10
 
                 if ap >= maxAp:
                     ap = maxAp
