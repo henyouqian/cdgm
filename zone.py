@@ -446,9 +446,6 @@ class Move(tornado.web.RequestHandler):
                 elif evtid == 6:
                     hasPvp = True
 
-                if money_add:
-                    money += money_add
-
             # event
             events = cache["events"]
             eventid = events.get(poskey)
@@ -493,6 +490,9 @@ class Move(tornado.web.RequestHandler):
                         items[itemid] = itemnum
                 _items_add.append(item)
             items_add = _items_add
+
+            if money_add:
+                money += money_add
 
             # add cards
             cards = []
