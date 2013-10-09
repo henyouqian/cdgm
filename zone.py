@@ -169,6 +169,8 @@ class Enter(tornado.web.RequestHandler):
                 return
             userid = session["userid"]
 
+            print session
+
             # param
             try:
                 zoneid = int(self.get_argument("zoneid"))

@@ -811,6 +811,7 @@ class BattleResult(tornado.web.RequestHandler):
                 return
             userid = session["userid"]
             username = session["username"]
+            playername = session["playerName"]
 
             # post data
             post_input = json.loads(self.request.body)
@@ -1088,7 +1089,7 @@ class BattleResult(tornado.web.RequestHandler):
                     userinfo = {}
                     userinfo["cards"] = [c["protoId"] for c in card_entities]
                     userinfo["level"] = worlord_level
-                    yield leaderboard.set_score("pvp", self_score+score_add, userid, username, userinfo)
+                    yield leaderboard.set_score("pvp", self_score+score_add, userid, playername, userinfo)
                 except:
                     logging.error("pvp leaderboard error")
                     raise

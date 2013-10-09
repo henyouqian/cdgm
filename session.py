@@ -60,3 +60,13 @@ def find_session(rqHandler, callback):
                 callback(None)
     except Exception as e:
         callback(e)
+
+@adisp.async
+@adisp.process
+def set_session(rqHandler, session, callback):
+    usertoken = rqHandler.get_argument("token", None)
+    if not usertoken:
+         usertoken = rqHandler.get_cookie("token")
+    if usertoken:
+        rv = yield util.redis().setex(usertoken, SESSION_TTL, json.dumps(session))
+    callback(None)
