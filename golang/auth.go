@@ -14,9 +14,10 @@ import (
 const sessionLifeSecond = 60 * 60 * 24 * 7
 
 type Session struct {
-	Userid   uint64
-	Username string
-	Appid    uint32
+	UserId     uint64
+	UserName   string
+	AppId      uint32
+	PlayerName string
 }
 
 func newSession(w http.ResponseWriter, rc redis.Conn, userid uint64, username string, appid uint32) (usertoken string, err error) {
@@ -35,7 +36,7 @@ func newSession(w http.ResponseWriter, rc redis.Conn, userid uint64, username st
 
 	usertoken = lwutil.GenUUID()
 
-	session := Session{userid, username, appid}
+	session := Session{userid, username, appid, username}
 	jsonSession, err := json.Marshal(session)
 	if err != nil {
 		return usertoken, lwutil.NewErr(err)

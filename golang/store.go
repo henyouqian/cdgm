@@ -36,7 +36,7 @@ func storeBuy(w http.ResponseWriter, r *http.Request) {
 	price := storeItem.Price * in.Num
 
 	//select from db
-	row := whDB.QueryRow("SELECT whCoin, items FROM playerInfos WHERE userId=?", session.Userid)
+	row := whDB.QueryRow("SELECT whCoin, items FROM playerInfos WHERE userId=?", session.UserId)
 	var whCoin uint32
 	var itemsJs []byte
 	err = row.Scan(&whCoin, &itemsJs)
@@ -60,7 +60,7 @@ func storeBuy(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckError(err, "")
 
 	//update db
-	_, err = whDB.Exec("UPDATE playerInfos SET whCoin=?, items=? WHERE userId=?", whCoin, itemsJs, session.Userid)
+	_, err = whDB.Exec("UPDATE playerInfos SET whCoin=?, items=? WHERE userId=?", whCoin, itemsJs, session.UserId)
 	lwutil.CheckError(err, "")
 
 	//output

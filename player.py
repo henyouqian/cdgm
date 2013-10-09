@@ -595,6 +595,11 @@ class UseItem(tornado.web.RequestHandler):
                 else:
                     dxp = 1
 
+                count = post_input.get("count", 0)
+                count = min(maxXp - xp, count)
+                if count > 1:
+                    dxp = count
+
                 item_num = consumeItem(items, dxp)
                 yield util.whdb.runOperation(
                     """ UPDATE playerInfos SET items=%s, xp=xp+%s

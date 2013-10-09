@@ -20,7 +20,7 @@ func newsList(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckError(err, "err_auth")
 
 	//
-	v, err := lwutil.GetKV(fmt.Sprintf("readList/%d", session.Userid), rc)
+	v, err := lwutil.GetKV(fmt.Sprintf("readList/%d", session.UserId), rc)
 	lwutil.CheckError(err, "err_kv")
 	if v == nil {
 		v = []byte("[]")
@@ -92,7 +92,7 @@ func newsRead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//record read id
-	v, err := lwutil.GetKV(fmt.Sprintf("readList/%d", session.Userid), rc)
+	v, err := lwutil.GetKV(fmt.Sprintf("readList/%d", session.UserId), rc)
 	lwutil.CheckError(err, "err_kv")
 	var readList []int
 	if v != nil {
@@ -111,7 +111,7 @@ func newsRead(w http.ResponseWriter, r *http.Request) {
 	s, err := json.Marshal(&readList)
 	lwutil.CheckError(err, "")
 
-	err = lwutil.SetKV(fmt.Sprintf("readList/%d", session.Userid), s, rc)
+	err = lwutil.SetKV(fmt.Sprintf("readList/%d", session.UserId), s, rc)
 	lwutil.CheckError(err, "err_kv")
 
 	//output

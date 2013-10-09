@@ -58,7 +58,7 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 		timesRemain := uint32(0)
 
 		var timesRestrict TimesRestrict
-		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", session.Userid, v.Id)
+		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", session.UserId, v.Id)
 		err := lwutil.GetKV2(key, &timesRestrict, rc)
 		if err == lwutil.ErrNoRows {
 			timesRemain = v.TimesRestrict
@@ -133,7 +133,7 @@ func instanceZoneList(w http.ResponseWriter, r *http.Request) {
 
 	lastZone := uint32(0)
 
-	key := fmt.Sprintf("lastInstZoneId/user=%d&inst=%d", session.Userid, in.InstanceID)
+	key := fmt.Sprintf("lastInstZoneId/user=%d&inst=%d", session.UserId, in.InstanceID)
 	err = lwutil.GetKV2(key, &lastZone, rc)
 	if err != lwutil.ErrNoRows {
 		lwutil.CheckError(err, "")
@@ -200,7 +200,7 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckError(err, "err_decode_body")
 
 	//get player info
-	row := whDB.QueryRow("SELECT bands, inZoneId, xp, maxXp, lastXpTime, whCoin, UTC_TIMESTAMP() FROM playerInfos WHERE userId=?", session.Userid)
+	row := whDB.QueryRow("SELECT bands, inZoneId, xp, maxXp, lastXpTime, whCoin, UTC_TIMESTAMP(), warLord FROM playerInfos WHERE userId=?", session.UserId)
 	var bandsJs []byte
 	var inZoneId uint32
 	var xp uint32
@@ -208,7 +208,8 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	var lastXpTimeStr string
 	var whCoin uint32
 	var nowStr string
-	err = row.Scan(&bandsJs, &inZoneId, &xp, &maxXp, &lastXpTimeStr, &whCoin, &nowStr)
+	var warlord uint32
+	err = row.Scan(&bandsJs, &inZoneId, &xp, &maxXp, &lastXpTimeStr, &whCoin, &nowStr, &warlord)
 	lwutil.CheckError(err, "")
 
 	lastXpTime, err := time.ParseInLocation("2006-01-02 15:04:05", lastXpTimeStr, time.UTC)
@@ -220,6 +221,12 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	//if inZoneId != 0 {
 	//	lwutil.SendError("err_in_zone", "alread in zone")
 	//}
+
+	//get warlord info
+	row = whDB.QueryRow("SELECT level FROM cardEntities WHERE id=?", warlord)
+	var level uint32
+	err = row.Scan(&level)
+	lwutil.CheckError(err, "")
 
 	//parse band
 	var bands []Band
@@ -277,7 +284,7 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	// times restrict
 	if inst.TimesRestrict > 0 {
 		var timesRestrict TimesRestrict
-		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", session.Userid, inst.Id)
+		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", session.UserId, inst.Id)
 		err := lwutil.GetKV2(key, &timesRestrict, rc)
 
 		canPlay := func() bool {
@@ -311,8 +318,13 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		lwutil.SetKV2(key, &timesRestrict, rc)
 	}
 
+	// level restrict
+	if instZone.LevelRestrict != 0 && level < instZone.LevelRestrict {
+		lwutil.SendError("err_level_restrict", "")
+	}
+
 	//gen cache
-	cache, err := genCache(in.ZoneId, true, session.Userid, currBand)
+	cache, err := genCache(in.ZoneId, true, session.UserId, currBand)
 	lwutil.CheckError(err, "")
 
 	//out
@@ -367,7 +379,7 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	cacheJs, err := json.Marshal(cache)
 	lwutil.CheckError(err, "")
 	_, err = whDB.Exec(`UPDATE playerInfos SET zoneCache=?, inZoneId=?, currentBand=?, xp=?, lastXpTime=?, whCoin=?
-                WHERE userid=?`, cacheJs, in.ZoneId, in.BandIdx, xp, lastXpTime, whCoin, session.Userid)
+                WHERE userid=?`, cacheJs, in.ZoneId, in.BandIdx, xp, lastXpTime, whCoin, session.UserId)
 	lwutil.CheckError(err, "")
 
 	// out band
