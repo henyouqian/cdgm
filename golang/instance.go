@@ -251,7 +251,6 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	dt := now.Sub(lastXpTime)
 	dSec := int32(dt.Seconds())
 	dxp := int32(dSec / XP_ADD_DURATION)
-	xpAddRemain := int32(0)
 	if dxp > 0 {
 		xp = uint32(lwutil.Min(int64(maxXp), int64(int32(xp)+dxp)))
 	}
@@ -259,9 +258,9 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		lastXpTime = now
 	} else {
 		t := dSec % XP_ADD_DURATION
-		xpAddRemain = XP_ADD_DURATION - t
 		lastXpTime = now.Add(time.Duration(-t) * time.Second)
 	}
+	xpAddRemain := XP_ADD_DURATION - (dSec % XP_ADD_DURATION)
 
 	//check and consume xp
 	if xp < instZone.XpCost {
@@ -269,6 +268,10 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	}
 	xp -= instZone.XpCost
 	xp = uint32(lwutil.Truncate(int64(xp), int64(0), int64(maxXp)))
+
+	if xp == maxXp {
+		xpAddRemain = 0
+	}
 
 	//some instance restrict checking...
 	// times restrict
