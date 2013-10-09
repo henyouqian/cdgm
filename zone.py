@@ -108,7 +108,7 @@ def gen_cache(zoneid, islastZone):
     return cache
 
 # =============================================
-def trans_cache_to_client(cache):
+def trans_cache_to_client(cache, isLastZone):
     out = cache
     objs = cache["objs"]
     outobjs = []
@@ -149,6 +149,8 @@ def trans_cache_to_client(cache):
 
     # dialogue
     enter_diag, complete_diag, bgmid, resid, btlbgid = map_tbl.gets(cache["zoneId"], "enterzonerdialogueID", "completezonedialogueID", "bgmID", "resourceId", "battleBgId")
+    if not isLastZone:
+        enter_diag = complete_diag = 0
     out["enterDialogue"] = int(enter_diag)
     out["completeDialogue"] = int(complete_diag)
     out["bgmId"] = int(bgmid)
@@ -168,8 +170,6 @@ class Enter(tornado.web.RequestHandler):
                 send_error(self, err_auth)
                 return
             userid = session["userid"]
-
-            print session
 
             # param
             try:
@@ -241,7 +241,7 @@ class Enter(tornado.web.RequestHandler):
             score, rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
 
             # response
-            client_cache = trans_cache_to_client(cache)
+            client_cache = trans_cache_to_client(cache, isLastZone)
             reply = util.new_reply()
             reply.update(client_cache)
             reply["playerRank"] = rank
@@ -292,11 +292,16 @@ class Get(tornado.web.RequestHandler):
 
             # db get
             rows = yield util.whdb.runQuery(
-                """SELECT zoneCache FROM playerInfos 
+                """SELECT zoneCache, inZoneId, lastZoneId FROM playerInfos 
                         WHERE userid=%s"""
                 ,(userid,)
             )
-            cache = rows[0][0]
+            row = rows[0]
+            cache = row[0]
+            in_zone_id = row[1]
+            last_zone_id = row[2]
+
+            isLastZone = (in_zone_id == last_zone_id)
 
             if not cache:
                 raise Exception("Not in zone")
@@ -305,7 +310,7 @@ class Get(tornado.web.RequestHandler):
             score, rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
             
             cache = json.loads(cache)
-            client_cache = trans_cache_to_client(cache)
+            client_cache = trans_cache_to_client(cache, isLastZone)
 
             reply = util.new_reply()
             reply.update(client_cache)

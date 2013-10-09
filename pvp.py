@@ -869,7 +869,10 @@ class BattleResult(tornado.web.RequestHandler):
             if matched_bands:
                 matched_bands = json.loads(matched_bands)
             else:
-                send_error(self, "err_timeout")
+                # send_error(self, "err_timeout")
+                reply = util.new_reply()
+                reply["isTimeOut"] = True
+                self.write(json.dumps(reply))
                 return
 
             foe_band = None
