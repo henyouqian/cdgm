@@ -416,7 +416,7 @@ class Move(tornado.web.RequestHandler):
 
             # check and triger battles and get items
             poskey = "%d,%d" % (currpos[0], currpos[1])
-            evtid = cache["objs"].get(poskey)
+            objid = cache["objs"].get(poskey)
             money_add = 0
             # red_case_add = 0
             # gold_case_add = 0
@@ -424,26 +424,26 @@ class Move(tornado.web.RequestHandler):
             monGrpId = None
             catch_mons = []
             hasPvp = False
-            if evtid:
+            if objid:
                 zoneid = cache["zoneId"]
                 maprow = map_tbl.get_row(zoneid)
-                if evtid == 10000:      # event
+                if objid == 10000:      # event
                     pass
-                elif evtid < 0:         # battle
-                    monGrpId = -evtid
-                elif evtid == 1:    # wood case
+                elif objid < 0:         # battle
+                    monGrpId = -objid
+                elif objid == 1:    # wood case
                     caseid = map_tbl.get_value(maprow, "woodprobabilityID")
                     itemid = case_tbl.get_item(caseid)
                     items_add.append({"id":itemid, "num":1})
-                elif evtid == 2:    # red case
+                elif objid == 2:    # red case
                     items_add.append({"id":RED_CASE_ID, "num":1})
-                elif evtid == 3:    # gold case
+                elif objid == 3:    # gold case
                     items_add.append({"id":GOLD_CASE_ID, "num":1})
-                elif evtid == 4:    # small money bag
+                elif objid == 4:    # small money bag
                     items_add.append({"id":MONEY_BAG_SMALL_ID, "num":1})
-                elif evtid == 5:    # big money bag
+                elif objid == 5:    # big money bag
                     items_add.append({"id":MONEY_BAG_BIG_ID, "num":1})
-                elif evtid == 6:
+                elif objid == 6:
                     hasPvp = True
 
             # event
@@ -517,7 +517,7 @@ class Move(tornado.web.RequestHandler):
                 cache["battlePos"] = currpos
                 currpos = cache["currPos"] = path[-2]
 
-            elif evtid:
+            elif objid:
                 del cache["objs"][poskey]
 
             # pvp
