@@ -165,7 +165,8 @@ class PactTable(object):
         weights = pact["weights"]
         results = pact["results"]
         max_weight = 0
-        if "limittimeses" in pact:
+        haslimit = "limittimeses" in pact
+        if haslimit:
             limittimeses = pact["limittimeses"]
             _weights = []
             _results = []
@@ -204,7 +205,13 @@ class PactTable(object):
         if idx < 0:
             idx = -idx - 1;
 
-        if pact_times_map != None:
+        if haslimit:
+            limittimeses = pact["limittimeses"]
+            limittimes = limittimeses[idx]
+            if limittimes > 0:
+                key = "%s/%s" % (pact_id, results[idx])
+                pacttimes = pact_times_map.get(key, 0)
+                pact_times_map[key] = pacttimes + 1
             return results[idx], pact_times_map
         else:
             return results[idx]
@@ -220,8 +227,8 @@ def get_card_from_pact(pact_id, pact_times_map):
     # print sub_pact_id, card_id
     return card_id
 
-# for i in xrange(100):
-#     get_card_from_pact(1, {})
+for i in xrange(100):
+    get_card_from_pact(1, {})
 
 # ====================================================
 class GetPact(tornado.web.RequestHandler):

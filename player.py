@@ -71,10 +71,10 @@ class Create(tornado.web.RequestHandler):
             row_nums = yield util.whdb.runOperation(
                 """ INSERT INTO playerInfos
                         (userId, name, warLord, money, inZoneId, lastZoneId, maxCardNum, maxTradeNum, currentBand, 
-                            xp, maxXp, ap, maxAp, bands, items, wagonGeneral, wagonTemp, wagonSocial)
+                            xp, maxXp, ap, maxAp, bands, items, wagonGeneral, wagonTemp, wagonSocial, maxBandNum)
                         VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
                 ,(userid, username, warlord_id, INIT_GOLD, 0, INIT_ZONE_ID, INIT_MAX_CARD, INIT_MAX_TRADE, 0
-                , INIT_XP, INIT_XP, INIT_AP, INIT_AP, bands, items, wagon, wagon, wagon)
+                , INIT_XP, INIT_XP, INIT_AP, INIT_AP, bands, items, wagon, wagon, wagon, BAND_NUM)
             )
 
             #reply
