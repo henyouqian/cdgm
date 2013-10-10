@@ -295,6 +295,30 @@ function Controller($scope, $http) {
 		})
 	}
 
+	$scope.setWhcoin = function() {
+		try {
+			var userId = $scope.playerInfo.userId
+		} catch(err) {
+			alert("select user first")
+			return
+		}
+
+		if (!$scope.whcoin) {
+			alert("fill the blank")
+			return
+		}
+		$.getJSON('/whapi/admin/setWhcoin', {"userId": userId, "whcoin": $scope.whcoin}, function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.playerInfo.whcoin = json.whcoin
+				})
+			}
+		})
+	}
+
 	$scope.addCard = function() {
 		try {
 			var userId = $scope.playerInfo.userId

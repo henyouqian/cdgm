@@ -121,7 +121,7 @@ class GetPlayerInfo(tornado.web.RequestHandler):
             # get player info
             cols = ["userId","name","money","lastZoneId",
                     "xp","maxXp","ap","maxAp","maxCardNum","maxTradeNum",
-                    "lastFormation","items"]
+                    "lastFormation","items", "whcoin"]
 
             rows = yield util.whdb.runQuery(
                 "SELECT {} FROM playerInfos WHERE userId=%s".format(",".join(cols)),
@@ -526,6 +526,42 @@ class SetXp(tornado.web.RequestHandler):
             self.finish()
 
 
+class SetWhcoin(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # check admin
+            if (yield check_admin(self)) == False:
+                return
+
+            # param
+            userid = int(self.get_argument("userId"))
+            whcoin = self.get_argument("whcoin", None)
+            if whcoin:
+                whcoin = int(whcoin)
+            
+            if whcoin == None:
+                raise Exception("need param whcoin")
+
+            # query db
+            yield util.whdb.runOperation(
+                """UPDATE playerInfos SET whcoin=%s
+                    WHERE userId=%s"""
+                ,(whcoin, userid)
+            )
+
+            # reply
+            reply = util.new_reply()
+            reply["whcoin"] = whcoin
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
+
 class AddCard(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @adisp.process
@@ -794,6 +830,7 @@ handlers = [
     (r"/whapi/admin/setMoney", SetMoney),
     (r"/whapi/admin/setAp", SetAp),
     (r"/whapi/admin/setXp", SetXp),
+    (r"/whapi/admin/setWhcoin", SetWhcoin),
     (r"/whapi/admin/addCard", AddCard),
     (r"/whapi/admin/addCardToWagon", AddCardToWagon),
     (r"/whapi/admin/setCardLevel", SetCardLevel),

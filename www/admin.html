@@ -194,6 +194,11 @@
                   <input type="text" style="width:100px;" ng-model="maxXp" pattern="[0-9]*" placeholder="max">
                   <button class="btn btn-primary" ng-click="setXp()">设置</button>
                 </form>
+                <form>
+                  钻石: {{playerInfo.whcoin}}
+                  <input type="text" style="width:100px;" ng-model="whcoin" pattern="[0-9]*" placeholder="current">
+                  <button class="btn btn-primary" ng-click="setWhcoin()">设置</button>
+                </form>
 
               </session>
 
