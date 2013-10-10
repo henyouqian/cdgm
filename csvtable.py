@@ -178,7 +178,7 @@ def csv_reload():
 csv_reload()
 
 # for i in xrange(10):
-#     print drops_tbl.drop("500001")
+#     print drops_tbl.drop("10101")
 
 def send_reload(host, port):
     f = urllib2.urlopen("http://%s:%s/internal/reloadCsv"%(host, port))

@@ -32,10 +32,14 @@ if config.debug:
             reply = {"error":"%s" % err, "traceback":"%s" % traceback.format_exc()}
             hdl.write(json.dumps(reply))
             # hdl.set_status(500)
-            traceback.print_exc()
-
+            
+            loginfo = traceback.format_exc()
             if hdl.request.body:
-                logging.error(hdl.request.body)
+                loginfo += "\nbody:" + hdl.request.body
+            if hdl.request.query:
+                loginfo += "\nquery:" + hdl.request.query
+
+            logging.error(loginfo)
 else:
     def send_error(hdl, err, text=None):
         reply = '{"error":"%s"}' % (err, )
@@ -52,7 +56,7 @@ if config.debug:
         # hdl.set_status(500)
         hdl.write(json.dumps(reply))
 
-        loginfo = "type:%s\nvalue:%s\ntraceback:\n\t%s" % (exc_type, exc_value, traceback.format_exc())
+        loginfo = traceback.format_exc()
         if hdl.request.body:
             loginfo += "\nbody:" + hdl.request.body
         if hdl.request.query:

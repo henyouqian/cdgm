@@ -132,41 +132,96 @@ class PactTable(object):
             row1 = rows.next();
             head = dict(zip(row1, xrange(len(row1))))
             pacts = {}
+            packidIdx = head["pactid"]
+            resultIdx = head["result"]
+            weightIdx = head["weight"]
+            limittimesIdx = head.get("limittimes", -1)
             for row in rows:
-                pact_id = row[head["pactid"]]
-                result = row[head["result"]]
-                weight = row[head["weight"]]
+                pact_id = row[packidIdx]
+                result = row[resultIdx]
+                weight = float(row[weightIdx])
                 if weight <= 0:
                     continue
                 if pact_id in pacts:
-                    pacts[pact_id]["results"].append(row[1])
+                    pacts[pact_id]["results"].append(result)
                     weights = pacts[pact_id]["weights"]
-                    weights.append(float(row[2])+weights[-1])
+                    weights.append(weight)
                 else:
-                    pacts[pact_id] = {"results":[row[1]], "weights":[float(row[2])]}
+                    pacts[pact_id] = {"results":[result], "weights":[weight]}
+
+                if limittimesIdx != -1:
+                    limittimes = int(row[limittimesIdx])
+                    if limittimes >= 0:
+                        if "limittimeses" in pacts[pact_id]:
+                            pacts[pact_id]["limittimeses"].append(limittimes)
+                        else:
+                            pacts[pact_id]["limittimeses"] = [limittimes]
 
             self._pacts = pacts
 
-    def random_get(self, pact_id):
+
+    def random_get(self, pact_id, pact_times_map):
         pact = self._pacts[pact_id]
         weights = pact["weights"]
-        max_weight = weights[-1]
+        results = pact["results"]
+        max_weight = 0
+        if "limittimeses" in pact:
+            limittimeses = pact["limittimeses"]
+            _weights = []
+            _results = []
+            _limittimeses = []
+            for i in xrange(len(weights)):
+                limittimes = limittimeses[i]
+
+                key = "%s/%s" % (pact_id, results[i])
+                pacttimes = pact_times_map.get(key, 0)
+                if limittimes == 0 or pacttimes < limittimes:
+                    weight = weights[i]
+                    if not _weights:
+                        _weights.append(weight)
+                    else:
+                        _weights.append(weight + _weights[-1])
+                    _results.append(results[i])
+                    max_weight += weight
+                    # if limittimes > 0:
+                    #     pact_times_map[key] = pacttimes + 1
+
+            weights = _weights
+            results = _results
+        else:
+            _weights = []
+            for weight in weights:
+                max_weight += weight
+                if not _weights:
+                    _weights.append(weight)
+                else:
+                    _weights.append(weight + _weights[-1])
+
+            weights = _weights
+
         rd = uniform(0.0, max_weight)
         idx = util.lower_bound(weights, rd)
         if idx < 0:
             idx = -idx - 1;
-        return pact["results"][idx]
+
+        if pact_times_map != None:
+            return results[idx], pact_times_map
+        else:
+            return results[idx]
 
 pact_tbl = PactTable("data/pacts.csv")
 sub_pact_tbl = PactTable("data/cardpacts.csv")
 pact_cost_tbl = util.CsvTbl("data/pactcost.csv", "id")
 
-
-def get_card_from_pact(pact_id):
-    sub_pact_id = pact_tbl.random_get(str(pact_id))
-    card_id = sub_pact_tbl.random_get(sub_pact_id)
+def get_card_from_pact(pact_id, pact_times_map):
+    sub_pact_id, pact_times_map = pact_tbl.random_get(str(pact_id), pact_times_map)
+    print sub_pact_id, pact_times_map
+    card_id = sub_pact_tbl.random_get(sub_pact_id, None)
     # print sub_pact_id, card_id
     return card_id
+
+# for i in xrange(100):
+#     get_card_from_pact(1, {})
 
 # ====================================================
 class GetPact(tornado.web.RequestHandler):
@@ -215,9 +270,11 @@ class GetPact(tornado.web.RequestHandler):
             cost_num *= num
             pact_num *= num 
 
+            pact_times = {}
+
             card_ids = []
             for i in xrange(pact_num):
-                card_ids.append(get_card_from_pact(pact_id))
+                card_ids.append(get_card_from_pact(pact_id, pact_times))
 
             # wh_coin
             if cost_item_id == 24:
