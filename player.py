@@ -463,6 +463,7 @@ class UseItem(tornado.web.RequestHandler):
                             WHERE userId=%s"""
                     ,(json.dumps(items), user_id)
                 )
+                ap = maxAp
 
             ## recover one hp
             elif item_id == 2:
@@ -627,6 +628,7 @@ class UseItem(tornado.web.RequestHandler):
                             WHERE userId=%s"""
                     ,(json.dumps(items), user_id)
                 )
+                xp = maxXp
 
             ## recover AP small
             elif item_id == 22:
