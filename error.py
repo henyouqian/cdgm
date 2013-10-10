@@ -51,10 +51,14 @@ if config.debug:
         reply = {"error":"err_internal:%s,%s"%(exc_type, exc_value), "traceback":"%s" % traceback.format_exc()}
         # hdl.set_status(500)
         hdl.write(json.dumps(reply))
-        traceback.print_exc()
 
+        loginfo = "type:%s\nvalue:%s\ntraceback:\n\t%s" % (exc_type, exc_value, traceback.format_exc())
         if hdl.request.body:
-            logging.error(hdl.request.body)
+            loginfo += "\nbody:" + hdl.request.body
+        if hdl.request.query:
+            loginfo += "\nquery:" + hdl.request.query
+
+        logging.error(loginfo)
 else:
     def send_internal_error(hdl):
         reply = '{"error":"err_internal"}'
