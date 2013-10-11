@@ -184,8 +184,6 @@ class PactTable(object):
                         _weights.append(weight + _weights[-1])
                     _results.append(results[i])
                     max_weight += weight
-                    # if limittimes > 0:
-                    #     pact_times_map[key] = pacttimes + 1
 
             weights = _weights
             results = _results
@@ -208,11 +206,13 @@ class PactTable(object):
         if haslimit:
             limittimeses = pact["limittimeses"]
             limittimes = limittimeses[idx]
+            changed = False
             if limittimes > 0:
                 key = "%s/%s" % (pact_id, results[idx])
                 pacttimes = pact_times_map.get(key, 0)
                 pact_times_map[key] = pacttimes + 1
-            return results[idx], pact_times_map
+                changed = True
+            return results[idx], changed
         else:
             return results[idx]
 
@@ -221,14 +221,18 @@ sub_pact_tbl = PactTable("data/cardpacts.csv")
 pact_cost_tbl = util.CsvTbl("data/pactcost.csv", "id")
 
 def get_card_from_pact(pact_id, pact_times_map):
-    sub_pact_id, pact_times_map = pact_tbl.random_get(str(pact_id), pact_times_map)
-    print sub_pact_id, pact_times_map
+    sub_pact_id, changed = pact_tbl.random_get(str(pact_id), pact_times_map)
     card_id = sub_pact_tbl.random_get(sub_pact_id, None)
     # print sub_pact_id, card_id
-    return card_id
+    return card_id, changed
 
-for i in xrange(100):
-    get_card_from_pact(1, {})
+pmap = {}
+changed = False
+for i in xrange(20):
+    id, b = get_card_from_pact(2, pmap)
+    if b:
+        changed = True
+print pmap, changed
 
 # ====================================================
 class GetPact(tornado.web.RequestHandler):
@@ -277,11 +281,24 @@ class GetPact(tornado.web.RequestHandler):
             cost_num *= num
             pact_num *= num 
 
-            pact_times = {}
-
+            # draw cards
             card_ids = []
+            pact_times_map = {}
+            key = "pactTimes/user=%d" % user_id
+            pact_times_json = yield util.getkv(key)
+            if pact_times_json:
+                pact_times_map = json.loads(pact_times_json)
+            changed = False
             for i in xrange(pact_num):
-                card_ids.append(get_card_from_pact(pact_id, pact_times))
+                cardid, b = get_card_from_pact(pact_id, pact_times_map)
+                card_ids.append(cardid)
+                if b:
+                    changed = True
+            if changed:
+                new_json = json.dumps(pact_times_map)
+                yield util.setkv(key, new_json)
+                print "changed xxxxxxxxxxxxxxxxx"
+
 
             # wh_coin
             if cost_item_id == 24:
