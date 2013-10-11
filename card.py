@@ -226,13 +226,13 @@ def get_card_from_pact(pact_id, pact_times_map):
     # print sub_pact_id, card_id
     return card_id, changed
 
-pmap = {}
-changed = False
-for i in xrange(20):
-    id, b = get_card_from_pact(2, pmap)
-    if b:
-        changed = True
-print pmap, changed
+# pmap = {}
+# changed = False
+# for i in xrange(20):
+#     id, b = get_card_from_pact(2, pmap)
+#     if b:
+#         changed = True
+# print pmap, changed
 
 # ====================================================
 class GetPact(tornado.web.RequestHandler):
