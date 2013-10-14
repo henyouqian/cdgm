@@ -859,11 +859,11 @@ class addCrystal(tornado.web.RequestHandler):
             # reply
             reply = util.new_reply()
             item_crystal = {
-                "HP": items[gamedata.HP_CRYSTAL_ID],
-                "ATK": items[gamedata.ATK_CRYSTAL_ID],
-                "DEF": items[gamedata.DEF_CRYSTAL_ID],
-                "WIS": items[gamedata.WIS_CRYSTAL_ID],
-                "AGI": items[gamedata.AGI_CRYSTAL_ID],
+                "HP": items.get(gamedata.HP_CRYSTAL_ID, 0),
+                "ATK": items.get(gamedata.ATK_CRYSTAL_ID, 0),
+                "DEF": items.get(gamedata.DEF_CRYSTAL_ID, 0),
+                "WIS": items.get(gamedata.WIS_CRYSTAL_ID, 0),
+                "AGI": items.get(gamedata.AGI_CRYSTAL_ID, 0),
             }
             reply["itemCrystal"] = item_crystal
             reply["card"] = card
