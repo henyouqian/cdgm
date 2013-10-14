@@ -821,11 +821,11 @@ class addCrystal(tornado.web.RequestHandler):
             except:
                 raise Exception("crystal not enough")
 
-            if items[gamedata.HP_CRYSTAL_ID] < 0      \
-              or items[gamedata.ATK_CRYSTAL_ID] < 0   \
-              or items[gamedata.DEF_CRYSTAL_ID] < 0   \
-              or items[gamedata.WIS_CRYSTAL_ID] < 0   \
-              or items[gamedata.AGI_CRYSTAL_ID] < 0:
+            if items.get(gamedata.HP_CRYSTAL_ID, 0) < 0      \
+              or items.get(gamedata.ATK_CRYSTAL_ID, 0) < 0   \
+              or items.get(gamedata.DEF_CRYSTAL_ID, 0) < 0   \
+              or items.get(gamedata.WIS_CRYSTAL_ID, 0) < 0   \
+              or items.get(gamedata.AGI_CRYSTAL_ID, 0) < 0:
                 raise Exception("crystal not enough")
 
             # add crystal to card
