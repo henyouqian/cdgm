@@ -308,7 +308,7 @@ class GetPact(tornado.web.RequestHandler):
             # cost items, like bronze or silver coin
             else:
                 if (cost_item_id not in items) or (items[cost_item_id] < cost_num):
-                    raise Exception("not enough item: cost_item_id=%s, cost_num=%s" % (cost_item_id, cost_num))
+                    raise Exception("not enough item: cost_item_id=%s, cost_num=%s, items_num=%s" % (cost_item_id, cost_num, items.get(cost_item_id, 0)))
                 items[cost_item_id] -= cost_num
 
             # create cards
