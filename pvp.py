@@ -1132,6 +1132,9 @@ class BattleResult(tornado.web.RequestHandler):
             reply["smallXpItemNum"] = smallXpItemNum
             reply["bigXpItemNum"] = bigXpItemNum
             reply["nextPvpBands"] = next_pvp_bands
+            reply["playerScore"] = self_score
+            reply["playerRank"] = self_rank
+
             self.write(json.dumps(reply))
         except:
             send_internal_error(self)
