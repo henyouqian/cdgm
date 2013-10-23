@@ -1041,6 +1041,12 @@ class BattleResult(tornado.web.RequestHandler):
             items_add = []
             cards_add = []
 
+            # 
+            self_score, self_rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
+            if not self_score:
+                self_score = 0
+                self_rank = 0
+
             # lose
             if not is_win:
                 win_streak = 0
@@ -1080,12 +1086,7 @@ class BattleResult(tornado.web.RequestHandler):
                         
 
                 # add score to pvp leaderboard
-                self_score = 0
-                self_rank = 0
                 try:
-                    self_score, self_rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
-                    if not self_score:
-                        self_score = 0
                     self_strength = pvp_score
                     foe_strength = foe_band["score"]
                     # score_add = max(((foe_strength*2.0-self_strength)*0.01), foe_strength*0.5*0.01*random.uniform(0.9, 1.1))
