@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
@@ -12,9 +13,18 @@ import (
 
 var (
 	redisPool *redis.Pool
+	logDB     *sql.DB
 )
 
-func initRedis() {
+func opendb(dbname string) *sql.DB {
+	db, err := sql.Open("mysql", fmt.Sprintf("root@/%s?parseTime=true", dbname))
+	if err != nil {
+		panic(err)
+	}
+	return db
+}
+
+func initRedisAndDb() {
 	redisPool = &redis.Pool{
 		MaxIdle:     20,
 		MaxActive:   0,
@@ -27,6 +37,9 @@ func initRedis() {
 			return c, err
 		},
 	}
+
+	logDB = opendb("whlog_db")
+	logDB.SetMaxIdleConns(10)
 }
 
 func staticFile(w http.ResponseWriter, r *http.Request) {

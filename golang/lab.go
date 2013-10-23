@@ -167,8 +167,8 @@ func kv() {
 		"B": "bbb",
 	}
 	var out s
-	lwutil.SetKV2("aaa", &in2, rc)
-	lwutil.GetKV2("aaa", &out, rc)
+	lwutil.SetKV("aaa", &in2, rc)
+	lwutil.GetKV("aaa", &out, rc)
 	glog.Infoln(out)
 }
 

@@ -1080,6 +1080,8 @@ class BattleResult(tornado.web.RequestHandler):
                         
 
                 # add score to pvp leaderboard
+                self_score = 0
+                self_rank = 0
                 try:
                     self_score, self_rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
                     if not self_score:

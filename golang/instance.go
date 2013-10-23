@@ -59,7 +59,7 @@ func instanceList(w http.ResponseWriter, r *http.Request) {
 
 		var timesRestrict TimesRestrict
 		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", session.UserId, v.Id)
-		err := lwutil.GetKV2(key, &timesRestrict, rc)
+		err := lwutil.GetKV(key, &timesRestrict, rc)
 		if err == lwutil.ErrNoRows {
 			timesRemain = v.TimesRestrict
 		} else {
@@ -134,7 +134,7 @@ func instanceZoneList(w http.ResponseWriter, r *http.Request) {
 	lastZone := uint32(0)
 
 	key := fmt.Sprintf("lastInstZoneId/user=%d&inst=%d", session.UserId, in.InstanceID)
-	err = lwutil.GetKV2(key, &lastZone, rc)
+	err = lwutil.GetKV(key, &lastZone, rc)
 	if err != lwutil.ErrNoRows {
 		lwutil.CheckError(err, "")
 	}
@@ -285,7 +285,7 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	if inst.TimesRestrict > 0 {
 		var timesRestrict TimesRestrict
 		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", session.UserId, inst.Id)
-		err := lwutil.GetKV2(key, &timesRestrict, rc)
+		err := lwutil.GetKV(key, &timesRestrict, rc)
 
 		canPlay := func() bool {
 			today := uint32(lwutil.GetRedisTime().YearDay())
@@ -315,7 +315,7 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 			whCoin -= instZone.Price
 		}
 
-		lwutil.SetKV2(key, &timesRestrict, rc)
+		lwutil.SetKV(key, &timesRestrict, rc)
 	}
 
 	// level restrict

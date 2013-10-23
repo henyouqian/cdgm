@@ -1,7 +1,8 @@
 package main
 
 import (
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql"
+	"github.com/henyouqian/lwutil"
 )
 
 type ItemInfo struct {
@@ -20,4 +21,12 @@ func addItems(items Items, adding []ItemInfo) {
 type Band struct {
 	Formation uint32
 	Members   []uint64
+}
+
+func cardCollect(userId uint32, cardIds []uint32) error {
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	lwutil.GetKV("bbb", "ccc", nil)
+	return nil
 }
