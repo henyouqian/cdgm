@@ -112,8 +112,8 @@ class GetInfo(tornado.web.RequestHandler):
             cols = cols.split(",")
             infos = dict(zip(cols, rows[0]))
 
-            # update playerName to session
-            session["playerName"] = infos["name"]
+            # update playername to session
+            session["playername"] = infos["name"]
             yield set_session(self, session)
 
             if not rows:
@@ -813,7 +813,7 @@ class SetName(tornado.web.RequestHandler):
                 ,(name, userid)
             )
 
-            session["playerName"] = name
+            session["playername"] = name
             yield set_session(self, session)
 
             # reply

@@ -21,7 +21,7 @@ func newsList(w http.ResponseWriter, r *http.Request) {
 	//
 
 	var readList []uint32
-	err = lwutil.GetKV(fmt.Sprintf("readList/%d", session.UserId), &readList, rc)
+	_, err = lwutil.GetKv(fmt.Sprintf("readList/%d", session.UserId), &readList, rc)
 	lwutil.CheckError(err, "")
 
 	type News struct {
@@ -87,7 +87,7 @@ func newsRead(w http.ResponseWriter, r *http.Request) {
 
 	//record read id
 	var readList []int
-	err = lwutil.GetKV(fmt.Sprintf("readList/%d", session.UserId), &readList, rc)
+	_, err = lwutil.GetKv(fmt.Sprintf("readList/%d", session.UserId), &readList, rc)
 	lwutil.CheckError(err, "err_kv")
 
 	readList = append(readList, in.NewsId)
@@ -99,7 +99,7 @@ func newsRead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//
-	err = lwutil.SetKV(fmt.Sprintf("readList/%d", session.UserId), &readList, rc)
+	err = lwutil.SetKv(fmt.Sprintf("readList/%d", session.UserId), &readList, rc)
 	lwutil.CheckError(err, "err_kv")
 
 	//output
@@ -116,7 +116,7 @@ func newsRead(w http.ResponseWriter, r *http.Request) {
 	lwutil.WriteResponse(w, out)
 }
 
-func regStore() {
+func regNews() {
 	http.Handle("/whapi/news/list", lwutil.ReqHandler(newsList))
 	http.Handle("/whapi/news/read", lwutil.ReqHandler(newsRead))
 }

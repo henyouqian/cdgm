@@ -65,6 +65,17 @@ function Controller($scope, $http) {
 				},
 			]
 		},
+		{
+			"tab":"card",
+			"path":"whapi/card",
+			"apis":[
+				{
+					"name": "collection",
+					"method": "GET",
+					"data": ""
+				},
+			]
+		},
 	]
 
 	var sendCodeMirror = CodeMirror.fromTextArea(sendTextArea, 

@@ -57,6 +57,8 @@ func main() {
 	regNews()
 	regInstance()
 	regZone()
+	regCard()
+	regPlayer()
 
 	lab()
 

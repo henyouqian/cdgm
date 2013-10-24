@@ -78,7 +78,7 @@ func storeBuy(w http.ResponseWriter, r *http.Request) {
 	lwutil.WriteResponse(w, out)
 }
 
-func regNews() {
+func regStore() {
 	http.Handle("/whapi/store/list", lwutil.ReqHandler(storeList))
 	http.Handle("/whapi/store/buy", lwutil.ReqHandler(storeBuy))
 }

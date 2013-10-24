@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
+	"net/http"
 	"strconv"
 	"strings"
 )
@@ -101,6 +102,7 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 		return nil, lwutil.NewErrStr("protoAndLvs is empty")
 	}
 	cards := make([]*cardEntity, cardNum)
+	cardProtos := make([]uint32, cardNum)
 	for i, v := range protoAndLvs {
 		attr, err := calcCardAttr(v.proto, v.level)
 		if err != nil {
@@ -157,6 +159,7 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 		}
 
 		cards[i] = &card
+		cardProtos[i] = v.proto
 	}
 
 	//get card num in package
@@ -234,5 +237,69 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 		wagonAddCards(wagonIdx, ownerId, wcInfos, desc)
 	}
 
+	//
+	addCardCollect(ownerId, cardProtos)
+
 	return cards, nil
+}
+
+func addCardCollect(userId uint32, cardIds []uint32) error {
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	var collectedCards []uint32
+	key := fmt.Sprintf("cardCollect/%d", userId)
+	_, err := lwutil.GetKvDb(key, &collectedCards)
+	if err != nil {
+		return lwutil.NewErr(err)
+	}
+
+	cardMap := make(map[uint32]bool)
+	for _, v := range collectedCards {
+		cardMap[v] = true
+	}
+
+	for _, v := range cardIds {
+		cardMap[v] = true
+	}
+
+	cardIds = make([]uint32, len(cardMap), 0)
+	for k, _ := range cardMap {
+		cardRow, ok := tblCard[strconv.Itoa(int(k))]
+		if ok && cardRow.Display {
+			cardIds = append(cardIds, k)
+		}
+	}
+
+	err = lwutil.SetKvDb(key, &cardIds)
+	if err != nil {
+		return lwutil.NewErr(err)
+	}
+	return nil
+}
+
+func getCollection(w http.ResponseWriter, r *http.Request) {
+	lwutil.CheckMathod(r, "GET")
+
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	session, err := findSession(w, r, rc)
+	lwutil.CheckError(err, "err_auth")
+
+	//
+	collectedCards := make([]uint32, 0)
+	_, err = lwutil.GetKvDb(fmt.Sprintf("cardCollect/%d", session.UserId), &collectedCards)
+	lwutil.CheckError(err, "")
+
+	//out
+	out := map[string]interface{}{
+		"collection": collectedCards,
+	}
+
+	lwutil.WriteResponse(w, &out)
+}
+
+func regCard() {
+	http.Handle("/whapi/card/collection", lwutil.ReqHandler(getCollection))
 }

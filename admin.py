@@ -33,8 +33,8 @@ def check_admin(reqHdl, callback):
         send_error(reqHdl, "err_auth")
         callback(False)
 
-    except:
-        callback(False)
+    except Exception as e:
+        callback(e)
 
 class CheckAccount(tornado.web.RequestHandler):
     @tornado.web.asynchronous

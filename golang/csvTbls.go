@@ -28,6 +28,7 @@ type rowCard struct {
 	GrowType  uint8
 	SkillId1  uint16
 	SkillId2  uint16
+	Display   bool
 }
 
 type rowCardGrowth struct {

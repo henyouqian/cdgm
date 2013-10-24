@@ -14,10 +14,10 @@ import (
 const sessionLifeSecond = 60 * 60 * 24 * 7
 
 type Session struct {
-	UserId     uint64
-	UserName   string
-	AppId      uint32
-	PlayerName string
+	UserId     uint64 `json:"userid"`
+	UserName   string `json:"username"`
+	AppId      uint32 `json:"appid"`
+	PlayerName string `json:"playername"`
 }
 
 func newSession(w http.ResponseWriter, rc redis.Conn, userid uint64, username string, appid uint32) (usertoken string, err error) {

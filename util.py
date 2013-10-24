@@ -423,4 +423,28 @@ def getkv(key, callback):
         yield redis_pipe_execute(pipe)
 
         callback(json.loads(row[0]))
+
+@adisp.async
+@adisp.process
+def setkvDb(key, value, callback):
+    yield kvdb.runOperation(
+        """REPLACE INTO kvs (k, v) VALUES(%s, %s)"""
+        ,(key, json.dumps(value))
+    )
+    callback(None)
+
+@adisp.async
+@adisp.process
+def getkvDb(key, callback):
+    rows = yield kvdb.runQuery(
+        """ SELECT v FROM kvs WHERE k=%s"""
+        ,(key, )
+    )
+    if not rows:
+        callback(None)
         return
+    row = rows[0]
+    if not row:
+        callback(None)
+    else:
+        callback(json.loads(row[0]))

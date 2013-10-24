@@ -811,7 +811,7 @@ class BattleResult(tornado.web.RequestHandler):
                 return
             userid = session["userid"]
             username = session["username"]
-            playername = session["playerName"]
+            playername = session["playername"]
 
             # post data
             post_input = json.loads(self.request.body)

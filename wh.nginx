@@ -1,5 +1,5 @@
 # Enumerate all the Tornado servers here
-upstream frontends {
+upstream pyserver {
     server 127.0.0.1:8888;
     server 127.0.0.1:8889;
 }
@@ -64,13 +64,22 @@ server {
         proxy_pass http://goserver;
     }
 
+	location /whapi/card/collection {
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Scheme $scheme;
+        proxy_pass http://goserver;
+    }
+
     location /whapi/ {
         proxy_pass_header Server;
         proxy_set_header Host $http_host;
         proxy_redirect off;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Scheme $scheme;
-        proxy_pass http://frontends;
+        proxy_pass http://pyserver;
     }
 
     location /authapi/ {
@@ -79,7 +88,7 @@ server {
         proxy_redirect off;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Scheme $scheme;
-        proxy_pass http://frontends;
+        proxy_pass http://pyserver;
     }
 }
 
@@ -103,6 +112,6 @@ server {
         proxy_redirect off;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Scheme $scheme;
-        proxy_pass http://frontends;
+        proxy_pass http://pyserver;
     }
 }

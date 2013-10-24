@@ -15,6 +15,19 @@ import csv
 import strings
 import os
 
+@adisp.async
+@adisp.process
+def addCardCollect(userId, cardIds, callback):
+    key = "cardCollect/%d" % userId
+    collectedCards = yield util.getkvDb(key)
+
+    if collectedCards:
+        cardIds.extend(collectedCards)
+        cardSet = set(cardIds)
+        cardIds = list(cardSet)
+
+    yield util.setkvDb(key, cardIds)
+    callback(None)
 
 # calc for hp, atk, def, wis, agi
 def calc_card_proto_attr(proto_id, level):
@@ -50,6 +63,7 @@ def is_war_lord(proto_id):
 def create_cards(owner_id, proto_and_levels, max_card_num, wagonIdx, desc="", callback=None):
     try:
         cards = []
+        protos = []
         for proto_id, level in proto_and_levels:
             hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
             skill_1_id, skill_2_id = card_tbl.gets(proto_id, "skillid1", "skillid2")
@@ -64,6 +78,7 @@ def create_cards(owner_id, proto_and_levels, max_card_num, wagonIdx, desc="", ca
             card.update({"skill1Exp":0, "skill2Exp":0, "skill3Exp":0})
             card.update({"_newInsert":1})
             cards.append(card)
+            protos.append(proto_id)
 
         rows = yield util.whdb.runQuery(
             """SELECT COUNT(1) from cardEntities
@@ -103,6 +118,9 @@ def create_cards(owner_id, proto_and_levels, max_card_num, wagonIdx, desc="", ca
             """,
             (owner_id,)
         )
+
+        # collection
+        yield addCardCollect(owner_id, protos)
 
         # reply
         reply = []
