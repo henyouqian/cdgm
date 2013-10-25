@@ -41,7 +41,7 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
                         	WHERE userId=?`, session.UserId)
 	var general, temp, social uint32
 	err = row.Scan(&general, &temp, &social)
-	lwutil.CheckError(err, "")
+	lwutil.CheckError(err, fmt.Sprintf("userId=%d", session.UserId))
 
 	//login reward
 	loginRewardId := uint32(0)

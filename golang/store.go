@@ -1,10 +1,9 @@
 package main
 
 import (
-	//_ "github.com/go-sql-driver/mysql"
 	"encoding/json"
 	"fmt"
-	"github.com/golang/glog"
+	//"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 )
@@ -50,7 +49,6 @@ func storeBuy(w http.ResponseWriter, r *http.Request) {
 
 	//add items
 	var items map[string]uint32
-	glog.Infoln(string(itemsJs))
 	err = json.Unmarshal(itemsJs, &items)
 	lwutil.CheckError(err, "")
 	num := items[fmt.Sprintf("%d", storeItem.ItemId)]
