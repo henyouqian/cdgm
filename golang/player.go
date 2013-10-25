@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	//"github.com/golang/glog"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"time"
@@ -35,14 +35,6 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 	session, err := findSession(w, r, rc)
 	lwutil.CheckError(err, "err_auth")
 
-	//get wagon item count
-	row := whDB.QueryRow(`SELECT wagonGeneral, wagonTemp, wagonSocial 
-						FROM playerInfos
-                        	WHERE userId=?`, session.UserId)
-	var general, temp, social uint32
-	err = row.Scan(&general, &temp, &social)
-	lwutil.CheckError(err, fmt.Sprintf("userId=%d", session.UserId))
-
 	//login reward
 	loginRewardId := uint32(0)
 	nextRewardRemain := uint32(0)
@@ -68,7 +60,8 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 
 		arrayLen := len(arrayLoginReward)
 		for i, reward := range arrayLoginReward {
-			if lrInfo.Days == reward.LoginNum {
+			glog.Infoln(lrInfo.Days, reward.LoginNum)
+			if reward.LoginNum == lrInfo.Days {
 				loginRewardId = reward.Id
 				if i < arrayLen-1 {
 					nextRewardRemain = arrayLoginReward[i+1].LoginNum - reward.LoginNum
@@ -81,11 +74,19 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 				createCards(session.UserId, protoAndLvs, 0, WAGON_INDEX_GENERAL, STR_LOGIN_REWARD)
 
 				break
-			} else if lrInfo.Days > reward.LoginNum {
+			} else if reward.LoginNum > lrInfo.Days {
 				break
 			}
 		}
 	}
+
+	//get wagon item count
+	row := whDB.QueryRow(`SELECT wagonGeneral, wagonTemp, wagonSocial 
+						FROM playerInfos
+                        	WHERE userId=?`, session.UserId)
+	var general, temp, social uint32
+	err = row.Scan(&general, &temp, &social)
+	lwutil.CheckError(err, fmt.Sprintf("userId=%d", session.UserId))
 
 	//out
 	out := map[string]interface{}{
