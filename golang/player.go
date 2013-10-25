@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/henyouqian/lwutil"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -65,8 +64,13 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 			lrInfo.LastTime = now.Unix()
 			lrInfo.Days += 1
 
-			for reward := range arrayLoginReward {
-
+			for _, reward := range arrayLoginReward {
+				if lrInfo.Days == reward.LoginNum {
+					//if reward.LoginNum =
+					break
+				} else if lrInfo.Days > reward.LoginNum {
+					break
+				}
 			}
 			//if lrInfo.Days
 		}
