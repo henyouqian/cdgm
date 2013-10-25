@@ -1,9 +1,8 @@
 package main
 
 import (
-	//_ "github.com/go-sql-driver/mysql"
 	"fmt"
-	"github.com/golang/glog"
+	//"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"time"
