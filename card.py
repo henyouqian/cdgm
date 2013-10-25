@@ -18,6 +18,7 @@ import os
 @adisp.async
 @adisp.process
 def addCardCollect(userId, cardIds, callback):
+    cardIds = map(int, cardIds)
     key = "cardCollect/%d" % userId
     collectedCards = yield util.getkvDb(key)
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/golang/glog"
+	//"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"time"
@@ -60,7 +60,6 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 
 		arrayLen := len(arrayLoginReward)
 		for i, reward := range arrayLoginReward {
-			glog.Infoln(lrInfo.Days, reward.LoginNum)
 			if reward.LoginNum == lrInfo.Days {
 				loginRewardId = reward.Id
 				if i < arrayLen-1 {

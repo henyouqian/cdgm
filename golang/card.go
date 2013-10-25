@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"strconv"
@@ -269,6 +270,7 @@ func addCardCollect(userId uint32, cardIds []uint32) error {
 		}
 	}
 
+	glog.Infoln("ccccccc", cardIds)
 	err = lwutil.SetKvDb(key, &cardIds)
 	if err != nil {
 		return lwutil.NewErr(err)
