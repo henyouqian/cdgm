@@ -153,6 +153,12 @@ type rowMapEvent struct {
 	EventId   uint32
 }
 
+type rowLoginReward struct {
+	Id            uint32
+	LoginNum      uint32
+	RewardCardsID uint32
+}
+
 var (
 	tblCard             map[string]rowCard
 	tblCardGrowth       map[string]rowCardGrowth
@@ -169,6 +175,7 @@ var (
 	tblMap              map[string]rowMap
 	tblEvent            map[string]rowEvent
 	tblMapEvent         map[string]rowMapEvent
+	arrayLoginReward    []rowLoginReward
 )
 
 func init() {
@@ -253,6 +260,10 @@ func init() {
 
 	//mapEvent
 	err = lwutil.LoadCsvMap("../data/mapevents.csv", []string{"mapid", "tilevalue"}, &tblMapEvent)
+	lwutil.PanicIfError(err)
+
+	//
+	err = lwutil.LoadCsvArray("../data/loginRewards.csv", &arrayLoginReward)
 	lwutil.PanicIfError(err)
 
 }
