@@ -106,7 +106,7 @@ type zoneCache struct {
 	CatchMons []uint32         `json:"catchMons"`
 }
 
-func genCache(zoneid uint32, isLastZone bool, userId uint64, band Band) (*zoneCache, error) {
+func genCache(zoneid uint32, isLastZone bool, userId uint32, band Band) (*zoneCache, error) {
 	zoneData, err := getZoneData(zoneid)
 	if err != nil {
 		return nil, lwutil.NewErr(err)

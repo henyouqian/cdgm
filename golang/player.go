@@ -3,6 +3,7 @@ package main
 import (
 	//_ "github.com/go-sql-driver/mysql"
 	"fmt"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"time"
@@ -38,41 +39,52 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 	//get wagon item count
 	row := whDB.QueryRow(`SELECT wagonGeneral, wagonTemp, wagonSocial 
 						FROM playerInfos
-                        	WHERE userId=%s`, session.UserId)
+                        	WHERE userId=?`, session.UserId)
 	var general, temp, social uint32
 	err = row.Scan(&general, &temp, &social)
 	lwutil.CheckError(err, "")
 
 	//login reward
-	loginRewardId := 0
-	nextRewardRemain := 0
+	loginRewardId := uint32(0)
+	nextRewardRemain := uint32(0)
 
 	type loginRewardInfo struct {
 		LastTime int64
 		Days     uint32
 	}
 	var lrInfo loginRewardInfo
-	exist, err := lwutil.GetKvDb(fmt.Sprintf("loginReward/%d", session.UserId), &lrInfo)
+	key := fmt.Sprintf("loginReward/%d", session.UserId)
+	_, err = lwutil.GetKvDb(key, &lrInfo)
 	lwutil.CheckError(err, "")
 	now := lwutil.GetRedisTime()
 
-	if exist {
-		lastTime := time.Unix(lrInfo.LastTime, 0)
-		year, month, day := lastTime.Date()
-		currYear, currMonth, currDay := now.Date()
-		if year != currYear || month != currMonth || day != currDay {
-			lrInfo.LastTime = now.Unix()
-			lrInfo.Days += 1
+	lastTime := time.Unix(lrInfo.LastTime, 0)
+	year, month, day := lastTime.Date()
+	currYear, currMonth, currDay := now.Date()
+	if year != currYear || month != currMonth || day != currDay {
+		lrInfo.LastTime = now.Unix()
+		lrInfo.Days += 1
 
-			for _, reward := range arrayLoginReward {
-				if lrInfo.Days == reward.LoginNum {
-					//if reward.LoginNum =
-					break
-				} else if lrInfo.Days > reward.LoginNum {
-					break
+		lwutil.SetKvDb(key, &lrInfo)
+
+		arrayLen := len(arrayLoginReward)
+		for i, reward := range arrayLoginReward {
+			if lrInfo.Days == reward.LoginNum {
+				loginRewardId = reward.Id
+				if i < arrayLen-1 {
+					nextRewardRemain = arrayLoginReward[i+1].LoginNum - reward.LoginNum
 				}
+				protoAndLvs := []cardProtoAndLevel{
+					{reward.RewardCardsID, 1},
+				}
+
+				//
+				createCards(session.UserId, protoAndLvs, 0, WAGON_INDEX_GENERAL, STR_LOGIN_REWARD)
+
+				break
+			} else if lrInfo.Days > reward.LoginNum {
+				break
 			}
-			//if lrInfo.Days
 		}
 	}
 

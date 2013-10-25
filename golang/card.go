@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"strconv"
@@ -171,7 +170,6 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 	}
 
 	//
-	glog.Infoln(int64(maxCardNum-inpackNum), cardNum)
 	gotoPackNum := lwutil.Truncate(int64(maxCardNum)-int64(inpackNum), 0, int64(cardNum))
 	wcInfos := make([]wagonCardInfo, 0, 10)
 
@@ -263,7 +261,7 @@ func addCardCollect(userId uint32, cardIds []uint32) error {
 		cardMap[v] = true
 	}
 
-	cardIds = make([]uint32, len(cardMap), 0)
+	cardIds = make([]uint32, 0, len(cardMap))
 	for k, _ := range cardMap {
 		cardRow, ok := tblCard[strconv.Itoa(int(k))]
 		if ok && cardRow.Display {

@@ -76,6 +76,17 @@ function Controller($scope, $http) {
 				},
 			]
 		},
+		{
+			"tab":"player",
+			"path":"whapi/player",
+			"apis":[
+				{
+					"name": "returnhomeinfo",
+					"method": "GET",
+					"data": ""
+				},
+			]
+		},
 	]
 
 	var sendCodeMirror = CodeMirror.fromTextArea(sendTextArea, 

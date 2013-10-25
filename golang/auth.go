@@ -14,13 +14,13 @@ import (
 const sessionLifeSecond = 60 * 60 * 24 * 7
 
 type Session struct {
-	UserId     uint64 `json:"userid"`
+	UserId     uint32 `json:"userid"`
 	UserName   string `json:"username"`
 	AppId      uint32 `json:"appid"`
 	PlayerName string `json:"playername"`
 }
 
-func newSession(w http.ResponseWriter, rc redis.Conn, userid uint64, username string, appid uint32) (usertoken string, err error) {
+func newSession(w http.ResponseWriter, rc redis.Conn, userid uint32, username string, appid uint32) (usertoken string, err error) {
 	tokenkey := fmt.Sprintf("%d/tokenkey", userid)
 	usertokenRaw, err := rc.Do("get", tokenkey)
 	if err != nil {
@@ -110,7 +110,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	// get userid
 	row := accountDB.QueryRow("SELECT id FROM user_account WHERE username=? AND password=?", input.Username, pwsha)
-	var userid uint64
+	var userid uint32
 	err := row.Scan(&userid)
 	lwutil.CheckError(err, "err_not_match")
 
