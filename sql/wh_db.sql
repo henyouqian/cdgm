@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # http://code.google.com/p/sequel-pro/
 #
-# Host: 127.0.0.1 (MySQL 5.5.32-0ubuntu0.12.04.1)
+# Host: 127.0.0.1 (MySQL 5.5.34-0ubuntu0.12.04.1)
 # Database: wh_db
-# Generation Time: 2013-09-24 12:16:41 +0000
+# Generation Time: 2013-10-28 06:00:52 +0000
 # ************************************************************
 
 
@@ -99,6 +99,41 @@ CREATE TABLE `playerInfos` (
   `tutorialStep` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+
+# Dump of table playerStatistics
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `playerStatistics`;
+
+CREATE TABLE `playerStatistics` (
+  `userId` int(10) unsigned NOT NULL,
+  `pvpTotal` smallint(10) unsigned NOT NULL DEFAULT '0',
+  `pvpMaxWin` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `instanceEnter` smallint(10) unsigned NOT NULL DEFAULT '0',
+  `sacrifice` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `evolution` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `getCardS` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `getCardA` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `getCardB` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `getCardC` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `getCardD` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `cardS` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `cardA` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `cardB` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `cardC` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `cardD` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `crystalHp` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `crystalAtk` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `crystalDef` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `crystalWis` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `crystalAgi` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `stoneBase` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `stoneMid` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `stoneAdv` smallint(5) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
