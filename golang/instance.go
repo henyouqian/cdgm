@@ -12,8 +12,9 @@ import (
 )
 
 type TimesRestrict struct {
-	Times   uint32
-	YearDay uint32
+	Times      uint32
+	YearDay    uint32
+	TotalTimes uint32
 }
 
 func instanceList(w http.ResponseWriter, r *http.Request) {
@@ -294,23 +295,27 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 						return false
 					} else {
 						timesRestrict.Times++
+						timesRestrict.TotalTimes++
 					}
 				} else {
 					timesRestrict.YearDay = today
 					timesRestrict.Times = 1
+					timesRestrict.TotalTimes++
 				}
 			} else {
 				timesRestrict.YearDay = today
 				timesRestrict.Times = 1
+				timesRestrict.TotalTimes = 1
 			}
 			return true
 		}()
 
 		if !canPlay {
 			if whCoin < instZone.Price {
-				lwutil.SendError("err_times_restrict", "")
+				lwutil.SendError("err_not_enough_whcoin", "")
 			}
 			whCoin -= instZone.Price
+			timesRestrict.TotalTimes++
 		}
 
 		lwutil.SetKv(key, &timesRestrict, rc)

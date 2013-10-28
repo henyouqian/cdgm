@@ -635,7 +635,7 @@ class BattleResult(tornado.web.RequestHandler):
                         back_member[1] = inmem["hp"]
                         members[idx], members[idx+mems_per_row] = members[idx+mems_per_row], members[idx]
                     else:
-                        raise Exception("Error member pos")
+                        raise Exception("Error member pos: inmem=%d, front_member=%d, back_member=%d", inmem["id"], front_member, back_member)
                     if inmem["hp"] > members[idx][1] or inmem["hp"] < 0:
                         raise Exception("Error member hp")
                     if win and inmem["id"] == warlord and inmem["hp"] == 0:

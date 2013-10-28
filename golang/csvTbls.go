@@ -159,6 +159,13 @@ type rowLoginReward struct {
 	RewardCardsID uint32
 }
 
+type rowTask struct {
+	Id     uint32
+	Type   uint32
+	Target uint32
+	Detail uint32
+}
+
 var (
 	tblCard             map[string]rowCard
 	tblCardGrowth       map[string]rowCardGrowth
@@ -176,6 +183,7 @@ var (
 	tblEvent            map[string]rowEvent
 	tblMapEvent         map[string]rowMapEvent
 	arrayLoginReward    []rowLoginReward
+	tblTask             map[string]rowTask
 )
 
 func init() {
@@ -262,8 +270,11 @@ func init() {
 	err = lwutil.LoadCsvMap("../data/mapevents.csv", []string{"mapid", "tilevalue"}, &tblMapEvent)
 	lwutil.PanicIfError(err)
 
-	//
+	//LoginReward
 	err = lwutil.LoadCsvArray("../data/loginRewards.csv", &arrayLoginReward)
 	lwutil.PanicIfError(err)
 
+	//task
+	err = lwutil.LoadCsvMap("../data/task.csv", []string{"id"}, &tblTask)
+	lwutil.PanicIfError(err)
 }
