@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.34-0ubuntu0.12.04.1)
 # Database: wh_db
-# Generation Time: 2013-10-28 06:00:52 +0000
+# Generation Time: 2013-10-29 10:33:06 +0000
 # ************************************************************
 
 
@@ -109,21 +109,15 @@ DROP TABLE IF EXISTS `playerStatistics`;
 
 CREATE TABLE `playerStatistics` (
   `userId` int(10) unsigned NOT NULL,
+  `currTask1` smallint(5) unsigned NOT NULL DEFAULT '1001',
+  `currTask2` smallint(5) unsigned NOT NULL DEFAULT '2001',
   `pvpTotal` smallint(10) unsigned NOT NULL DEFAULT '0',
   `pvpMaxWin` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `instanceEnter` smallint(10) unsigned NOT NULL DEFAULT '0',
   `sacrifice` smallint(5) unsigned NOT NULL DEFAULT '0',
   `evolution` smallint(5) unsigned NOT NULL DEFAULT '0',
   `getCardS` smallint(5) unsigned NOT NULL DEFAULT '0',
   `getCardA` smallint(5) unsigned NOT NULL DEFAULT '0',
   `getCardB` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `getCardC` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `getCardD` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `cardS` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `cardA` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `cardB` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `cardC` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `cardD` smallint(5) unsigned NOT NULL DEFAULT '0',
   `crystalHp` smallint(5) unsigned NOT NULL DEFAULT '0',
   `crystalAtk` smallint(5) unsigned NOT NULL DEFAULT '0',
   `crystalDef` smallint(5) unsigned NOT NULL DEFAULT '0',
