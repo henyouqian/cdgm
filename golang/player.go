@@ -31,8 +31,8 @@ type Band struct {
 
 type playerStatistics struct {
 	CurrTask1, CurrTask2, PvpTotal, PvpMaxWin,
-	Sacrifice, Evolution, GetCardS, GetCardA, GetCardB, GetCardC, GetCardD,
-	CardS, CardA, CardB, CardC, CardD, CrystalHp, CrystalAtk, CrystalDef, CrystalWis, CrystalAgi,
+	Sacrifice, Evolution, GetCardS, GetCardA, GetCardB,
+	CrystalHp, CrystalAtk, CrystalDef, CrystalWis, CrystalAgi,
 	StoneBase, StoneMid, StoneAdv uint16
 }
 
@@ -48,21 +48,29 @@ type playerInfoForTask struct {
 func checkTaskComplete(taskRow *rowTask, s *playerStatistics, i *playerInfoForTask) (isComplete bool, num, targetNum uint32) {
 	switch taskRow.Type {
 	case 1:
+		glog.Infoln(i.LastZoneId, taskRow.Target)
 		if i.LastZoneId > taskRow.Target {
 			return true, 1, 1
 		}
 		return false, 0, 1
 	case 2:
-		if uint32(i.WarlordLevel) >= taskRow.Target {
-			return true, uint32(i.WarlordLevel), taskRow.Target
+		cmpNum := uint32(i.WarlordLevel)
+		if cmpNum >= taskRow.Target {
+			return true, cmpNum, taskRow.Target
 		}
-		return false, uint32(i.WarlordLevel), taskRow.Target
+		return false, cmpNum, taskRow.Target
 	case 3:
-		//fixme
-		return false, 0, 0
+		cmpNum := uint32(s.PvpTotal)
+		if cmpNum >= taskRow.Target {
+			return true, cmpNum, taskRow.Target
+		}
+		return false, cmpNum, taskRow.Target
 	case 4:
-		//fixme
-		return false, 0, 0
+		cmpNum := uint32(s.PvpMaxWin)
+		if cmpNum >= taskRow.Target {
+			return true, cmpNum, taskRow.Target
+		}
+		return false, cmpNum, taskRow.Target
 	case 5:
 		var timesRestrict TimesRestrict
 		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", i.Id, taskRow.Detail)
@@ -73,22 +81,92 @@ func checkTaskComplete(taskRow *rowTask, s *playerStatistics, i *playerInfoForTa
 		}
 		return false, timesRestrict.TotalTimes, taskRow.Target
 	case 6:
-
-		return false, 0, 0
+		for _, band := range i.Bands {
+			if band.Formation == taskRow.Target {
+				return true, 1, 1
+			}
+		}
+		return false, 0, 1
 	case 7:
 		return false, 0, 0
 	case 8:
-		return false, 0, 0
+		if uint32(s.Sacrifice) >= taskRow.Target {
+			return true, uint32(s.Sacrifice), taskRow.Target
+		}
+		return false, uint32(s.Sacrifice), taskRow.Target
 	case 9:
-		return false, 0, 0
+		if uint32(s.Evolution) >= taskRow.Target {
+			return true, uint32(s.Evolution), taskRow.Target
+		}
+		return false, uint32(s.Evolution), taskRow.Target
 	case 10:
-		return false, 0, 0
+		var cmpNum uint32
+		switch taskRow.Detail {
+		case 1:
+			cmpNum = uint32(s.CrystalHp)
+		case 2:
+			cmpNum = uint32(s.CrystalAtk)
+		case 3:
+			cmpNum = uint32(s.CrystalDef)
+		case 4:
+			cmpNum = uint32(s.CrystalWis)
+		case 5:
+			cmpNum = uint32(s.CrystalAgi)
+		case 0:
+			cmpNum = uint32(s.CrystalHp + s.CrystalAtk + s.CrystalDef + s.CrystalWis + s.CrystalAgi)
+		default:
+			glog.Errorf("invalid taskRow.Detail: taskRow = %+v", taskRow)
+		}
+
+		if cmpNum >= taskRow.Target {
+			return true, cmpNum, taskRow.Target
+		} else {
+			return false, cmpNum, taskRow.Target
+		}
+
 	case 11:
-		return false, 0, 0
+		var cmpNum uint32
+		switch taskRow.Detail {
+		case 1:
+			cmpNum = uint32(s.GetCardB)
+		case 2:
+			cmpNum = uint32(s.GetCardA)
+		case 3:
+			cmpNum = uint32(s.GetCardS)
+		case 0:
+			cmpNum = uint32(s.GetCardB + s.GetCardA + s.GetCardS)
+		default:
+			glog.Errorf("invalid taskRow.Detail: taskRow = %+v", taskRow)
+		}
+
+		if cmpNum >= taskRow.Target {
+			return true, cmpNum, taskRow.Target
+		} else {
+			return false, cmpNum, taskRow.Target
+		}
+
 	case 12:
 		return false, 0, 0
 	case 13:
-		return false, 0, 0
+		var cmpNum uint32
+		switch taskRow.Detail {
+		case 1:
+			cmpNum = uint32(s.StoneBase)
+		case 2:
+			cmpNum = uint32(s.StoneMid)
+		case 3:
+			cmpNum = uint32(s.StoneAdv)
+		case 0:
+			cmpNum = uint32(s.StoneBase + s.StoneMid + s.StoneAdv)
+		default:
+			glog.Errorf("invalid taskRow.Detail: taskRow = %+v", taskRow)
+		}
+
+		if cmpNum >= taskRow.Target {
+			return true, cmpNum, taskRow.Target
+		} else {
+			return false, cmpNum, taskRow.Target
+		}
 	default:
 		return false, 0, 0
 	}
@@ -165,8 +243,8 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 
 	//task
 	row = whDB.QueryRow(`SELECT currTask1, currTask2, pvpTotal, pvpMaxWin, 
-		sacrifice, evolution, getCardS, getCardA, getCardB, getCardC, getCardD,
-		cardS, cardA, cardB, cardC, cardD, crystalHp, crystalAtk, crystalDef, crystalWis, crystalAgi,
+		sacrifice, evolution, getCardS, getCardA, getCardB,
+		crystalHp, crystalAtk, crystalDef, crystalWis, crystalAgi,
 		stoneBase, stoneMid, stoneAdv
 		FROM playerStatistics
 		WHERE userId=?`, session.UserId)
@@ -174,14 +252,16 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 	var u playerStatistics
 
 	err = row.Scan(&u.CurrTask1, &u.CurrTask2, &u.PvpTotal, &u.PvpMaxWin,
-		&u.Sacrifice, &u.Evolution, &u.GetCardS, &u.GetCardA, &u.GetCardB, &u.GetCardC, &u.GetCardD,
-		&u.CardS, &u.CardA, &u.CardB, &u.CardC, &u.CardD, &u.CrystalHp, &u.CrystalAtk, &u.CrystalDef, &u.CrystalWis, &u.CrystalAgi,
+		&u.Sacrifice, &u.Evolution, &u.GetCardS, &u.GetCardA, &u.GetCardB,
+		&u.CrystalHp, &u.CrystalAtk, &u.CrystalDef, &u.CrystalWis, &u.CrystalAgi,
 		&u.StoneBase, &u.StoneMid, &u.StoneAdv)
 	if err == sql.ErrNoRows {
 		u.CurrTask1 = 1001
 		u.CurrTask2 = 2001
 		_, err = whDB.Exec("INSERT INTO playerStatistics (userId, currTask1, currTask2) VALUES(?, ?, ?)",
 			session.UserId, u.CurrTask1, u.CurrTask2)
+		lwutil.CheckError(err, "")
+	} else {
 		lwutil.CheckError(err, "")
 	}
 
@@ -243,7 +323,6 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//current task
-		glog.Infoln(taskRow)
 		currTask := CurrentTask{
 			TaskId:     taskId,
 			TotalNum:   targetNum,
@@ -274,8 +353,16 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 
 	////update task completion
 	isNew := false
-	if task1.TaskId != u.CurrTask1 || task2.TaskId != u.CurrTask2 {
-		_, err = whDB.Exec("UPDATE playerStatistics SET currTask1=?, currTask2=?", task1, task2)
+	taskId1 := task1.TaskId
+	taskId2 := task2.TaskId
+	if taskId1 == 0 {
+		taskId1 = u.CurrTask1
+	}
+	if taskId2 == 0 {
+		taskId2 = u.CurrTask2
+	}
+	if taskId1 != u.CurrTask1 || taskId2 != u.CurrTask2 {
+		_, err = whDB.Exec("UPDATE playerStatistics SET currTask1=?, currTask2=?", taskId1, taskId2)
 		lwutil.CheckError(err, "")
 		isNew = true
 	}

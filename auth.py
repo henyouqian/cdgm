@@ -118,6 +118,11 @@ class Login(tornado.web.RequestHandler):
             except:
                 player_exist = False
 
+            # statistics
+            yield util.whdb.runOperation(
+                "INSERT IGNORE INTO playerStatistics SET userId=%s"
+                ,(userid, )
+            )
 
             # reply
             self.set_cookie("token", usertoken, 

@@ -3,6 +3,8 @@ import logging
 import urllib2
 import os
 import json
+import csv
+import random
 
 class PlacementTbl(object):
     def __init__(self):
@@ -107,6 +109,98 @@ class DropsTbl(object):
             return zoneDrops[r]["objid"]
 
 
+class PactTable(object):
+    def __init__(self, file_path):
+        with open(file_path, 'rb') as csvfile:
+            rows = csv.reader(csvfile)
+            row1 = rows.next();
+            head = dict(zip(row1, xrange(len(row1))))
+            pacts = {}
+            packidIdx = head["pactid"]
+            resultIdx = head["result"]
+            weightIdx = head["weight"]
+            limittimesIdx = head.get("limittimes", -1)
+            for row in rows:
+                pact_id = row[packidIdx]
+                result = row[resultIdx]
+                weight = float(row[weightIdx])
+                if weight <= 0:
+                    continue
+                if pact_id in pacts:
+                    pacts[pact_id]["results"].append(result)
+                    weights = pacts[pact_id]["weights"]
+                    weights.append(weight)
+                else:
+                    pacts[pact_id] = {"results":[result], "weights":[weight]}
+
+                if limittimesIdx != -1:
+                    limittimes = int(row[limittimesIdx])
+                    if limittimes >= 0:
+                        if "limittimeses" in pacts[pact_id]:
+                            pacts[pact_id]["limittimeses"].append(limittimes)
+                        else:
+                            pacts[pact_id]["limittimeses"] = [limittimes]
+
+            self._pacts = pacts
+
+
+    def random_get(self, pact_id, pact_times_map):
+        pact = self._pacts[pact_id]
+        weights = pact["weights"]
+        results = pact["results"]
+        max_weight = 0
+        haslimit = "limittimeses" in pact
+        if haslimit:
+            limittimeses = pact["limittimeses"]
+            _weights = []
+            _results = []
+            _limittimeses = []
+            for i in xrange(len(weights)):
+                limittimes = limittimeses[i]
+
+                key = "%s/%s" % (pact_id, results[i])
+                pacttimes = pact_times_map.get(key, 0)
+                if limittimes == 0 or pacttimes < limittimes:
+                    weight = weights[i]
+                    if not _weights:
+                        _weights.append(weight)
+                    else:
+                        _weights.append(weight + _weights[-1])
+                    _results.append(results[i])
+                    max_weight += weight
+
+            weights = _weights
+            results = _results
+        else:
+            _weights = []
+            for weight in weights:
+                max_weight += weight
+                if not _weights:
+                    _weights.append(weight)
+                else:
+                    _weights.append(weight + _weights[-1])
+
+            weights = _weights
+
+        rd = random.uniform(0.0, max_weight)
+        idx = util.lower_bound(weights, rd)
+        if idx < 0:
+            idx = -idx - 1;
+
+        if haslimit:
+            limittimeses = pact["limittimeses"]
+            limittimes = limittimeses[idx]
+            changed = False
+            if limittimes > 0:
+                key = "%s/%s" % (pact_id, results[idx])
+                pacttimes = pact_times_map.get(key, 0)
+                pact_times_map[key] = pacttimes + 1
+                changed = True
+            return results[idx], changed
+        else:
+            return results[idx]
+
+
 plc_tbl = None
 case_tbl = None
 
@@ -133,6 +227,9 @@ wagon_desc_tbl = None
 drops_tbl = None
 inst_zone_tbl = None
 
+pact_tbl = None
+sub_pact_tbl = None
+pact_cost_tbl = None
 
 
 def csv_reload():
@@ -140,6 +237,7 @@ def csv_reload():
     global warlord_level_tbl, card_level_tbl, map_tbl, mongrp_tbl, zone_tbl, mon_card_tbl, evt_tbl
     global map_evt_tbl, fmt_tbl, pvp_match_tbl, pvp_test_data_tbl, pvp_win_reward_tbl
     global pvp_rank_reward_tbl, wagon_desc_tbl, drops_tbl, inst_zone_tbl
+    global pact_tbl, sub_pact_tbl, pact_cost_tbl
 
     plc_tbl = PlacementTbl()
     case_tbl = CaseTbl()
@@ -173,6 +271,10 @@ def csv_reload():
     drops_tbl = DropsTbl()
 
     inst_zone_tbl = util.CsvTbl("data/instanceZones.csv", "zoneId")
+
+    pact_tbl = PactTable("data/pacts.csv")
+    sub_pact_tbl = PactTable("data/cardpacts.csv")
+    pact_cost_tbl = util.CsvTbl("data/pactcost.csv", "id")
 
 
 csv_reload()

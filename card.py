@@ -144,100 +144,6 @@ def create_cards(owner_id, proto_and_levels, max_card_num, wagonIdx, desc="", ca
         traceback.print_exc()
         callback(e)
 
-class PactTable(object):
-    def __init__(self, file_path):
-        with open(file_path, 'rb') as csvfile:
-            rows = csv.reader(csvfile)
-            row1 = rows.next();
-            head = dict(zip(row1, xrange(len(row1))))
-            pacts = {}
-            packidIdx = head["pactid"]
-            resultIdx = head["result"]
-            weightIdx = head["weight"]
-            limittimesIdx = head.get("limittimes", -1)
-            for row in rows:
-                pact_id = row[packidIdx]
-                result = row[resultIdx]
-                weight = float(row[weightIdx])
-                if weight <= 0:
-                    continue
-                if pact_id in pacts:
-                    pacts[pact_id]["results"].append(result)
-                    weights = pacts[pact_id]["weights"]
-                    weights.append(weight)
-                else:
-                    pacts[pact_id] = {"results":[result], "weights":[weight]}
-
-                if limittimesIdx != -1:
-                    limittimes = int(row[limittimesIdx])
-                    if limittimes >= 0:
-                        if "limittimeses" in pacts[pact_id]:
-                            pacts[pact_id]["limittimeses"].append(limittimes)
-                        else:
-                            pacts[pact_id]["limittimeses"] = [limittimes]
-
-            self._pacts = pacts
-
-
-    def random_get(self, pact_id, pact_times_map):
-        pact = self._pacts[pact_id]
-        weights = pact["weights"]
-        results = pact["results"]
-        max_weight = 0
-        haslimit = "limittimeses" in pact
-        if haslimit:
-            limittimeses = pact["limittimeses"]
-            _weights = []
-            _results = []
-            _limittimeses = []
-            for i in xrange(len(weights)):
-                limittimes = limittimeses[i]
-
-                key = "%s/%s" % (pact_id, results[i])
-                pacttimes = pact_times_map.get(key, 0)
-                if limittimes == 0 or pacttimes < limittimes:
-                    weight = weights[i]
-                    if not _weights:
-                        _weights.append(weight)
-                    else:
-                        _weights.append(weight + _weights[-1])
-                    _results.append(results[i])
-                    max_weight += weight
-
-            weights = _weights
-            results = _results
-        else:
-            _weights = []
-            for weight in weights:
-                max_weight += weight
-                if not _weights:
-                    _weights.append(weight)
-                else:
-                    _weights.append(weight + _weights[-1])
-
-            weights = _weights
-
-        rd = uniform(0.0, max_weight)
-        idx = util.lower_bound(weights, rd)
-        if idx < 0:
-            idx = -idx - 1;
-
-        if haslimit:
-            limittimeses = pact["limittimeses"]
-            limittimes = limittimeses[idx]
-            changed = False
-            if limittimes > 0:
-                key = "%s/%s" % (pact_id, results[idx])
-                pacttimes = pact_times_map.get(key, 0)
-                pact_times_map[key] = pacttimes + 1
-                changed = True
-            return results[idx], changed
-        else:
-            return results[idx]
-
-pact_tbl = PactTable("data/pacts.csv")
-sub_pact_tbl = PactTable("data/cardpacts.csv")
-pact_cost_tbl = util.CsvTbl("data/pactcost.csv", "id")
 
 def get_card_from_pact(pact_id, pact_times_map):
     sub_pact_id, changed = pact_tbl.random_get(str(pact_id), pact_times_map)
@@ -320,6 +226,7 @@ class GetPact(tornado.web.RequestHandler):
 
 
             # wh_coin
+            numStoneBase = numStoneMid = numStoneAdv = 0
             if cost_item_id == 24:
                 if wh_coin < cost_num:
                     raise Exception("not enough whcoin:wh_conin=%s < cost_num%s" % (wh_coin, cost_num))
@@ -330,10 +237,36 @@ class GetPact(tornado.web.RequestHandler):
                     raise Exception("not enough item: cost_item_id=%s, cost_num=%s, items_num=%s" % (cost_item_id, cost_num, items.get(cost_item_id, 0)))
                 items[cost_item_id] -= cost_num
 
+                if cost_item_id == 7:
+                    numStoneBase += cost_num
+                if cost_item_id == 8:
+                    numStoneMid += cost_num
+                if cost_item_id == 9:
+                    numStoneAdv += cost_num
+
             # create cards
             proto_n_levels = [[c, 1] for c in card_ids]
             desc = wagon_desc_tbl.get(3, "content")
             cards = yield create_cards(user_id, proto_n_levels, max_card_num, wagon_index, desc)
+
+            # statistics
+            numB = numA = numS = 0
+            for cp in card_ids:
+                rarity = int(card_tbl.get(cp, "rarity"))
+                if rarity == 3:
+                    numB += 1
+                elif rarity == 4:
+                    numA += 1
+                elif rarity == 5:
+                    numS += 1
+
+            if numB or numA or numS or numStoneBase or numStoneMid or numStoneAdv:
+                yield util.whdb.runOperation(
+                    """UPDATE playerStatistics SET getCardB=getCardB+%s, getCardA=getCardA+%s, getCardS=getCardS+%s,
+                    stoneBase=stoneBase+%s, stoneMid=stoneMid+%s, stoneAdv=stoneAdv+%s
+                     WHERE userId=%s"""
+                    ,(numB, numA, numS, numStoneBase, numStoneMid, numStoneAdv, user_id)
+                )
 
             # real pay and set wagon
             yield util.whdb.runOperation(
@@ -590,6 +523,11 @@ class Evolution(tornado.web.RequestHandler):
                         ,(money, user_id)
                     )
 
+            yield util.whdb.runOperation(
+                "UPDATE playerStatistics SET evolution=evolution+1 WHERE userId=%s"
+                ,(user_id, )
+            )
+
             # reply
             reply = util.new_reply()
             reply["money"] = money
@@ -763,6 +701,12 @@ class Sacrifice(tornado.web.RequestHandler):
                 ,(user_id, )
             )
 
+            # statistics
+            yield util.whdb.runOperation(
+                "UPDATE playerStatistics SET sacrifice=sacrifice+1 WHERE userId=%s"
+                ,(user_id, )
+            )
+
             # reply
             reply = util.new_reply()
             reply["master"] = master_card
@@ -873,6 +817,14 @@ class addCrystal(tornado.web.RequestHandler):
                     WHERE userId=%s
                 """,
                 (json.dumps(items), user_id)
+            )
+
+            # statistics
+            yield util.whdb.runOperation(
+                """UPDATE playerStatistics SET crystalHp=crystalHp+%s, crystalAtk=crystalAtk+%s,
+                crystalDef=crystalDef+%s, crystalWis=crystalWis+%s, crystalAgi=crystalAgi+%s
+                 WHERE userId=%s"""
+                ,(hp_num, atk_num, def_num, wis_num, agi_num, user_id)
             )
 
             # reply

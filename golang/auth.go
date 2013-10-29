@@ -122,6 +122,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 	usertoken, err := newSession(w, rc, userid, input.Username, appid)
 	lwutil.CheckError(err, "")
 
+	// statistics
+	_, err = whDB.Exec("INSERT IGNORE INTO playerStatistics SET userId=?", userid)
+	lwutil.CheckError(err, "")
+
 	// reply
 	lwutil.WriteResponse(w, usertoken)
 }
