@@ -37,7 +37,7 @@ type playerStatistics struct {
 }
 
 type playerInfoForTask struct {
-	Id           uint32
+	UserId       uint32
 	LastZoneId   uint32
 	WarlordLevel uint16
 	Bands        []struct {
@@ -73,7 +73,7 @@ func checkTaskComplete(taskRow *rowTask, s *playerStatistics, i *playerInfoForTa
 		return false, cmpNum, taskRow.Target
 	case 5:
 		var timesRestrict TimesRestrict
-		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", i.Id, taskRow.Detail)
+		key := fmt.Sprintf("instTimesRst/user=%d&inst=%d", i.UserId, taskRow.Detail)
 		_, err := lwutil.GetKv(key, &timesRestrict, nil)
 		lwutil.CheckError(err, "")
 		if timesRestrict.TotalTimes >= taskRow.Target {
@@ -146,7 +146,56 @@ func checkTaskComplete(taskRow *rowTask, s *playerStatistics, i *playerInfoForTa
 		}
 
 	case 12:
-		return false, 0, 0
+		var collectedCards []uint32
+		key := fmt.Sprintf("cardCollect/%d", i.UserId)
+		_, err := lwutil.GetKvDb(key, &collectedCards)
+		if err != nil {
+			return false, 0, taskRow.Target
+		}
+
+		var numD, numC, numB, numA, numS uint32
+		for _, protoId := range collectedCards {
+			cardRow, ok := tblCard[strconv.Itoa(int(protoId))]
+			if ok {
+				switch cardRow.Rarity {
+				case 1:
+					numD++
+				case 2:
+					numC++
+				case 3:
+					numB++
+				case 4:
+					numA++
+				case 5:
+					numS++
+				}
+			}
+		}
+
+		var cmpNum uint32
+		switch taskRow.Detail {
+		case 1:
+			cmpNum = numD
+		case 2:
+			cmpNum = numC
+		case 3:
+			cmpNum = numB
+		case 4:
+			cmpNum = numA
+		case 5:
+			cmpNum = numS
+		case 0:
+			cmpNum = numD + numC + numB + numA + numS
+		default:
+			glog.Errorf("invalid taskRow.Detail: taskRow = %+v", taskRow)
+		}
+
+		if cmpNum >= taskRow.Target {
+			return true, cmpNum, taskRow.Target
+		} else {
+			return false, cmpNum, taskRow.Target
+		}
+
 	case 13:
 		var cmpNum uint32
 		switch taskRow.Detail {
@@ -167,6 +216,7 @@ func checkTaskComplete(taskRow *rowTask, s *playerStatistics, i *playerInfoForTa
 		} else {
 			return false, cmpNum, taskRow.Target
 		}
+
 	default:
 		return false, 0, 0
 	}
@@ -235,7 +285,7 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 	var general, temp, social uint32
 	var pi playerInfoForTask
 	var bands []byte
-	pi.Id = session.UserId
+	pi.UserId = session.UserId
 	err = row.Scan(&general, &temp, &social, &pi.LastZoneId, &pi.WarlordLevel, &bands)
 	lwutil.CheckError(err, fmt.Sprintf("userId=%d", session.UserId))
 
