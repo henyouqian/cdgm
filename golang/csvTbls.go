@@ -160,10 +160,19 @@ type rowLoginReward struct {
 }
 
 type rowTask struct {
-	Id     uint32
-	Type   uint32
-	Target uint32
-	Detail uint32
+	Id      uint32
+	Name    string
+	Type    uint32
+	Target  uint32
+	Detail  uint32
+	Content string
+	Comment string
+	Reward1 int32
+	Amount1 uint32
+	Reward2 int32
+	Amount2 uint32
+	Reward3 int32
+	Amount3 uint32
 }
 
 var (
