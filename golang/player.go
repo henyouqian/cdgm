@@ -323,6 +323,7 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 	type FinishedTask struct {
 		TaskId  uint16   `json:"taskId"`
 		Name    string   `json:"name"`
+		Content string   `json:"content"`
 		Rewards []Reward `json:"rewards"`
 	}
 	fts := make([]FinishedTask, 0, 8)
@@ -353,6 +354,7 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 				fTask := FinishedTask{
 					TaskId:  taskId,
 					Name:    taskRow.Name,
+					Content: taskRow.Content,
 					Rewards: make([]Reward, 0, 3),
 				}
 				if taskRow.Reward1 != 0 {
