@@ -338,15 +338,14 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		Rewards    []Reward `json:"rewards"`
 	}
 
-	checkTask := func(taskId uint16) *CurrentTask {
+	checkTask := func(taskId uint16) (task *CurrentTask, allFinished bool) {
 		var taskRow rowTask
 		var num, targetNum uint32
 		for true {
 			t, ok := tblTask[strconv.Itoa(int(taskId))]
 			taskRow = t
 			if !ok {
-				glog.Infoln(taskId, tblTask)
-				return &CurrentTask{TaskId: taskId}
+				return &CurrentTask{TaskId: taskId}, true
 			}
 			complete, n1, n2 := checkTaskComplete(&taskRow, &u, &pi)
 			num = n1
@@ -395,14 +394,14 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 			currTask.Rewards = append(currTask.Rewards, Reward{taskRow.Reward3, taskRow.Amount3})
 		}
 
-		return &currTask
+		return &currTask, false
 	}
 
 	////task1
-	task1 := checkTask(u.CurrTask1)
+	task1, allFinished1 := checkTask(u.CurrTask1)
 
 	////task2
-	task2 := checkTask(u.CurrTask2)
+	task2, allFinished2 := checkTask(u.CurrTask2)
 
 	////update task completion
 	isNew := false
@@ -415,16 +414,16 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		taskId2 = u.CurrTask2
 	}
 	if taskId1 != u.CurrTask1 || taskId2 != u.CurrTask2 {
-		_, err = whDB.Exec("UPDATE playerStatistics SET currTask1=?, currTask2=?", taskId1, taskId2)
+		_, err = whDB.Exec("UPDATE playerStatistics SET currTask1=?, currTask2=? WHERE userId=?", taskId1, taskId2, session.UserId)
 		lwutil.CheckError(err, "")
 		isNew = true
 	}
 
 	currentTasks := make([]*CurrentTask, 0, 2)
-	if task1.TaskId != 0 {
+	if !allFinished1 {
 		currentTasks = append(currentTasks, task1)
 	}
-	if task2.TaskId != 0 {
+	if !allFinished2 {
 		currentTasks = append(currentTasks, task2)
 	}
 
