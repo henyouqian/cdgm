@@ -1,5 +1,6 @@
 package main
 
 const (
-	STR_LOGIN_REWARD = "登陆奖励"
+	STR_LOGIN_REWARD     = "STR_LOGIN_REWARD"
+	STR_MAP_EVENT_REWARD = "STR_MAP_EVENT_REWARD"
 )
