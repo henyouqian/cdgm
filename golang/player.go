@@ -345,7 +345,8 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 			t, ok := tblTask[strconv.Itoa(int(taskId))]
 			taskRow = t
 			if !ok {
-				return &CurrentTask{}
+				glog.Infoln(taskId, tblTask)
+				return &CurrentTask{TaskId: taskId}
 			}
 			complete, n1, n2 := checkTaskComplete(&taskRow, &u, &pi)
 			num = n1
