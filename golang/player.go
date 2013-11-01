@@ -242,7 +242,7 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		Days     uint32
 	}
 	var lrInfo loginRewardInfo
-	key := fmt.Sprintf("loginRewafrd/%d", session.UserId)
+	key := fmt.Sprintf("loginReward/%d", session.UserId)
 	_, err = lwutil.GetKvDb(key, &lrInfo)
 	lwutil.CheckError(err, "")
 	now := lwutil.GetRedisTime()
