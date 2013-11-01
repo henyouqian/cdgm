@@ -217,6 +217,7 @@ class GetPact(tornado.web.RequestHandler):
             for i in xrange(pact_num):
                 cardid, b = get_card_from_pact(pact_id, pact_times_map)
                 card_ids.append(cardid)
+                print "aaaaaaaaaa",cardid
                 if b:
                     changed = True
             if changed:
