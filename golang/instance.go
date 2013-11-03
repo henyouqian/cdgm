@@ -255,10 +255,10 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 		lastXpTime = now
 	}
 	dt := now.Sub(lastXpTime)
-	dSec := int32(dt.Seconds())
-	dxp := int32(dSec / XP_ADD_DURATION)
+	dSec := uint32(dt.Seconds())
+	dxp := uint32(dSec / XP_ADD_DURATION)
 	if dxp > 0 {
-		xp = uint32(lwutil.Min(int64(maxXp), int64(int32(xp)+dxp)))
+		xp = uint32(lwutil.Min(int64(maxXp), int64(xp+dxp)))
 	}
 	if xp == maxXp {
 		lastXpTime = now
@@ -405,8 +405,8 @@ func instanceEnterZone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type OutVec2 struct {
-		X uint32 `json:"x"`
-		Y uint32 `json:"y"`
+		X int32 `json:"x"`
+		Y int32 `json:"y"`
 	}
 
 	mapRow, ok := tblMap[strconv.Itoa(int(in.ZoneId))]

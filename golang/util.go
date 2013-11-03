@@ -1,8 +1,8 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
+	//"database/sql"
+	//"fmt"
 	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
 	//"github.com/golang/glog"
@@ -13,10 +13,10 @@ import (
 
 var (
 	redisPool *redis.Pool
-	accountDB *sql.DB
-	whDB      *sql.DB
-	testDB    *sql.DB
-	kvDB      *sql.DB
+	accountDB *lwutil.DB
+	whDB      *lwutil.DB
+	testDB    *lwutil.DB
+	kvDB      *lwutil.DB
 )
 
 func init() {
@@ -33,27 +33,23 @@ func init() {
 		},
 	}
 
-	accountDB = opendb("account_db")
+	accountDB, err := lwutil.OpenDb("account_db")
+	lwutil.CheckError(err, "")
 	accountDB.SetMaxIdleConns(10)
 
-	whDB = opendb("wh_db")
+	whDB, err = lwutil.OpenDb("wh_db")
+	lwutil.CheckError(err, "")
 	whDB.SetMaxIdleConns(10)
 
-	testDB = opendb("test")
+	testDB, err = lwutil.OpenDb("test")
+	lwutil.CheckError(err, "")
 	testDB.SetMaxIdleConns(2)
 
-	kvDB = opendb("kv_db")
+	kvDB, err = lwutil.OpenDb("kv_db")
+	lwutil.CheckError(err, "")
 	kvDB.SetMaxIdleConns(10)
 
 	lwutil.StartKV(kvDB, redisPool)
-}
-
-func opendb(dbname string) *sql.DB {
-	db, err := sql.Open("mysql", fmt.Sprintf("root@/%s?parseTime=false", dbname))
-	if err != nil {
-		panic(err)
-	}
-	return db
 }
 
 type WeightedRandom struct {

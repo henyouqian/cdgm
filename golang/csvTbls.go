@@ -175,6 +175,9 @@ type rowTask struct {
 	Amount3 uint32
 }
 
+type rowMonGrp struct {
+}
+
 var (
 	tblCard             map[string]rowCard
 	tblCardGrowth       map[string]rowCardGrowth
@@ -193,6 +196,7 @@ var (
 	tblMapEvent         map[string]rowMapEvent
 	arrayLoginReward    []rowLoginReward
 	tblTask             map[string]rowTask
+	tblMonGrp           map[string]rowMonGrp
 )
 
 func init() {

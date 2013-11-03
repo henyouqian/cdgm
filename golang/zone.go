@@ -3,13 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	//"github.com/golang/glog"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"io/ioutil"
+	"math"
 	"math/rand"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -94,13 +97,12 @@ type BandCache struct {
 type zoneCache struct {
 	ZoneId    uint32           `json:"zoneId"`
 	Objs      map[string]int32 `json:"objs"`
-	StartPos  [2]uint32        `json:"startPos"`
-	GoalPos   [2]uint32        `json:"goalPos"`
-	CurrPos   [2]uint32        `json:"currPos"`
-	LastPos   [2]uint32        `json:"lastPos"`
+	StartPos  [2]int32         `json:"startPos"`
+	GoalPos   [2]int32         `json:"goalPos"`
+	CurrPos   [2]int32         `json:"currPos"`
 	RedCase   uint32           `json:"redCase"`
 	GoldCase  uint32           `json:"goldCase"`
-	MonGrpId  int32            `json:"monGrpId"`
+	MonGrpId  uint32           `json:"monGrpId"`
 	Events    map[string]int32 `json:"events"`
 	Band      BandCache        `json:"band"`
 	CatchMons []uint32         `json:"catchMons"`
@@ -234,13 +236,257 @@ func genCache(zoneid uint32, isLastZone bool, userId uint32, band Band) (*zoneCa
 	//out
 	out.ZoneId = zoneid
 	out.CurrPos = out.StartPos
-	out.LastPos = out.StartPos
-	out.MonGrpId = -1
-	//out.Events =
+	out.MonGrpId = 0
 
 	return &out, nil
 }
 
-func regZone() {
+func zoneMove(w http.ResponseWriter, r *http.Request) {
+	lwutil.CheckMathod(r, "POST")
 
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	session, err := findSession(w, r, rc)
+	lwutil.CheckError(err, "err_auth")
+
+	//*in
+	var in [][2]int32
+	err = lwutil.DecodeRequestBody(r, &in)
+	lwutil.CheckError(err, "err_decode_body")
+	path := in
+
+	if len(path) < 2 {
+		lwutil.SendError("err_path_too_short", "")
+	}
+
+	for i, v := range path {
+		if i > 0 {
+			dist := math.Abs(float64(v[0]-path[i-1][0])) + math.Abs(float64(v[1]-path[i-1][1]))
+			if dist > 3.1 || dist < 2.9 {
+				lwutil.SendError("err_dist_not_3", fmt.Sprintf("dist=%f", dist))
+			}
+		}
+	}
+
+	//*get player info
+	row := whDB.QueryRow("SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, money, maxCardNum, pvpScore, pvpWinStreak FROM playerInfos WHERE userId=?", session.UserId)
+	var zoneCacheStr []byte
+	var ap uint32
+	var maxAp uint32
+	var lastApTimeStr string
+	var nowStr string
+	var itemsStr []byte
+	var money uint32
+	var maxCardNum uint32
+	var pvpScore uint32
+	var pvpWinStreak uint32
+	err = row.Scan(&zoneCacheStr, &ap, &maxAp, &lastApTimeStr, &nowStr, &itemsStr, &money, &maxCardNum, &pvpScore, &pvpWinStreak)
+	lwutil.CheckError(err, "")
+
+	if len(zoneCacheStr) == 0 {
+		lwutil.SendError("err_not_in_zone", "")
+	}
+	var cache zoneCache
+	json.Unmarshal(zoneCacheStr, &cache)
+
+	if len(lastApTimeStr) == 0 {
+		lastApTimeStr = nowStr
+	}
+	lastApTime, err := time.ParseInLocation("2006-01-02 15:04:05", lastApTimeStr, time.UTC)
+	lwutil.CheckError(err, "")
+	now, err := time.ParseInLocation("2006-01-02 15:04:05", nowStr, time.UTC)
+	lwutil.CheckError(err, "")
+
+	var items map[string]uint32
+	json.Unmarshal(itemsStr, &items)
+
+	//*check path
+	if cache.CurrPos != path[0] {
+		lwutil.SendError("err_begin_coord", fmt.Sprintf("currPos=%v, path=%v", cache.CurrPos, path))
+	}
+
+	//*update ap
+	if lastApTime.Unix() > now.Unix() {
+		lastApTime = now
+	}
+	dSec := uint32(now.Unix() - lastApTime.Unix())
+
+	dap := dSec / AP_ADD_DURATION
+	if dap > 0 {
+		ap = uint32(lwutil.Min(int64(maxAp), int64(ap+dap)))
+	}
+	if ap == maxAp {
+		lastApTime = now
+	} else {
+		t := dSec % AP_ADD_DURATION
+		lastApTime = time.Unix(now.Unix()-int64(t), 0)
+	}
+
+	apAddRemain := AP_ADD_DURATION - (dSec % AP_ADD_DURATION)
+
+	if ap == 0 {
+		lwutil.SendError("err_no_ap", "")
+	}
+
+	stepNum := len(path) - 1
+	if stepNum > int(ap) {
+		path = path[0:ap]
+	}
+
+	ap -= uint32(stepNum)
+
+	//*update curr pos
+	currPos := path[len(path)-1]
+	cache.CurrPos = currPos
+
+	//*prepare info collector
+	monGrpId := uint32(0)
+	hasPvp := false
+	type Item struct {
+		id  uint32
+		num uint32
+	}
+	itemsAdd := make([]Item, 0, 8)
+	cardsAdd := make([]uint32, 0, 8)
+	moneyAdd := uint32(0)
+
+	addItem := func(id uint32, num uint32) {
+		itemsAdd = append(itemsAdd, Item{id, num})
+	}
+	addCard := func(id uint32) {
+		cardsAdd = append(cardsAdd, id)
+	}
+
+	//*tile object
+	posKey := fmt.Sprintf("%d,%d", currPos[0], currPos[1])
+	objId, exist := cache.Objs[posKey]
+	if exist {
+		switch {
+		case objId < 0: //battle
+			monGrpId = uint32(-objId)
+		case objId == 1: //wood case
+			//fixme
+		case objId == 2: //red case
+			addItem(RED_CASE_ID, 1)
+		case objId == 3: //gold case
+			addItem(GOLD_CASE_ID, 1)
+		case objId == 4: //small money bag
+			addItem(MONEY_BAG_SMALL_ID, 1)
+		case objId == 5: //small money bag
+			addItem(MONEY_BAG_BIG_ID, 1)
+		case objId == 6: //pvp
+			hasPvp = true
+		}
+	}
+
+	//*event
+	eventId, exist := cache.Events[posKey]
+	if exist {
+		eventRow, ok := tblEvent[strconv.Itoa(int(eventId))]
+		if ok {
+			if eventRow.MonsterID != 0 {
+				monGrpId = eventRow.MonsterID
+			} else {
+				if eventRow.Item1ID != 0 {
+					addItem(eventRow.Item1ID, 1)
+				}
+				if eventRow.Item2ID != 0 {
+					addItem(eventRow.Item2ID, 1)
+				}
+				if eventRow.Item3ID != 0 {
+					addItem(eventRow.Item3ID, 1)
+				}
+
+				if eventRow.Card1ID != 0 {
+					addCard(eventRow.Card1ID)
+				}
+				if eventRow.Card2ID != 0 {
+					addCard(eventRow.Card2ID)
+				}
+				if eventRow.Card3ID != 0 {
+					addCard(eventRow.Card3ID)
+				}
+			}
+		} else {
+			glog.Errorf("event not found in tblEvent: eventId=%d", eventId)
+		}
+	}
+
+	//add items
+	for _, item := range itemsAdd {
+		switch item.id {
+		case MONEY_BAG_SMALL_ID:
+			moneyAdd += 100
+		case MONEY_BAG_BIG_ID:
+			moneyAdd += 1000
+		case RED_CASE_ID:
+			cache.RedCase += item.num
+		case GOLD_CASE_ID:
+			cache.GoldCase += item.num
+		default:
+			key := strconv.Itoa(int(item.id))
+			if _, ok := items[key]; ok {
+				items[key] += item.num
+			} else {
+				items[key] = item.num
+			}
+		}
+	}
+
+	//*add money
+	if moneyAdd > 0 {
+		money += moneyAdd
+	}
+
+	//*add cards
+	cards := make([]cardEntity, 0, 4)
+	if len(cardsAdd) > 0 {
+		protoAndLvs := make([]cardProtoAndLevel, len(cardsAdd))
+		for i, card := range cardsAdd {
+			protoAndLvs[i] = cardProtoAndLevel{card, 1}
+		}
+		cards, err = createCards(session.UserId, protoAndLvs, maxCardNum, WAGON_INDEX_TEMP, STR_MAP_EVENT_REWARD)
+		lwutil.CheckError(err, "")
+	}
+
+	//*save battle or delete obj
+	if monGrpId != 0 {
+		cache.MonGrpId = monGrpId
+	} else if objId != 0 {
+		delete(cache.Objs, posKey)
+	}
+
+	//*pvp
+
+	//*update db
+	cacheJs, err := json.Marshal(cache)
+	lwutil.CheckError(err, "")
+	itemsJs, err := json.Marshal(items)
+	lwutil.CheckError(err, "")
+
+	_, err = whDB.Exec(`UPDATE playerInfos SET zoneCache=?, items=?, ap=?, lastApTime=?, money=? WHERE userid=?`,
+		cacheJs, itemsJs, ap, lastApTime, money, session.UserId)
+	lwutil.CheckError(err, "")
+
+	//*out
+	out := map[string]interface{}{
+		"error":       nil,
+		"in":          in,
+		"zoneCache":   cache,
+		"lastApTime":  lastApTime,
+		"now":         now,
+		"items":       items,
+		"apAddRemain": apAddRemain,
+		"monGrpId":    monGrpId,
+		"hasPvp":      hasPvp,
+		"cards":       cards,
+		"cacheJs":     cacheJs,
+		"itemsJs":     itemsJs,
+	}
+	lwutil.WriteResponse(w, out)
+}
+
+func regZone() {
+	http.Handle("/whapi/zone/move", lwutil.ReqHandler(zoneMove))
 }

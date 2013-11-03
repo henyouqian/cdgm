@@ -13,6 +13,11 @@ const (
 
 	MAX_NEWS = 10
 
-	AP_ADD_DURATION = int32(5 * 60)
-	XP_ADD_DURATION = int32(15 * 60)
+	AP_ADD_DURATION = uint32(5 * 60)
+	XP_ADD_DURATION = uint32(15 * 60)
+
+	MONEY_BAG_SMALL_ID = 18
+	MONEY_BAG_BIG_ID   = 19
+	RED_CASE_ID        = 20
+	GOLD_CASE_ID       = 21
 )

@@ -1,8 +1,10 @@
 package main
 
 import (
+	//"database/sql"
 	"encoding/json"
 	"fmt"
+	//"github.com/garyburd/redigo/redis"
 	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
@@ -55,11 +57,6 @@ func dbBatch(w http.ResponseWriter, r *http.Request) {
 
 	err = tx.Commit()
 	lwutil.CheckError(err, "")
-}
-
-func regLab() {
-	http.Handle("/lab/dbsimple", lwutil.ReqHandler(dbSimple))
-	http.Handle("/lab/dbbatch", lwutil.ReqHandler(dbBatch))
 }
 
 func g() {
@@ -186,6 +183,68 @@ func csv() {
 	glog.Infof("%+v", tbl)
 }
 
+func hkv() {
+	type Info struct {
+		Ap     uint32
+		MaxAp  uint32
+		UserId uint32
+	}
+
+	//hkvs := []lwutil.Hkv{
+	//	{whDB, "playerInfos", "userId", 12, Info{22, "helen"}, nil},
+	//	{whDB, "playerInfos", "userId", 111, Info{30, "liwei"}, nil},
+	//}
+	//lwutil.HSetKvs(hkvs)
+
+	var liwei, helen, bb Info
+
+	hkvs := []lwutil.Hkv{
+		{whDB, "playerInfos", "userId", 311, &liwei, nil},
+		{whDB, "playerInfos", "userId", 12, &helen, nil},
+		{whDB, "playerInfos", "userId", 19, &bb, nil},
+	}
+	lwutil.HGetKvs(hkvs)
+	glog.Infoln(liwei, helen, bb)
+	glog.Infoln(hkvs)
+}
+
 func lab() {
 
+}
+
+func labRedis(w http.ResponseWriter, r *http.Request) {
+	lwutil.CheckMathod(r, "GET")
+
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	//
+	err := func() error {
+		tx, err := whDB.Begin()
+		if err != nil {
+			return lwutil.NewErr(err)
+		}
+		defer lwutil.EndTx(tx, &err)
+
+		var ap uint32
+		for i := 0; i < 10000; i++ {
+			tx.QueryRow("SELECT ap FROM playerInfos WHERE userId=?", i).Scan(&ap)
+		}
+
+		return err
+	}()
+
+	lwutil.CheckError(err, "")
+
+	//*out
+	out := map[string]interface{}{
+		"hkvs": nil,
+	}
+	lwutil.WriteResponse(w, out)
+}
+
+func regLab() {
+	http.Handle("/lab/dbsimple", lwutil.ReqHandler(dbSimple))
+	http.Handle("/lab/dbbatch", lwutil.ReqHandler(dbBatch))
+	http.Handle("/lab/redis", lwutil.ReqHandler(labRedis))
 }

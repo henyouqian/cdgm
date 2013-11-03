@@ -96,12 +96,12 @@ func calcCardAttr(protoId uint32, level uint16) (*cardAttr, error) {
 	return &cardAttr, nil
 }
 
-func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uint16, wagonIdx uint8, desc string) ([]*cardEntity, error) {
+func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uint32, wagonIdx uint8, desc string) ([]cardEntity, error) {
 	cardNum := len(protoAndLvs)
 	if cardNum == 0 {
 		return nil, lwutil.NewErrStr("protoAndLvs is empty")
 	}
-	cards := make([]*cardEntity, cardNum)
+	cards := make([]cardEntity, cardNum)
 	cardProtos := make([]uint32, cardNum)
 	for i, v := range protoAndLvs {
 		attr, err := calcCardAttr(v.proto, v.level)
@@ -158,7 +158,7 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 			Skill3Exp:   0,
 		}
 
-		cards[i] = &card
+		cards[i] = card
 		cardProtos[i] = v.proto
 	}
 

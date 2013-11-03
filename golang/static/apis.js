@@ -87,6 +87,17 @@ function Controller($scope, $http) {
 				},
 			]
 		},
+		{
+			"tab":"zone",
+			"path":"whapi/zone",
+			"apis":[
+				{
+					"name": "move",
+					"method": "POST",
+					"data": [[1, 2], [4, 2]]
+				},
+			]
+		},
 	]
 
 	var sendCodeMirror = CodeMirror.fromTextArea(sendTextArea, 
