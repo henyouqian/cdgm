@@ -209,10 +209,7 @@ func hkv() {
 }
 
 func lab() {
-	rc := redisPool.Get()
-	defer rc.Close()
-	s, err := lwutil.GenSerial(rc, "test", 134)
-	glog.Infoln(s, err)
+
 }
 
 func labRedis(w http.ResponseWriter, r *http.Request) {
