@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	//"github.com/golang/glog"
 	//_ "github.com/go-sql-driver/mysql"
 	"crypto/sha1"
 	"encoding/hex"
