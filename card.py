@@ -65,21 +65,23 @@ def create_cards(owner_id, proto_and_levels, max_card_num, wagonIdx, desc="", ca
     try:
         cards = []
         protos = []
+        wagon_cards = []
+        serial = yield util.genSerial("cardGen", len(proto_and_levels))
         for proto_id, level in proto_and_levels:
             hp, atk, _def, wis, agi = calc_card_proto_attr(proto_id, level)
             skill_1_id, skill_2_id = card_tbl.gets(proto_id, "skillid1", "skillid2")
             lvtbl = warlord_level_tbl if is_war_lord(proto_id) else card_level_tbl
             exp = lvtbl.get(level, "exp")
-            card = {"protoId":proto_id, "ownerId":owner_id, "level":level, "exp":exp}
+            card = {"id":serial, "protoId":proto_id, "ownerId":owner_id, "level":level, "exp":exp}
             card.update({"hp":hp, "atk":atk, "def":_def, "wis":wis, "agi":agi})
             card.update({"hpCrystal":0, "atkCrystal":0, "defCrystal":0, "wisCrystal":0, "agiCrystal":0})
             card.update({"hpExtra":0, "atkExtra":0, "defExtra":0, "wisExtra":0, "agiExtra":0})
             card.update({"skill1Id":skill_1_id, "skill2Id":skill_2_id, "skill3Id":0})
             card.update({"skill1Level":1, "skill2Level":1, "skill3Level":1})
             card.update({"skill1Exp":0, "skill2Exp":0, "skill3Exp":0})
-            card.update({"_newInsert":1})
             cards.append(card)
             protos.append(proto_id)
+            serial += 1
 
         rows = yield util.whdb.runQuery(
             """SELECT COUNT(1) from cardEntities
@@ -94,6 +96,7 @@ def create_cards(owner_id, proto_and_levels, max_card_num, wagonIdx, desc="", ca
                 card["inPackage"] = 1
             else:
                 card["inPackage"] = 0
+                wagon_cards.append(card)
 
         cols = ",".join(cards[0].keys())
         yield util.whdb.runOperationMany(
@@ -102,44 +105,44 @@ def create_cards(owner_id, proto_and_levels, max_card_num, wagonIdx, desc="", ca
             """.format(cols, ",".join(("%s",)*len(cards[0])))
             , tuple((card.values() for card in cards))
         )
-        # append key "id" to fetch
-        cols += ",id"
+        # # append key "id" to fetch
+        # cols += ",id"
         
-        # rows = yield util.whdb.callProc("get_new_cards", (owner_id, cols))
-        rows = yield util.whdb.runQuery(
-            """SELECT {} FROM cardEntities
-                WHERE ownerId=%s AND _newInsert=1
-            """.format(cols),
-            (owner_id,)
-        )
+        # # rows = yield util.whdb.callProc("get_new_cards", (owner_id, cols))
+        # rows = yield util.whdb.runQuery(
+        #     """SELECT {} FROM cardEntities
+        #         WHERE ownerId=%s AND _newInsert=1
+        #     """.format(cols),
+        #     (owner_id,)
+        # )
 
-        yield util.whdb.runOperation(
-            """UPDATE cardEntities SET _newInsert = 0 
-                WHERE ownerId = %s AND _newInsert = 1
-            """,
-            (owner_id,)
-        )
+        # yield util.whdb.runOperation(
+        #     """UPDATE cardEntities SET _newInsert = 0 
+        #         WHERE ownerId = %s AND _newInsert = 1
+        #     """,
+        #     (owner_id,)
+        # )
 
         # collection
         yield addCardCollect(owner_id, protos)
 
         # reply
-        reply = []
-        wagon_cards = []
-        keys = cards[0].keys()
-        keys.append("id")
-        for row in rows:
-            d = dict(zip(keys, row))
-            reply.append(d)
-            if not d["inPackage"]:
-                wagon_cards.append(d)
+        # reply = []
+        # wagon_cards = []
+        # keys = cards[0].keys()
+        # keys.append("id")
+        # for row in rows:
+        #     d = dict(zip(keys, row))
+        #     reply.append(d)
+        #     if not d["inPackage"]:
+        #         wagon_cards.append(d)
 
         # add to wagon
         if wagon_cards:
             yield wagon.add_cards(wagonIdx, owner_id, wagon_cards, desc)
 
         # return
-        callback(reply)
+        callback(cards)
     except Exception as e:
         traceback.print_exc()
         callback(e)
@@ -217,7 +220,6 @@ class GetPact(tornado.web.RequestHandler):
             for i in xrange(pact_num):
                 cardid, b = get_card_from_pact(pact_id, pact_times_map)
                 card_ids.append(cardid)
-                print "aaaaaaaaaa",cardid
                 if b:
                     changed = True
             if changed:

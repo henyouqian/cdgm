@@ -448,3 +448,10 @@ def getkvDb(key, callback):
         callback(None)
     else:
         callback(json.loads(row[0]))
+
+
+@adisp.async
+@adisp.process
+def genSerial(key, num, callback):
+    n = yield redis().incrby("serial/"+key, num)
+    callback(n-num+1)

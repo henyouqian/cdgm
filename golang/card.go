@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	//"github.com/golang/glog"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"strconv"
@@ -103,6 +103,14 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 	}
 	cards := make([]cardEntity, cardNum)
 	cardProtos := make([]uint32, cardNum)
+
+	rc := redisPool.Get()
+	defer rc.Close()
+	serialBegin, err := lwutil.GenSerial(rc, "cardGen", uint32(len(protoAndLvs)))
+	if err != nil {
+		return nil, lwutil.NewErr(err)
+	}
+
 	for i, v := range protoAndLvs {
 		attr, err := calcCardAttr(v.proto, v.level)
 		if err != nil {
@@ -128,6 +136,7 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 
 		//
 		card := cardEntity{
+			Id:          serialBegin + uint64(i),
 			ProtoId:     v.proto,
 			OwnerId:     ownerId,
 			Level:       v.level,
@@ -165,9 +174,9 @@ func createCards(ownerId uint32, protoAndLvs []cardProtoAndLevel, maxCardNum uin
 	//get card num in package
 	row := whDB.QueryRow("SELECT COUNT(1) FROM cardEntities WHERE ownerId=? AND inPackage=1", ownerId)
 	var inpackNum uint16
-	err := row.Scan(&inpackNum)
+	err = row.Scan(&inpackNum)
 	if err != nil {
-		return nil, err
+		return nil, lwutil.NewErr(err)
 	}
 
 	//
@@ -295,6 +304,12 @@ func getCollection(w http.ResponseWriter, r *http.Request) {
 	out := map[string]interface{}{
 		"collection": collectedCards,
 	}
+
+	//fixme: just for test
+	//add card
+	protoAndLvs := []cardProtoAndLevel{cardProtoAndLevel{236, 55}}
+	card, err := createCards(12, protoAndLvs, 0, 0, "hahahaha")
+	glog.Infoln(card)
 
 	lwutil.WriteResponse(w, &out)
 }
