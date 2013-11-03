@@ -33,7 +33,8 @@ func init() {
 		},
 	}
 
-	accountDB, err := lwutil.OpenDb("account_db")
+	var err error
+	accountDB, err = lwutil.OpenDb("account_db")
 	lwutil.CheckError(err, "")
 	accountDB.SetMaxIdleConns(10)
 
