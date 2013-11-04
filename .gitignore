@@ -43,3 +43,7 @@ log/
 tools/configFormat/output/
 golang/golang
 *.rdb
+
+data/pvpWinIncentives.csv
+data/test.csv
+.~lock*

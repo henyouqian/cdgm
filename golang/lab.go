@@ -185,9 +185,10 @@ func csv() {
 
 func hkv() {
 	type Info struct {
-		Ap     uint32
-		MaxAp  uint32
-		UserId uint32
+		Ap         uint32
+		MaxAp      uint32
+		UserId     uint32
+		LastXpTime string
 	}
 
 	//hkvs := []lwutil.Hkv{
@@ -197,19 +198,24 @@ func hkv() {
 	//lwutil.HSetKvs(hkvs)
 
 	var liwei, helen, bb Info
+	type zoneCache struct {
+		ZoneCache string
+	}
+
+	var liweiZoneCache zoneCache
 
 	hkvs := []lwutil.Hkv{
 		{whDB, "playerInfos", "userId", 311, &liwei, nil},
-		{whDB, "playerInfos", "userId", 12, &helen, nil},
+		{whDB, "playerInfos", "userId", 58, &helen, nil},
 		{whDB, "playerInfos", "userId", 19, &bb, nil},
+		{whDB, "playerInfos", "userId", 12, &liweiZoneCache, nil},
 	}
 	lwutil.HGetKvs(hkvs)
-	glog.Infoln(liwei, helen, bb)
-	glog.Infoln(hkvs)
+	glog.Infof("\n%+v\n%+v\n%+v\n%+v", liwei, helen, bb, liweiZoneCache)
 }
 
 func lab() {
-
+	hkv()
 }
 
 func labRedis(w http.ResponseWriter, r *http.Request) {
