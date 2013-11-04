@@ -1048,11 +1048,13 @@ class BattleResult(tornado.web.RequestHandler):
                 self_rank = 0
 
             # lose
+            win_num = win_streak
             if not is_win:
                 win_streak = 0
             # win
             else:
                 win_streak += 1
+                win_num = win_streak
                 if win_streak % 3 == 0:
                     # gain rewards
                     rewards = pvp_win_reward_tbl.get(win_streak)
@@ -1120,6 +1122,13 @@ class BattleResult(tornado.web.RequestHandler):
                 )
 
             out_members = [{"id":c["id"], "exp":c["exp"]} for c in card_entities]
+
+            # update statistics
+            yield util.whdb.runOperation(
+                """UPDATE playerStatistics SET pvpTotal=pvpTotal+1, pvpMaxWin=greatest(pvpMaxWin, %s)
+                 WHERE userId=%s"""
+                ,(win_num, userid)
+            )
             
             # reply
             reply = util.new_reply()
