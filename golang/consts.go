@@ -20,5 +20,6 @@ const (
 	ITEM_ID_MONEY_BAG_BIG   = 19
 	ITEM_ID_RED_CASE        = 20
 	ITEM_ID_GOLD_CASE       = 21
+	ITEM_ID_WH_COIN         = 24
 	ITEM_ID_MONEY           = 25
 )

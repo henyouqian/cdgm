@@ -274,7 +274,7 @@ func zoneMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//*get player info
-	row := whDB.QueryRow("SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, money, maxCardNum, pvpScore, pvpWinStreak FROM playerInfos WHERE userId=?", session.UserId)
+	row := whDB.QueryRow("SELECT zoneCache, ap, maxAp, lastApTime, UTC_TIMESTAMP(), items, money, whCoin, maxCardNum, pvpScore, pvpWinStreak FROM playerInfos WHERE userId=?", session.UserId)
 	var zoneCacheStr []byte
 	var ap uint32
 	var maxAp uint32
@@ -282,10 +282,11 @@ func zoneMove(w http.ResponseWriter, r *http.Request) {
 	var nowStr string
 	var itemsStr []byte
 	var money uint32
+	var whCoin uint32
 	var maxCardNum uint32
 	var pvpScore uint32
 	var pvpWinStreak uint32
-	err = row.Scan(&zoneCacheStr, &ap, &maxAp, &lastApTimeStr, &nowStr, &itemsStr, &money, &maxCardNum, &pvpScore, &pvpWinStreak)
+	err = row.Scan(&zoneCacheStr, &ap, &maxAp, &lastApTimeStr, &nowStr, &itemsStr, &money, &whCoin, &maxCardNum, &pvpScore, &pvpWinStreak)
 	lwutil.CheckError(err, "")
 
 	if len(zoneCacheStr) == 0 {
@@ -415,10 +416,11 @@ func zoneMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//add items
-	dMoney, redCase, goldCase := addItems(items, itemsAdd)
+	dMoney, redCase, goldCase, whCoinAdd := addItems(items, itemsAdd)
 	moneyAdd += dMoney
 	cache.RedCase += redCase
 	cache.GoldCase += goldCase
+	whCoin += whCoinAdd
 
 	//*add money
 	if moneyAdd > 0 {
@@ -451,8 +453,8 @@ func zoneMove(w http.ResponseWriter, r *http.Request) {
 	itemsJs, err := json.Marshal(items)
 	lwutil.CheckError(err, "")
 
-	_, err = whDB.Exec(`UPDATE playerInfos SET zoneCache=?, items=?, ap=?, lastApTime=?, money=? WHERE userid=?`,
-		cacheJs, itemsJs, ap, lastApTime, money, session.UserId)
+	_, err = whDB.Exec(`UPDATE playerInfos SET zoneCache=?, items=?, ap=?, lastApTime=?, money=?, whCoin=? WHERE userid=?`,
+		cacheJs, itemsJs, ap, lastApTime, money, whCoin, session.UserId)
 	lwutil.CheckError(err, "")
 
 	//*out

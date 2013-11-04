@@ -16,25 +16,27 @@ type ItemInfo struct {
 	Num uint32
 }
 
-func addItems(items map[string]uint32, adding []ItemInfo) (moneyAdd, redCase, goldCase uint32) {
+func addItems(items map[string]uint32, adding []ItemInfo) (money, redCase, goldCase, whcoin uint32) {
 	for _, item := range adding {
 		switch item.Id {
 		case ITEM_ID_MONEY_BAG_SMALL:
-			moneyAdd += 100
+			money += 100
 		case ITEM_ID_MONEY_BAG_BIG:
-			moneyAdd += 1000
+			money += 1000
 		case ITEM_ID_RED_CASE:
 			redCase += item.Num
 		case ITEM_ID_GOLD_CASE:
 			goldCase += item.Num
+		case ITEM_ID_WH_COIN:
+			whcoin += item.Num
 		case ITEM_ID_MONEY:
-			moneyAdd += item.Num
+			money += item.Num
 		default:
 			items[strconv.Itoa(int(item.Id))] += item.Num
 		}
 	}
 
-	return moneyAdd, redCase, goldCase
+	return money, redCase, goldCase, whcoin
 }
 
 type Band struct {
@@ -61,7 +63,6 @@ type playerInfoForTask struct {
 func checkTaskComplete(taskRow *rowTask, s *playerStatistics, i *playerInfoForTask) (isComplete bool, num, targetNum uint32) {
 	switch taskRow.Type {
 	case 1:
-		glog.Infoln(i.LastZoneId, taskRow.Target)
 		if i.LastZoneId > taskRow.Target {
 			return true, 1, 1
 		}
@@ -292,7 +293,7 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 
 	//get player info
 	row := whDB.QueryRow(`SELECT wagonGeneral, wagonTemp, wagonSocial,
-		lastZoneId, c.level, bands, items, money
+		lastZoneId, c.level, bands, items, money, whCoin
 		FROM playerInfos JOIN cardEntities AS c ON warLord = c.id
 		WHERE userId=?`, session.UserId)
 	var general, temp, social uint32
@@ -301,8 +302,9 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 	var itemsRaw []byte
 	var items map[string]uint32
 	var money uint32
+	var whCoin uint32
 	pi.UserId = session.UserId
-	err = row.Scan(&general, &temp, &social, &pi.LastZoneId, &pi.WarlordLevel, &bands, &itemsRaw, &money)
+	err = row.Scan(&general, &temp, &social, &pi.LastZoneId, &pi.WarlordLevel, &bands, &itemsRaw, &money, &whCoin)
 	lwutil.CheckError(err, fmt.Sprintf("userId=%d", session.UserId))
 
 	json.Unmarshal(bands, &pi.Bands)
@@ -417,13 +419,14 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 
 		//add items
 		if len(itemsAdd) > 0 {
-			dMoney, _, _ := addItems(items, itemsAdd)
-			money += dMoney
+			moneyAdd, _, _, whCoinAdd := addItems(items, itemsAdd)
+			money += moneyAdd
+			whCoin += whCoinAdd
 			jsItems, err := json.Marshal(items)
 			lwutil.CheckError(err, "")
 
-			_, err = whDB.Exec(`UPDATE playerInfos SET items=?, money=?
-                WHERE userid=?`, jsItems, money, session.UserId)
+			_, err = whDB.Exec(`UPDATE playerInfos SET items=?, money=?, whCoin=?
+                WHERE userid=?`, jsItems, money, whCoin, session.UserId)
 			lwutil.CheckError(err, "")
 		}
 
