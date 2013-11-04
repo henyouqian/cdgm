@@ -635,6 +635,11 @@ class Sacrifice(tornado.web.RequestHandler):
 
                     while 1:
                         if level == 20:
+                            # statistics
+                            yield util.whdb.runOperation(
+                                "UPDATE playerStatistics SET sacrifice=sacrifice+1 WHERE userId=%s"
+                                ,(user_id, )
+                            )
                             break
                         next_exp = int(skill_level_tbl.get((rarity, level + 1), "exp"))
                         if skill["exp"] < next_exp:
@@ -701,12 +706,6 @@ class Sacrifice(tornado.web.RequestHandler):
             yield util.whdb.runOperation(
                 """DELETE FROM cardEntities WHERE id IN ({}) AND ownerId=%s
                     """.format(",".join(sacrifice_ids))
-                ,(user_id, )
-            )
-
-            # statistics
-            yield util.whdb.runOperation(
-                "UPDATE playerStatistics SET sacrifice=sacrifice+1 WHERE userId=%s"
                 ,(user_id, )
             )
 
