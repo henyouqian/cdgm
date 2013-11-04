@@ -12,16 +12,29 @@ import (
 )
 
 type ItemInfo struct {
-	Id    uint8
-	Count uint32
+	Id  uint32
+	Num uint32
 }
 
-type Items map[uint8]uint32
-
-func addItems(items Items, adding []ItemInfo) {
-	for _, v := range adding {
-		items[v.Id] += v.Count
+func addItems(items map[string]uint32, adding []ItemInfo) (moneyAdd, redCase, goldCase uint32) {
+	for _, item := range adding {
+		switch item.Id {
+		case ITEM_ID_MONEY_BAG_SMALL:
+			moneyAdd += 100
+		case ITEM_ID_MONEY_BAG_BIG:
+			moneyAdd += 1000
+		case ITEM_ID_RED_CASE:
+			redCase += item.Num
+		case ITEM_ID_GOLD_CASE:
+			goldCase += item.Num
+		case ITEM_ID_MONEY:
+			moneyAdd += item.Num
+		default:
+			items[strconv.Itoa(int(item.Id))] += item.Num
+		}
 	}
+
+	return moneyAdd, redCase, goldCase
 }
 
 type Band struct {
@@ -277,19 +290,23 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	//get wagon item count
+	//get player info
 	row := whDB.QueryRow(`SELECT wagonGeneral, wagonTemp, wagonSocial,
-		lastZoneId, c.level, bands
+		lastZoneId, c.level, bands, items, money
 		FROM playerInfos JOIN cardEntities AS c ON warLord = c.id
 		WHERE userId=?`, session.UserId)
 	var general, temp, social uint32
 	var pi playerInfoForTask
 	var bands []byte
+	var itemsRaw []byte
+	var items map[string]uint32
+	var money uint32
 	pi.UserId = session.UserId
-	err = row.Scan(&general, &temp, &social, &pi.LastZoneId, &pi.WarlordLevel, &bands)
+	err = row.Scan(&general, &temp, &social, &pi.LastZoneId, &pi.WarlordLevel, &bands, &itemsRaw, &money)
 	lwutil.CheckError(err, fmt.Sprintf("userId=%d", session.UserId))
 
 	json.Unmarshal(bands, &pi.Bands)
+	json.Unmarshal(itemsRaw, &items)
 
 	//task
 	row = whDB.QueryRow(`SELECT currTask1, currTask2, pvpTotal, pvpMaxWin, 
@@ -341,6 +358,8 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 	checkTask := func(taskId uint16) (task *CurrentTask, allFinished bool) {
 		var taskRow rowTask
 		var num, targetNum uint32
+		cardsAdd := make([]cardProtoAndLevel, 0, 8)
+		itemsAdd := make([]ItemInfo, 0, 8)
 		for true {
 			t, ok := tblTask[strconv.Itoa(int(taskId))]
 			taskRow = t
@@ -357,21 +376,55 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 					Content: taskRow.Content,
 					Rewards: make([]Reward, 0, 3),
 				}
+
 				if taskRow.Reward1 != 0 {
 					fTask.Rewards = append(fTask.Rewards, Reward{taskRow.Reward1, taskRow.Amount1})
+					if taskRow.Reward1 > 0 {
+						itemsAdd = append(itemsAdd, ItemInfo{uint32(taskRow.Reward1), taskRow.Amount1})
+					} else if taskRow.Reward1 < 0 {
+						cardsAdd = append(cardsAdd, cardProtoAndLevel{uint32(-taskRow.Reward1), 1})
+					}
 				}
 				if taskRow.Reward2 != 0 {
 					fTask.Rewards = append(fTask.Rewards, Reward{taskRow.Reward2, taskRow.Amount2})
+					if taskRow.Reward2 > 0 {
+						itemsAdd = append(itemsAdd, ItemInfo{uint32(taskRow.Reward2), taskRow.Amount2})
+					} else if taskRow.Reward2 < 0 {
+						cardsAdd = append(cardsAdd, cardProtoAndLevel{uint32(-taskRow.Reward2), 1})
+					}
 				}
 				if taskRow.Reward3 != 0 {
 					fTask.Rewards = append(fTask.Rewards, Reward{taskRow.Reward3, taskRow.Amount3})
+					if taskRow.Reward3 > 0 {
+						itemsAdd = append(itemsAdd, ItemInfo{uint32(taskRow.Reward3), taskRow.Amount3})
+					} else if taskRow.Reward3 < 0 {
+						cardsAdd = append(cardsAdd, cardProtoAndLevel{uint32(-taskRow.Reward3), 1})
+					}
 				}
-				//fixme: add rewards
+
 				fts = append(fts, fTask)
 				taskId++
 			} else {
 				break
 			}
+		}
+
+		//add cards
+		if len(cardsAdd) > 0 {
+			_, err = createCards(session.UserId, cardsAdd, 0, WAGON_INDEX_GENERAL, STR_TASK_REWARD)
+			lwutil.CheckError(err, "")
+		}
+
+		//add items
+		if len(itemsAdd) > 0 {
+			dMoney, _, _ := addItems(items, itemsAdd)
+			money += dMoney
+			jsItems, err := json.Marshal(items)
+			lwutil.CheckError(err, "")
+
+			_, err = whDB.Exec(`UPDATE playerInfos SET items=?, money=?
+                WHERE userid=?`, jsItems, money, session.UserId)
+			lwutil.CheckError(err, "")
 		}
 
 		//current task
@@ -433,6 +486,7 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		"general":          general,
 		"temp":             temp,
 		"social":           social,
+		"money":            money,
 		"loginRewardId":    loginRewardId,
 		"nextRewardRemain": nextRewardRemain,
 		"isNew":            isNew,

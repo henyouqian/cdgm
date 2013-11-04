@@ -215,7 +215,10 @@ func hkv() {
 }
 
 func lab() {
-	hkv()
+	items := map[string]uint32{"1": 5}
+	adding := []ItemInfo{{1, 2}, {3, 4}, {18, 1}, {19, 1}, {20, 3}, {21, 4}, {25, 444}}
+	moneyAdd, redCase, goldCase := addItems(items, adding)
+	glog.Infoln(items, moneyAdd, redCase, goldCase)
 }
 
 func labRedis(w http.ResponseWriter, r *http.Request) {

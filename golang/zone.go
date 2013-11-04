@@ -27,6 +27,10 @@ var (
 	zoneDatas map[uint32]map[string]uint8
 )
 
+//func addItems(items map[string]uint32) {
+
+//}
+
 func init() {
 	parseMaps()
 }
@@ -343,16 +347,13 @@ func zoneMove(w http.ResponseWriter, r *http.Request) {
 	//*prepare info collector
 	monGrpId := uint32(0)
 	hasPvp := false
-	type Item struct {
-		id  uint32
-		num uint32
-	}
-	itemsAdd := make([]Item, 0, 8)
+
+	itemsAdd := make([]ItemInfo, 0, 8)
 	cardsAdd := make([]uint32, 0, 8)
 	moneyAdd := uint32(0)
 
 	addItem := func(id uint32, num uint32) {
-		itemsAdd = append(itemsAdd, Item{id, num})
+		itemsAdd = append(itemsAdd, ItemInfo{id, num})
 	}
 	addCard := func(id uint32) {
 		cardsAdd = append(cardsAdd, id)
@@ -368,13 +369,13 @@ func zoneMove(w http.ResponseWriter, r *http.Request) {
 		case objId == 1: //wood case
 			//fixme
 		case objId == 2: //red case
-			addItem(RED_CASE_ID, 1)
+			addItem(ITEM_ID_RED_CASE, 1)
 		case objId == 3: //gold case
-			addItem(GOLD_CASE_ID, 1)
+			addItem(ITEM_ID_GOLD_CASE, 1)
 		case objId == 4: //small money bag
-			addItem(MONEY_BAG_SMALL_ID, 1)
+			addItem(ITEM_ID_MONEY_BAG_SMALL, 1)
 		case objId == 5: //small money bag
-			addItem(MONEY_BAG_BIG_ID, 1)
+			addItem(ITEM_ID_MONEY_BAG_BIG, 1)
 		case objId == 6: //pvp
 			hasPvp = true
 		}
@@ -414,25 +415,10 @@ func zoneMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//add items
-	for _, item := range itemsAdd {
-		switch item.id {
-		case MONEY_BAG_SMALL_ID:
-			moneyAdd += 100
-		case MONEY_BAG_BIG_ID:
-			moneyAdd += 1000
-		case RED_CASE_ID:
-			cache.RedCase += item.num
-		case GOLD_CASE_ID:
-			cache.GoldCase += item.num
-		default:
-			key := strconv.Itoa(int(item.id))
-			if _, ok := items[key]; ok {
-				items[key] += item.num
-			} else {
-				items[key] = item.num
-			}
-		}
-	}
+	dMoney, redCase, goldCase := addItems(items, itemsAdd)
+	moneyAdd += dMoney
+	cache.RedCase += redCase
+	cache.GoldCase += goldCase
 
 	//*add money
 	if moneyAdd > 0 {
