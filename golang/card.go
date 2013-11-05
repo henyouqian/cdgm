@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/golang/glog"
+	//"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"strconv"
@@ -304,12 +304,6 @@ func getCollection(w http.ResponseWriter, r *http.Request) {
 	out := map[string]interface{}{
 		"collection": collectedCards,
 	}
-
-	//fixme: just for test
-	//add card
-	protoAndLvs := []cardProtoAndLevel{cardProtoAndLevel{236, 55}}
-	card, err := createCards(12, protoAndLvs, 0, 0, "hahahaha")
-	glog.Infoln(card)
 
 	lwutil.WriteResponse(w, &out)
 }
