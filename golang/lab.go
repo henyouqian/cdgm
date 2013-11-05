@@ -3,7 +3,7 @@ package main
 import (
 	//"database/sql"
 	"encoding/json"
-	"fmt"
+	//"fmt"
 	//"github.com/garyburd/redigo/redis"
 	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
@@ -16,10 +16,10 @@ func dbSimple(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "GET")
 
 	// db
-	ids := make([]int64, 10)
+	ids := make([]int64, 1000)
 	stmt, err := testDB.Prepare("INSERT INTO batchTest (a, b, c, d) VALUES (?, ?, ?, ?)")
 	lwutil.CheckError(err, "")
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1000; i++ {
 		res, err := stmt.Exec(1, 2, 3, 4)
 		lwutil.CheckError(err, "")
 
@@ -36,12 +36,13 @@ func dbBatch(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "GET")
 
 	// db
-	ids := make([]int64, 10)
+	ids := make([]int64, 1000)
 	tx, err := testDB.Begin()
 	lwutil.CheckError(err, "")
-	stmt, err := tx.Prepare("INSERT INTO batchTest (a, b, c, d) VALUES (?, ?, ?, ?)")
-	lwutil.CheckError(err, "")
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1000; i++ {
+		stmt, err := tx.Prepare("INSERT INTO batchTest (a, b, c, d) VALUES (?, ?, ?, ?)")
+		lwutil.CheckError(err, "")
+
 		res, err := stmt.Exec(1, 2, 3, 4)
 		lwutil.CheckError(err, "")
 
@@ -49,8 +50,6 @@ func dbBatch(w http.ResponseWriter, r *http.Request) {
 		lwutil.CheckError(err, "")
 
 		ids[i] = id
-
-		fmt.Println(id)
 	}
 
 	lwutil.WriteResponse(w, ids)
@@ -214,11 +213,23 @@ func hkv() {
 	glog.Infof("\n%+v\n%+v\n%+v\n%+v", liwei, helen, bb, liweiZoneCache)
 }
 
+func newkv() {
+	lwutil.KvStart(redisPool)
+
+	age := uint32(777)
+	kvs := []lwutil.KvData{
+		{testDB, "girls", 1, &age, nil},
+	}
+	lwutil.KvSet(kvs)
+	//lwutil.KvGet(kvs)
+	glog.Infoln(age)
+
+	err := lwutil.KvSaveTask()
+	glog.Infoln(err)
+}
+
 func lab() {
-	//items := map[string]uint32{"1": 5}
-	//adding := []ItemInfo{{1, 2}, {3, 4}, {18, 1}, {19, 1}, {20, 3}, {21, 4}, {25, 444}}
-	//moneyAdd, redCase, goldCase, whCoin := addItems(items, adding)
-	//glog.Infoln(items, moneyAdd, redCase, goldCase, whCoin)
+
 }
 
 func labRedis(w http.ResponseWriter, r *http.Request) {

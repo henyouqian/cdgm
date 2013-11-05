@@ -1144,8 +1144,10 @@ class BattleResult(tornado.web.RequestHandler):
             reply["smallXpItemNum"] = smallXpItemNum
             reply["bigXpItemNum"] = bigXpItemNum
             reply["nextPvpBands"] = next_pvp_bands
-            reply["playerScore"] = self_score
-            reply["playerRank"] = self_rank
+            reply["playerScore"] = 0
+            reply["playerRank"] = 0
+            reply["gameEventScore"] = self_score
+            reply["gameEventRank"] = self_rank
 
             self.write(json.dumps(reply))
         except:
@@ -1302,6 +1304,8 @@ handlers = [
     (r"/whapi/pvp/match", Match),
     (r"/whapi/pvp/battleresult", BattleResult),
     (r"/whapi/pvp/rank", Rank),
+    (r"/whapi/gameevent/rank", Rank),
+
     (r"/whapi/pvp/test", Test),
     (r"/whapi/pvp/test1", Test1),
     (r"/whapi/pvp/test2", Test2),

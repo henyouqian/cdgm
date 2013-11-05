@@ -483,6 +483,17 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		currentTasks = append(currentTasks, task2)
 	}
 
+	score, rank, err := GetScoreAndRank("pvp", session.UserId, ORDER_DESC)
+	lwutil.CheckError(err, "")
+
+	var gameEvtRemainT int64
+	if currGameEvent.evtType != 0 {
+		gameEvtRemainT = currGameEvent.endTime - lwutil.GetRedisTimeUnix()
+		if gameEvtRemainT < 0 {
+			gameEvtRemainT = 0
+		}
+	}
+
 	//out
 	out := map[string]interface{}{
 		"error":            nil,
@@ -495,6 +506,13 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		"isNew":            isNew,
 		"currentTask":      currentTasks,
 		"finishTask":       fts,
+		"gameEvent": map[string]interface{}{
+			"type":        currGameEvent.evtType,
+			"newsId":      currGameEvent.newsId,
+			"remainTime":  gameEvtRemainT,
+			"playerScore": score,
+			"playerRank":  rank,
+		},
 	}
 
 	lwutil.WriteResponse(w, &out)
