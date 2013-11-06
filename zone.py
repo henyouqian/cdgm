@@ -675,7 +675,7 @@ class BattleResult(tornado.web.RequestHandler):
             exp = 0
             for col in cols:
                 expadd = int(mongrp_tbl.get_value(row, col))
-                if level:
+                if expadd:
                     exp += expadd # designed by zhibing
 
             # get band card entity
