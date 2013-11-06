@@ -671,12 +671,12 @@ class BattleResult(tornado.web.RequestHandler):
                 raise Exception("Not in battle")
 
             row = mongrp_tbl.get_row(str(mon_grp_id))
-            cols = ["order%slevel"%(i+1) for i in xrange(MONSTER_GROUP_MEMBER_MAX)]
+            cols = ["order%sexp"%(i+1) for i in xrange(MONSTER_GROUP_MEMBER_MAX)]
             exp = 0
             for col in cols:
-                level = int(mongrp_tbl.get_value(row, col))
+                expadd = int(mongrp_tbl.get_value(row, col))
                 if level:
-                    exp += level * 1.5 # designed by zhibing
+                    exp += expadd # designed by zhibing
 
             # get band card entity
             is_warlord_appended = False
