@@ -44,6 +44,8 @@ func main() {
 	flag.IntVar(&port, "port", 9001, "server port")
 	flag.Parse()
 
+	setEventInfo()
+
 	http.HandleFunc("/static/", staticFile)
 
 	//shit code

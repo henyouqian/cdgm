@@ -487,8 +487,8 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckError(err, "")
 
 	var gameEvtRemainT int64
-	if currGameEvent.evtType != 0 {
-		gameEvtRemainT = currGameEvent.endTime - lwutil.GetRedisTimeUnix()
+	if currGameEvent.EvtType != 0 {
+		gameEvtRemainT = currGameEvent.EndTime - lwutil.GetRedisTimeUnix()
 		if gameEvtRemainT < 0 {
 			gameEvtRemainT = 0
 		}
@@ -507,8 +507,8 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		"currentTask":      currentTasks,
 		"finishTask":       fts,
 		"gameEvent": map[string]interface{}{
-			"type":        currGameEvent.evtType,
-			"newsId":      currGameEvent.newsId,
+			"type":        currGameEvent.EvtType,
+			"newsId":      currGameEvent.NewsId,
 			"remainTime":  gameEvtRemainT,
 			"playerScore": score,
 			"playerRank":  rank,

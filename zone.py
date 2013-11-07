@@ -545,6 +545,12 @@ class Move(tornado.web.RequestHandler):
 
             score, rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
                 
+            # gameEvent
+            gameEventInfo = yield util.redis().get("gameEventInfo")
+            gameEventInfo = json.loads(gameEventInfo)
+            gameEventType = 0
+            if gameEventInfo:
+                gameEventType = gameEventInfo.get("EvtType", 0)
 
             # update
             cachejs = json.dumps(cache)
@@ -573,7 +579,7 @@ class Move(tornado.web.RequestHandler):
             # reply["playerRank"] = rank
             # reply["playerScore"]  = score
             reply["getMoney"] = money_add
-            reply["gameEvent"] = {"playerRank":rank}
+            reply["gameEvent"] = {"playerRank":rank, "type":gameEventType}
             self.write(json.dumps(reply))
 
         except:

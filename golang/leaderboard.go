@@ -132,7 +132,7 @@ func LeaderboardSetScore(rc redis.Conn, lbname string, userId uint32, score uint
 	return lwutil.NewErr(err)
 }
 
-func LeaderboardScoreAndRank(rc redis.Conn, lbname string, userId uint32) (score uint32, rank uint32, err error) {
+func LeaderboardGetScoreAndRank(rc redis.Conn, lbname string, userId uint32) (score uint32, rank uint32, err error) {
 	infoKey := leaderboardInfoKey(lbname)
 	jsInfo, err := redis.Bytes(rc.Do("get", infoKey))
 	if err != nil {

@@ -218,6 +218,29 @@ class AddScore(tornado.web.RequestHandler):
         finally:
             self.finish()
 
+# fixme
+class Reset(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @adisp.process
+    def get(self):
+        try:
+            # param
+            key = self.get_argument("key")
+            score = int(self.get_argument("score"))
+            userid = int(self.get_argument("userid"))
+            username = self.get_argument("username")
+
+            # 
+            yield set_score(key, score, userid, username, None)
+
+            reply = util.new_reply()
+            self.write(json.dumps(reply))
+
+        except:
+            send_internal_error(self)
+        finally:
+            self.finish()
+
 handlers = [
     (r"/whapi/leaderboard/getranks", Getranks),
     (r"/whapi/leaderboard/addscore", AddScore),
