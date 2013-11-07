@@ -50,7 +50,7 @@ func GetScoreAndRank(key string, userid uint32, order Order) (score, rank uint32
 	}
 
 	_rank, err := redis.Int(rc.Receive())
-	rank = uint32(_rank)
+	rank = uint32(_rank) + 1
 	if err == redis.ErrNil {
 		score = 0
 		rank = 0
