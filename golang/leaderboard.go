@@ -133,15 +133,41 @@ func LeaderboardSetScore(rc redis.Conn, lbname string, userId uint32, score uint
 }
 
 func LeaderboardScoreAndRank(rc redis.Conn, lbname string, userId uint32) (score uint32, rank uint32, err error) {
+	infoKey := leaderboardInfoKey(lbname)
+	jsInfo, err := redis.Bytes(rc.Do("get", infoKey))
+	if err != nil {
+		return 0, 0, lwutil.NewErr(err)
+	}
+	var info LeaderboardInfo
+	err = json.Unmarshal(jsInfo, &info)
+	if err != nil {
+		return 0, 0, lwutil.NewErr(err)
+	}
+
 	resultKey := leaderboardResultKey(lbname)
 	rc.Send("zscore", resultKey, userId)
-	
-	if order == "ASC":
-        pipe.zrank(leaderboard_result_key, userid)
-    elif order == "DESC":
-        pipe.zrevrank(leaderboard_result_key, userid)
-    else:
-        raise Exception("invalid order")
 
-	return
+	switch info.Order {
+	case ORDER_ASC:
+		rc.Send("zrank", resultKey, userId)
+	}
+	if info.Order == ORDER_ASC {
+		rc.Send("zrevrank", resultKey, userId)
+	}
+
+	err = rc.Flush()
+	if err != nil {
+		return 0, 0, lwutil.NewErr(err)
+	}
+
+	_score, err := redis.Int(rc.Receive())
+	if err != nil {
+		return 0, 0, lwutil.NewErr(err)
+	}
+	_rank, err := redis.Int(rc.Receive())
+	if err != nil {
+		return 0, 0, lwutil.NewErr(err)
+	}
+
+	return uint32(_score), uint32(_rank), lwutil.NewErr(err)
 }
