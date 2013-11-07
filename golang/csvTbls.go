@@ -178,25 +178,38 @@ type rowTask struct {
 type rowMonGrp struct {
 }
 
+type rowReward struct {
+	Id       uint32
+	RankFrom uint32
+	RankTo   uint32
+	Reward1  int32
+	Amount1  uint32
+	Reward2  int32
+	Amount2  uint32
+	Reward3  int32
+	Amount3  uint32
+}
+
 var (
-	tblCard             map[string]rowCard
-	tblCardGrowth       map[string]rowCardGrowth
-	tblCardLevel        map[string]rowCardLevel
-	tblWarlordCardLevel map[string]rowCardLevel
-	tblStore            map[string]rowStore
-	goodsReply          []byte
-	tblNews             map[string]rowNews
-	tblNewsList         []rowNews
-	tblInstance         map[string]rowInstance
-	tblInstanceList     []rowInstance
-	tblInstanceZone     map[string]rowInstanceZone
-	tblInstanceZoneList []rowInstanceZone
-	tblMap              map[string]rowMap
-	tblEvent            map[string]rowEvent
-	tblMapEvent         map[string]rowMapEvent
-	arrayLoginReward    []rowLoginReward
-	tblTask             map[string]rowTask
-	tblMonGrp           map[string]rowMonGrp
+	tblCard               map[string]rowCard
+	tblCardGrowth         map[string]rowCardGrowth
+	tblCardLevel          map[string]rowCardLevel
+	tblWarlordCardLevel   map[string]rowCardLevel
+	tblStore              map[string]rowStore
+	goodsReply            []byte
+	tblNews               map[string]rowNews
+	tblNewsList           []rowNews
+	tblInstance           map[string]rowInstance
+	tblInstanceList       []rowInstance
+	tblInstanceZone       map[string]rowInstanceZone
+	tblInstanceZoneList   []rowInstanceZone
+	tblMap                map[string]rowMap
+	tblEvent              map[string]rowEvent
+	tblMapEvent           map[string]rowMapEvent
+	arrayLoginReward      []rowLoginReward
+	tblTask               map[string]rowTask
+	tblMonGrp             map[string]rowMonGrp
+	tblPvpRankRewardsList []rowReward
 )
 
 func init() {
@@ -289,5 +302,9 @@ func init() {
 
 	//task
 	err = lwutil.LoadCsvMap("../data/task.csv", []string{"id"}, &tblTask)
+	lwutil.PanicIfError(err)
+
+	//pvpRankRewards
+	err = lwutil.LoadCsvArray("../data/pvpRankRewards.csv", &tblPvpRankRewardsList)
 	lwutil.PanicIfError(err)
 }

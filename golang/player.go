@@ -486,6 +486,9 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 	score, rank, err := GetScoreAndRank("pvp", session.UserId, ORDER_DESC)
 	lwutil.CheckError(err, "")
 
+	currGameEvent, err := getEventInfo(rc)
+	lwutil.CheckError(err, "")
+
 	var gameEvtRemainT int64
 	if currGameEvent.EvtType != 0 {
 		gameEvtRemainT = currGameEvent.EndTime - lwutil.GetRedisTimeUnix()

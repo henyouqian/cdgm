@@ -19,7 +19,7 @@ type Reward struct {
 	Desc   string
 }
 
-func sendRewardTask() {
+func sendRewardsTask() {
 	rc := redisPool.Get()
 	defer rc.Close()
 
