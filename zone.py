@@ -570,9 +570,10 @@ class Move(tornado.web.RequestHandler):
             reply["catchMons"] = catch_mons
             reply["pvpBands"] = pvp_bands
             reply["pvpRemainTime"] = pvp_remain_time
-            reply["playerRank"] = rank
-            reply["playerScore"]  = score
+            # reply["playerRank"] = rank
+            # reply["playerScore"]  = score
             reply["getMoney"] = money_add
+            reply["gameEvent"] = {"playerRank":rank}
             self.write(json.dumps(reply))
 
         except:

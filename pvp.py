@@ -121,59 +121,59 @@ def calc_pvp_score(card, price_skill_mul):
     return score
 
 
-def calc_player_pvp_score(userid, bands, cards, price_skill_mul):
-    """
-        bands: [
-            {
-                "formation": int,
-                "members": [
-                    <cardEntityId:int>,
-                    ...
-                ]
-            },
-            ...
-        ]
-        cards: {
-            <cardEntityId>: {
-                "protoId":int,
-                "level":int,
-                "hp":int,
-                "atk":int,
-                "def":int,
-                "wis":int,
-                "agi":int,
-                "skill1Id":int,
-                "skill1Level":int,
-                "skill2Id":int,
-                "skill2Level":int,
-                "skill3Id":int,
-                "skill3Level":int
-            }
-        }
-    """
-    # calc pvp score
-    pvp_score = 0
+# def calc_player_pvp_score(userid, bands, cards, price_skill_mul):
+#     """
+#         bands: [
+#             {
+#                 "formation": int,
+#                 "members": [
+#                     <cardEntityId:int>,
+#                     ...
+#                 ]
+#             },
+#             ...
+#         ]
+#         cards: {
+#             <cardEntityId>: {
+#                 "protoId":int,
+#                 "level":int,
+#                 "hp":int,
+#                 "atk":int,
+#                 "def":int,
+#                 "wis":int,
+#                 "agi":int,
+#                 "skill1Id":int,
+#                 "skill1Level":int,
+#                 "skill2Id":int,
+#                 "skill2Level":int,
+#                 "skill3Id":int,
+#                 "skill3Level":int
+#             }
+#         }
+#     """
+#     # calc pvp score
+#     pvp_score = 0
 
-    for band in bands:
-        band_score = 0
-        formation = int(band["formation"])
-        members = band["members"]
-        memnum = len(members)
-        if (memnum % 2) != 0:
-            raise Exception("member number is odd")
-        colnum = memnum / 2
-        for col in xrange(colnum):
-            score1 = score2 = 0
-            card_id = members[col]
-            if card_id:
-                score1 = calc_pvp_score(cards[card_id], price_skill_mul)
-            card_id = members[col+colnum]
-            if card_id:
-                score2 = calc_pvp_score(cards[card_id], price_skill_mul)
-            band_score += max(score1, score2)
-        pvp_score = max(pvp_score, band_score)
+#     for band in bands:
+#         band_score = 0
+#         formation = int(band["formation"])
+#         members = band["members"]
+#         memnum = len(members)
+#         if (memnum % 2) != 0:
+#             raise Exception("member number is odd")
+#         colnum = memnum / 2
+#         for col in xrange(colnum):
+#             score1 = score2 = 0
+#             card_id = members[col]
+#             if card_id:
+#                 score1 = calc_pvp_score(cards[card_id], price_skill_mul)
+#             card_id = members[col+colnum]
+#             if card_id:
+#                 score2 = calc_pvp_score(cards[card_id], price_skill_mul)
+#             band_score += max(score1, score2)
+#         pvp_score = max(pvp_score, band_score)
 
-    return pvp_score
+#     return pvp_score
 
 
 @adisp.async
