@@ -214,18 +214,7 @@ func hkv() {
 }
 
 func newkv() {
-	lwutil.KvStart(redisPool)
 
-	age := uint32(777)
-	kvs := []lwutil.KvData{
-		{testDB, "girls", 1, &age, nil},
-	}
-	lwutil.KvSet(kvs)
-	//lwutil.KvGet(kvs)
-	glog.Infoln(age)
-
-	err := lwutil.KvSaveTask()
-	glog.Infoln(err)
 }
 
 func lab() {
