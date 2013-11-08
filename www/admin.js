@@ -39,10 +39,20 @@ function Controller($scope, $http) {
 	}
 	getAdminInfo()
 
-	function setGameEvent() {
-		
+	$scope.setGameEvent = function() {
+		var data = JSON.stringify({
+			"EvtType": parseInt($scope.gameEventType),
+			"NewsId": parseInt($scope.gameEventNewsId),
+			"StartTime": $("#idGameEventStartTime").val(),
+			"EndTime": $("#idGameEventEndTime").val()
+		})
+		$.post('/goapi/gameevent/set', 
+			data,
+			function(json){
+				alert(json)
+			}
+		)
 	}
-
 
 	// items
 	$scope.items = [

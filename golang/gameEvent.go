@@ -107,6 +107,6 @@ func httpGetEventInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func regGameEvent() {
-	http.Handle("/whapi/gameevent/set", lwutil.ReqHandler(httpSetEventInfo))
-	http.Handle("/whapi/gameevent/get", lwutil.ReqHandler(httpGetEventInfo))
+	http.Handle("/goapi/gameevent/set", lwutil.ReqHandler(httpSetEventInfo))
+	http.Handle("/goapi/gameevent/get", lwutil.ReqHandler(httpGetEventInfo))
 }

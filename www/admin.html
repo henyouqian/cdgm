@@ -69,9 +69,9 @@
                   <input type="text" style="width:100px;" ng-model="gameEventNewsId" pattern="^[0-9]*\.?[0-9]+$" placeholder="">
                   <br><br>
                   Start:
-                  <input size="16" type="text" readonly class="form_datetime" ng-model="gameEventStartTime">
+                  <input id="idGameEventStartTime" size="16" type="text" readonly class="form_datetime" ng-model="gameEventStartTime">
                   &nbsp&nbsp&nbspEnd:
-                  <input size="16" type="text" readonly class="form_datetime" ng-model="gameEventEndTime">
+                  <input id="idGameEventEndTime" size="16" type="text" readonly class="form_datetime" ng-model="gameEventEndTime">
                   <br><br>
                   <button class="btn btn-primary" ng-click="setGameEvent()">设置</button>
 

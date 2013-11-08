@@ -100,7 +100,7 @@ function Controller($scope, $http) {
 		},
 		{
 			"tab":"gameEvent",
-			"path":"whapi/gameevent",
+			"path":"goapi/gameevent",
 			"apis":[
 				{
 					"name": "get",
