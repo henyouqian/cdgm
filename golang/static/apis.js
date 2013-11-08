@@ -98,6 +98,21 @@ function Controller($scope, $http) {
 				},
 			]
 		},
+		{
+			"tab":"gameEvent",
+			"path":"whapi/gameevent",
+			"apis":[
+				{
+					"name": "get",
+					"method": "POST",
+					"data": ""
+				},{
+					"name": "set",
+					"method": "POST",
+					"data": {"EvtType":1, "NewsId":2,"StartTime":"2013-11-01 00:00:00","EndTime":"2013-12-01 00:00:00"}
+				},
+			]
+		},
 	]
 
 	var sendCodeMirror = CodeMirror.fromTextArea(sendTextArea, 

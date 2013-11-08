@@ -5,7 +5,7 @@ function Controller($scope, $http) {
 		{multiplier:4.4, time:"tomorrow"}
 	]
 
-	$(".form_datetime").datetimepicker({format: 'yyyy-mm-dd hh:ii', todayBtn: true});
+	$(".form_datetime").datetimepicker({format: 'yyyy-mm-dd hh:ii:ss', todayBtn: true});
 
 	function checkAccount() {
 		$.getJSON('/whapi/admin/checkAccount', function(json){
@@ -20,7 +20,29 @@ function Controller($scope, $http) {
 			}
 		});
 	}
-	checkAccount()
+	// checkAccount()
+
+	function getAdminInfo() {
+		$.getJSON('/goapi/admin/getinfo', function(json){
+			var err = json.error;
+			if (err){
+				errProc(err)
+			}else{
+				$scope.$apply(function(){
+					$scope.gameEventStartTime = json.GameEvent.StartTime
+					$scope.gameEventEndTime = json.GameEvent.EndTime
+					$scope.gameEventType = json.GameEvent.EvtType
+					$scope.gameEventNewsId = json.GameEvent.NewsId
+				});
+			}
+		});
+	}
+	getAdminInfo()
+
+	function setGameEvent() {
+		
+	}
+
 
 	// items
 	$scope.items = [
