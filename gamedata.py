@@ -8,7 +8,7 @@ XP_ADD_DURATION = 15*60
 
 # INIT_SILVER_COIN = 2
 # INIT_BRONZE_COIN = 5
-INIT_GOLD = 10000
+INIT_GOLD = 1000000
 BAND_NUM = 3
 INIT_CARDS = [[130, 10], [1, 1]]	#[[proto, level], ...]
 INIT_BANDS = [{"formation":1, "members":[None, None, None, None, None, None]} for __ in xrange(BAND_NUM)]
