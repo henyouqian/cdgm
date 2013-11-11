@@ -747,8 +747,9 @@ class Match(tornado.web.RequestHandler):
             cards = post_input["cards"]
             match_no = post_input["matchNo"]
 
-            price_skill_mul = yield util.redis().hget(H_PVP_FORMULA, "priceSkillMul")
-            price_skill_mul = float(price_skill_mul)
+            # price_skill_mul = yield util.redis().hget(H_PVP_FORMULA, "priceSkillMul")
+            # price_skill_mul = float(price_skill_mul)
+            price_skill_mul = 1.0
 
             score = 0
             for proto in cards:

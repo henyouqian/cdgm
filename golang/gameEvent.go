@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/garyburd/redigo/redis"
 	//"github.com/golang/glog"
+	"fmt"
 	"github.com/henyouqian/lwutil"
 	"net/http"
 	"time"
@@ -23,7 +24,7 @@ type GameEventHttp struct {
 	EndTime   string
 }
 
-func setEventInfo(rc redis.Conn, evt *GameEventInfo) error {
+func setGameEventInfo(rc redis.Conn, evt *GameEventInfo) error {
 	js, err := json.Marshal(evt)
 	if err != nil {
 		return lwutil.NewErr(err)
@@ -35,7 +36,7 @@ func setEventInfo(rc redis.Conn, evt *GameEventInfo) error {
 	return nil
 }
 
-func getEventInfo(rc redis.Conn) (*GameEventInfo, error) {
+func getGameEventInfo(rc redis.Conn) (*GameEventInfo, error) {
 	bt, err := redis.Bytes(rc.Do("get", "gameEventInfo"))
 	if err != nil {
 		return nil, lwutil.NewErr(err)
@@ -51,7 +52,7 @@ func getEventInfo(rc redis.Conn) (*GameEventInfo, error) {
 	return &gameEventInfo, nil
 }
 
-func httpSetEventInfo(w http.ResponseWriter, r *http.Request) {
+func httpSetGameEventInfo(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "POST")
 
 	//in
@@ -77,19 +78,24 @@ func httpSetEventInfo(w http.ResponseWriter, r *http.Request) {
 		startTime.Unix(),
 		endTime.Unix(),
 	}
-	setEventInfo(rc, &evt)
+	setGameEventInfo(rc, &evt)
 
 	//out
 	lwutil.WriteResponse(w, "ok")
 }
 
-func httpGetEventInfo(w http.ResponseWriter, r *http.Request) {
+func httpGetGameEventInfo(w http.ResponseWriter, r *http.Request) {
 	lwutil.CheckMathod(r, "POST")
 
 	rc := redisPool.Get()
 	defer rc.Close()
 
-	evt, err := getEventInfo(rc)
+	session, err := findSession(w, r, rc)
+	lwutil.CheckError(err, "err_auth")
+
+	checkAdmin(session)
+
+	evt, err := getGameEventInfo(rc)
 	lwutil.CheckError(err, "")
 
 	beginTime := time.Unix(evt.StartTime, 0)
@@ -106,7 +112,59 @@ func httpGetEventInfo(w http.ResponseWriter, r *http.Request) {
 	lwutil.WriteResponse(w, evtHttp)
 }
 
+func httpGameEventClearLeaderboard(w http.ResponseWriter, r *http.Request) {
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	session, err := findSession(w, r, rc)
+	lwutil.CheckError(err, "err_auth")
+
+	checkAdmin(session)
+
+	evt, err := getGameEventInfo(rc)
+	lwutil.CheckError(err, "")
+
+	var out string
+
+	switch evt.EvtType {
+	case 1:
+		err = ClearLeaderboard(rc, "pvp")
+		out = "pvp leaderboard cleard"
+	default:
+		lwutil.SendError("", fmt.Sprintf("no leaderboard on this event type: %d", evt.EvtType))
+	}
+	lwutil.CheckError(err, "")
+	lwutil.WriteResponse(w, out)
+}
+
+func httpGameEventSendRewards(w http.ResponseWriter, r *http.Request) {
+	rc := redisPool.Get()
+	defer rc.Close()
+
+	session, err := findSession(w, r, rc)
+	lwutil.CheckError(err, "err_auth")
+
+	checkAdmin(session)
+
+	evt, err := getGameEventInfo(rc)
+	lwutil.CheckError(err, "")
+
+	var out string
+	switch evt.EvtType {
+	case 1:
+		err = leaderboardSendRewards(rc, "pvp")
+		lwutil.CheckError(err, "")
+		out = "Game event rewards send ok"
+	default:
+		lwutil.SendError("", fmt.Sprintf("no leaderboard on this event type: %d", evt.EvtType))
+	}
+
+	lwutil.WriteResponse(w, out)
+}
+
 func regGameEvent() {
-	http.Handle("/goapi/gameevent/set", lwutil.ReqHandler(httpSetEventInfo))
-	http.Handle("/goapi/gameevent/get", lwutil.ReqHandler(httpGetEventInfo))
+	http.Handle("/goapi/gameevent/set", lwutil.ReqHandler(httpSetGameEventInfo))
+	http.Handle("/goapi/gameevent/get", lwutil.ReqHandler(httpGetGameEventInfo))
+	http.Handle("/goapi/gameevent/clearleaderboard", lwutil.ReqHandler(httpGameEventClearLeaderboard))
+	http.Handle("/goapi/gameevent/sendrewards", lwutil.ReqHandler(httpGameEventSendRewards))
 }

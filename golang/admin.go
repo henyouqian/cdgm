@@ -8,11 +8,22 @@ import (
 	"time"
 )
 
+func checkAdmin(session *Session) {
+	if session.UserName != "admin" && session.UserName != "aa" {
+		lwutil.SendError("err_permission", "")
+	}
+}
+
 func httpGetAdminInfo(w http.ResponseWriter, r *http.Request) {
 	rc := redisPool.Get()
 	defer rc.Close()
 
-	evt, err := getEventInfo(rc)
+	session, err := findSession(w, r, rc)
+	lwutil.CheckError(err, "err_auth")
+
+	checkAdmin(session)
+
+	evt, err := getGameEventInfo(rc)
 	lwutil.CheckError(err, "")
 
 	beginTime := time.Unix(evt.StartTime, 0)

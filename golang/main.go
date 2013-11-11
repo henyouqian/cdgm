@@ -35,7 +35,7 @@ func test() {
 	//cards, err := createCards(12, protoAndLvs, 100, 0, "hahahaha")
 	//glog.Infoln(cards[0], err)
 
-	items := []wagonItemInfo{{8, 111}, {10, 222}}
+	items := []ItemInfo{{8, 111}, {10, 222}}
 	wagonAddItems(0, 12, items, "iiiiitems")
 }
 

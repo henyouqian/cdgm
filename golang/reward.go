@@ -48,7 +48,7 @@ func sendRewardsTask() {
 		protoAndLvs := make([]cardProtoAndLevel, 0, 64)
 
 		if reward.ObjId < 0 { //card
-			cardProto := uint32(reward.ObjId)
+			cardProto := uint32(-reward.ObjId)
 			for i := uint32(0); i < reward.Num; i++ {
 				protoAndLvs = append(protoAndLvs, cardProtoAndLevel{cardProto, 1})
 			}

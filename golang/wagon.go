@@ -60,12 +60,7 @@ func wagonAddCards(wagonIdx uint8, userId uint32, cardInfos []wagonCardInfo, des
 	return nil
 }
 
-type wagonItemInfo struct {
-	Id    uint8
-	Count uint16
-}
-
-func wagonAddItems(wagonIdx uint8, userId uint32, items []wagonItemInfo, desc string) error {
+func wagonAddItems(wagonIdx uint8, userId uint32, items []ItemInfo, desc string) error {
 	if len(items) == 0 {
 		return lwutil.NewErrStr("no items")
 	}
@@ -91,7 +86,7 @@ func wagonAddItems(wagonIdx uint8, userId uint32, items []wagonItemInfo, desc st
 		}
 
 		for _, item := range items {
-			_, err := stmt.Exec(userId, wagonIdx, item.Count, item.Id, desc)
+			_, err := stmt.Exec(userId, wagonIdx, item.Num, item.Id, desc)
 			if err != nil {
 				return lwutil.NewErr(err)
 			}

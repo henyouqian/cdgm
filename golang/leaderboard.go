@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/garyburd/redigo/redis"
+	"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
 )
 
@@ -13,15 +14,16 @@ const (
 	ORDER_DESC = Order("DESC")
 )
 
-func makeLeaderboardKey(in string) string {
-	return "leaderboard_result/" + in
+func makeLBResultKey(lbname string) string {
+	return "leaderboard_result/" + lbname
 }
 
-func GetScoreAndRank(key string, userid uint32, order Order) (score, rank uint32, err error) {
-	rc := redisPool.Get()
-	defer rc.Close()
+func makeLBResultPlayerKey(lbname string) string {
+	return "leaderboard_result_info/" + lbname
+}
 
-	key = makeLeaderboardKey(key)
+func GetScoreAndRank(rc redis.Conn, lbname string, userid uint32, order Order) (score, rank uint32, err error) {
+	key := makeLBResultKey(lbname)
 
 	rc.Send("zscore", key, userid)
 
@@ -63,6 +65,142 @@ func GetScoreAndRank(key string, userid uint32, order Order) (score, rank uint32
 
 	return
 }
+
+func ClearLeaderboard(rc redis.Conn, lbname string) error {
+	key0 := makeLBResultKey(lbname)
+	key1 := makeLBResultPlayerKey(lbname)
+
+	_, err := rc.Do("del", key0, key1)
+	return lwutil.NewErr(err)
+
+	//glog.Info("ClearLeaderboard")
+	return nil
+}
+
+func leaderboardSendRewards(rc redis.Conn, lbname string) error {
+	var rewardCsv []rowReward
+	var order Order
+	switch lbname {
+	case "pvp":
+		rewardCsv = tblPvpRankRewardsList
+		order = ORDER_DESC
+	}
+	if len(rewardCsv) == 0 {
+		return lwutil.NewErrStr("reward csv not found: lbname=" + lbname)
+	}
+
+	if order != ORDER_DESC && order != ORDER_ASC {
+		return lwutil.NewErrStr("invalid order: lbname=" + lbname)
+	}
+
+	//get max rank from csv
+	maxRank := uint32(0)
+	for _, v := range rewardCsv {
+		if v.RankTo > maxRank {
+			maxRank = v.RankTo
+		}
+	}
+
+	//
+	keyRes := makeLBResultKey(lbname)
+
+	if order == ORDER_ASC {
+		rc.Send("zrange", keyRes, 0, maxRank-1)
+	} else if order == ORDER_DESC {
+		rc.Send("zrevrange", keyRes, 0, maxRank-1)
+	}
+	rc.Flush()
+	playerIdValues, err := redis.Values(rc.Receive())
+	if err != nil {
+		return lwutil.NewErr(err)
+	}
+
+	//fixme: for test
+	testData := []interface{}{int64(24), int64(3663), int64(4), int64(5), int64(23), int64(64), int64(255), int64(567)}
+	playerIdValues = testData
+
+	rewardRowIdx := 0
+	rewardRowNum := len(rewardCsv)
+	for rankIdx, userIdRaw := range playerIdValues {
+		_userId, err := redis.Int(userIdRaw, nil)
+		if err != nil {
+			return lwutil.NewErr(err)
+		}
+		userId := uint32(_userId)
+
+		rank := uint32(rankIdx + 1)
+		for i := rewardRowIdx; i < rewardRowNum; i++ {
+			rewardRow := rewardCsv[i]
+			if rank >= rewardRow.RankFrom && rank <= rewardRow.RankTo {
+				rewards := make([]Reward, 0, 3)
+				if rewardRow.Reward1 != 0 {
+					reward1 := Reward{
+						rewardRow.Reward1,
+						rewardRow.Amount1,
+						userId,
+						STR_PVP_REWARD,
+					}
+					rewards = append(rewards, reward1)
+				}
+
+				if rewardRow.Reward2 != 0 {
+					reward2 := Reward{
+						rewardRow.Reward2,
+						rewardRow.Amount2,
+						userId,
+						STR_PVP_REWARD,
+					}
+					rewards = append(rewards, reward2)
+				}
+
+				if rewardRow.Reward3 != 0 {
+					reward3 := Reward{
+						rewardRow.Reward3,
+						rewardRow.Amount3,
+						userId,
+						STR_PVP_REWARD,
+					}
+					rewards = append(rewards, reward3)
+				}
+
+				//add cards and items
+				protoAndLvs := make([]cardProtoAndLevel, 0, 8)
+				items := make([]ItemInfo, 0, 8)
+				for _, rew := range rewards {
+					if rew.ObjId < 0 { //card
+						cardProto := uint32(-rew.ObjId)
+						for i := uint32(0); i < rew.Num; i++ {
+							protoAndLvs = append(protoAndLvs, cardProtoAndLevel{cardProto, 1})
+						}
+					} else { //item
+						items = append(items, ItemInfo{uint32(rew.ObjId), rew.Num})
+					}
+				}
+				if len(protoAndLvs) > 0 {
+					glog.Infoln("createCards", protoAndLvs)
+					//_, err := createCards(userId, protoAndLvs, 0, WAGON_INDEX_GENERAL, STR_PVP_REWARD)
+					//if err != nil {
+					//	return lwutil.NewErr(err)
+					//}
+				}
+				if len(items) > 0 {
+					glog.Infoln("wagonAddItems", items)
+					//err := wagonAddItems(WAGON_INDEX_GENERAL, userId, items, STR_PVP_REWARD)
+					//if err != nil {
+					//	return lwutil.NewErr(err)
+					//}
+				}
+
+				rewardRowIdx = i
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+//below are use new format in redis
 
 type LeaderboardInfo struct {
 	Name       string

@@ -483,10 +483,10 @@ func returnHomeInfo(w http.ResponseWriter, r *http.Request) {
 		currentTasks = append(currentTasks, task2)
 	}
 
-	score, rank, err := GetScoreAndRank("pvp", session.UserId, ORDER_DESC)
+	score, rank, err := GetScoreAndRank(rc, "pvp", session.UserId, ORDER_DESC)
 	lwutil.CheckError(err, "")
 
-	currGameEvent, err := getEventInfo(rc)
+	currGameEvent, err := getGameEventInfo(rc)
 	lwutil.CheckError(err, "")
 
 	var gameEvtRemainT int64

@@ -24,7 +24,7 @@ function Controller($scope, $http) {
 
 	function getAdminInfo() {
 		$.getJSON('/goapi/admin/getinfo', function(json){
-			var err = json.error;
+			var err = json.Error;
 			if (err){
 				errProc(err)
 			}else{
@@ -49,9 +49,41 @@ function Controller($scope, $http) {
 		$.post('/goapi/gameevent/set', 
 			data,
 			function(json){
-				alert(json)
+				if (json.Error) {
+					errProc(err)
+				} else {
+					alert(json)
+				}
 			}
 		)
+	}
+
+	$scope.clearLeaderboard = function() {
+		if(confirm("Clear Leaderboard?")) {
+			$.post('/goapi/gameevent/clearleaderboard', 
+				function(json){
+					if (json.Error) {
+						errProc(err)
+					} else {
+						alert(json)
+					}
+				}
+			)
+		}
+	}
+
+	$scope.sendReward = function() {
+		if(confirm("Send reward?")) {
+			$.post('/goapi/gameevent/sendrewards', 
+				function(json){
+					if (json.Error) {
+						errProc(err)
+					} else {
+						alert(json)
+					}
+				}
+			)
+		}
 	}
 
 	// items
@@ -77,7 +109,7 @@ function Controller($scope, $http) {
 
 	function errProc(err) {
 		alert(err)
-		if (err == "err_auth") {
+		if (err == "err_auth" || err == "err_permission") {
 			window.location.href="login.html?redirect=admin.html"
 		}
 	}
