@@ -26,4 +26,13 @@
 -- mysql
 * apt-get install mysql-server-5.5
 * no password
-* 
+* create database
+* use database
+* source sql/<every>.sql
+
+-- go
+* cd /tmp/
+* wget https://go.googlecode.com/files/go1.1.2.linux-amd64.tar.gz
+* tar xzf go1.1.2.linux-amd64.tar.gz
+* cd go/
+

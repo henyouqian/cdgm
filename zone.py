@@ -310,6 +310,16 @@ class Get(tornado.web.RequestHandler):
             score, rank = yield leaderboard.get_score_and_rank("pvp", userid, "DESC")
             
             cache = json.loads(cache)
+
+            # 
+            if cache["currPos"] == cache["goalPos"]:
+                cache["currPos"] = cache["lastPos"]
+                yield util.whdb.runOperation(
+                    """UPDATE playerInfos SET zoneCache=%s WHERE userid=%s"""
+                    ,(json.dumps(cache), userid)
+                )
+
+            # 
             client_cache = trans_cache_to_client(cache, isLastZone)
 
             reply = util.new_reply()
@@ -507,10 +517,12 @@ class Move(tornado.web.RequestHandler):
                 proto_levels = [[c, 1] for c in evt_cards]
                 cards = yield create_cards(userid, proto_levels, max_card_num, gamedata.WAGON_INDEX_TEMP)
 
+            cache["lastPos"] = last_pos
+
             # battle
             if monGrpId:
                 cache["monGrpId"] = monGrpId
-                cache["lastPos"] = last_pos
+                
                 row = mongrp_tbl.get_row(monGrpId)
                 catch_prob = float(mongrp_tbl.get_value(row, "catchable"))
                 for i in xrange(10):
