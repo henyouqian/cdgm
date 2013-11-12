@@ -74,7 +74,7 @@ func ClearLeaderboard(rc redis.Conn, lbname string) error {
 	return lwutil.NewErr(err)
 
 	//glog.Info("ClearLeaderboard")
-	return nil
+	//return nil
 }
 
 func leaderboardSendRewards(rc redis.Conn, lbname string) error {
@@ -115,9 +115,9 @@ func leaderboardSendRewards(rc redis.Conn, lbname string) error {
 		return lwutil.NewErr(err)
 	}
 
-	//fixme: for test
-	testData := []interface{}{int64(24), int64(3663), int64(4), int64(5), int64(23), int64(64), int64(255), int64(567)}
-	playerIdValues = testData
+	////fixme: for test
+	//testData := []interface{}{int64(24), int64(3663), int64(4), int64(5), int64(23), int64(64), int64(255), int64(567)}
+	//playerIdValues = testData
 
 	rewardRowIdx := 0
 	rewardRowNum := len(rewardCsv)
