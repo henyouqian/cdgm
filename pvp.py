@@ -934,7 +934,7 @@ class BattleResult(tornado.web.RequestHandler):
                 if foe_card:
                     battle_exp = int(card_tbl.get(foe_card["protoId"], "battleExp"))
                     add_exp += battle_exp
-            add_exp_per_card = add_exp/len(members)
+            add_exp_per_card = add_exp/len(members)*2
 
             if not is_win:
                 add_exp_per_card /= 2

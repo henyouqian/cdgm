@@ -4,6 +4,7 @@ import (
 	"fmt"
 	////"github.com/golang/glog"
 	"github.com/henyouqian/lwutil"
+	"net/http"
 	//"strconv"
 	//"strings"
 )
@@ -105,4 +106,12 @@ func wagonAddItems(wagonIdx uint8, userId uint32, items []ItemInfo, desc string)
 	}
 
 	return nil
+}
+
+func httpWagonList(w http.ResponseWriter, r *http.Request) {
+	lwutil.WriteResponse(w, nil)
+}
+
+func regWagon() {
+	http.Handle("/whapi/wagon/list", lwutil.ReqHandler(httpWagonList))
 }

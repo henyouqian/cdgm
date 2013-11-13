@@ -31,7 +31,6 @@ def isInstanceZone(zoneid):
         return True
     return False
         
-
 def gen_cache(zoneid, islastZone):
     tiles = plc_tbl.get_zone_data(zoneid)
     maprow = map_tbl.get_row(zoneid)
@@ -1057,7 +1056,25 @@ class Complete(tornado.web.RequestHandler):
             rwditems = []
             rwdcards = []
 
-            if last_zoneid == zoneid:
+            # instance zone
+            isNewInst = False
+            if isInstanceZone(zoneid):
+                try:
+                    instId, nextZoneId = map(int, inst_zone_tbl.gets(zoneid, "instanceID", "nextZoneID"))
+                except:
+                    pass
+                else:
+                    key = "lastInstZoneId/user=%d&inst=%d" % (userid, instId)
+                    lastInstZoneId = yield util.getkv(key)
+
+                    if not lastInstZoneId:
+                        lastInstZoneId = 0
+
+                    if nextZoneId > lastInstZoneId:
+                        isNewInst = True
+                        yield util.setkv(key, nextZoneId)
+
+            if last_zoneid == zoneid or isNewInst:
                 # find new zone id
                 num = int(zone_tbl.get(zoneid, "nextZoneId"))
                 if num and num > last_zoneid:
@@ -1065,7 +1082,7 @@ class Complete(tornado.web.RequestHandler):
 
                 # reward event
                 evtid = map_tbl.get_value(maprow, "rewardeventID")
-                if int(evtid):     
+                if int(evtid):
                     evtrow = evt_tbl.get_row(evtid)
 
                     ## reward items
@@ -1160,22 +1177,6 @@ class Complete(tornado.web.RequestHandler):
                                 if member in cardids:
                                     band["members"][idx] = None
                                     break
-
-            # instance zone
-            if isInstanceZone(zoneid):
-                try:
-                    instId, nextZoneId = map(int, inst_zone_tbl.gets(zoneid, "instanceID", "nextZoneID"))
-                except:
-                    pass
-                else:
-                    key = "lastInstZoneId/user=%d&inst=%d" % (userid, instId)
-                    lastInstZoneId = yield util.getkv(key)
-
-                    if not lastInstZoneId:
-                        lastInstZoneId = 0
-
-                    if nextZoneId > lastInstZoneId:
-                        yield util.setkv(key, nextZoneId)
 
             # db store
             yield util.whdb.runOperation(
