@@ -218,7 +218,14 @@ func newkv() {
 }
 
 func lab() {
+	lwutil.KvStart(redisPool)
 
+	lwutil.KvPut(lwutil.Kv{"aa", "liwei"}, lwutil.Kv{"bb", "haili"})
+	replies, _ := lwutil.KvGet("aa", "bb")
+
+	var aa, bb string
+	err := lwutil.KvScan(replies, &aa, &bb)
+	glog.Infoln(replies, aa, bb, err)
 }
 
 func labRedis(w http.ResponseWriter, r *http.Request) {
