@@ -106,6 +106,7 @@ func wagonAddItems(wagonIdx uint8, userId uint32, items []ItemInfo, desc string)
 	}
 
 	return nil
+
 }
 
 func httpWagonList(w http.ResponseWriter, r *http.Request) {
